@@ -1,12 +1,13 @@
 Metadata-Version: 2.1
 Name: pcat
 Version: 1.0
-Summary: plot toolbox
+Summary: plot for catalysis
 Home-page: None
 Author: Changzhi Ai
 Author-email: changai@dtu.dk
 License: MIT
 Platform: UNKNOWN
+License-File: LICENSE
 
 UNKNOWN
 
