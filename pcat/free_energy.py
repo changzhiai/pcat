@@ -11,6 +11,7 @@ from matplotlib.pyplot import cm
 import numpy as np
 from matplotlib.ticker import FormatStrFormatter
 from pcat.utils.styles import ColorDict
+from typing import List
 import logging
 logging.basicConfig(level=logging.DEBUG, format='\n(%(asctime)s) \n%(message)s')
 logging.getLogger('matplotlib.font_manager').disabled = True
@@ -21,9 +22,9 @@ class CO2RRFEDplot:
     
     Parameters:
         
-    step_names: str
+    step_names: list, str
         names of columns (steps)
-    obser_names: str
+    obser_names: list, str
         names of rows (observations)
     X: float
         data for CO2RR free energy plot
@@ -34,8 +35,11 @@ class CO2RRFEDplot:
     DefaultColor: list
         default color of curve
     """
-    def __init__(self, step_names, obser_names, X, fig_name, info=True):
-        # plot parameters
+    def __init__(self, step_names: List[str], 
+                 obser_names: List[str], 
+                 X: np.ndarray, 
+                 fig_name: str,
+                 info=True) -> None:
         self.step_names = step_names
         self.obser_names = obser_names
         self.X = X
@@ -94,8 +98,8 @@ class CO2RRFEDplot:
         pos = self.diagram.plot(xtickslabel = self.step_names, stepLens=len(self.step_names), ax=axFree, ratio=ratio, ymin=ymin, ymax=ymax) # this is the default ylabel
         if ymin != None and ymax != None:
             plt.ylim(ymin, ymax)
+        
         # add legend
-        # for specis in range(len(self.obser_names)):
         for i, specis in enumerate(self.obser_names):
             try:
                 plt.hlines(0.1, pos[0], pos[0], color=self.ColorDict[specis], label= specis)

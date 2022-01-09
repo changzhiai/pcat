@@ -11,6 +11,7 @@ import matplotlib.pyplot as plt
 from matplotlib.ticker import FormatStrFormatter
 import numpy as np
 from pcat.utils.styles import ColorDict
+from typing import List
 import logging
 logging.basicConfig(level=logging.DEBUG, format='\n(%(asctime)s) \n%(message)s')
 logging.getLogger('matplotlib.font_manager').disabled = True
@@ -31,7 +32,10 @@ class ScalingRelationPlot:
     DefaultColor: list
         default color of curve
     """
-    def __init__(self, descriper1, descriper2, obser_names, fig_name):
+    def __init__(self, descriper1: List[float], 
+                 descriper2: List[float], 
+                 obser_names: List[str], 
+                 fig_name: str) -> None:
         # plot parameters
         self.descriper1 = descriper1
         self.descriper2 = descriper2
