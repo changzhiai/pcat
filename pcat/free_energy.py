@@ -12,7 +12,7 @@ import numpy as np
 from matplotlib.ticker import FormatStrFormatter
 from pcat.utils.styles import ColorDict
 import logging
-logging.basicConfig(level=logging.DEBUG, format='(%(asctime)s) %(message)s')
+logging.basicConfig(level=logging.DEBUG, format='\n(%(asctime)s) \n%(message)s')
 logging.getLogger('matplotlib.font_manager').disabled = True
 # logging.disable()
 
@@ -123,7 +123,7 @@ class CO2RRFED(CO2RRFEDplot):
         self.X = df.values
         self.fig_name = fig_name
         super().__init__(self.step_names, self.obser_names, self.X, self.fig_name, info=False)
-        logging.debug(f'loaded free energy table: \n {df}')
+        logging.debug(f'Loaded free energy table: \n {df}')
 
 class HERFED:
     """Class for HER free energy diagram without TS data

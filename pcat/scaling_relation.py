@@ -12,7 +12,7 @@ from matplotlib.ticker import FormatStrFormatter
 import numpy as np
 from pcat.utils.styles import ColorDict
 import logging
-logging.basicConfig(level=logging.DEBUG, format='%(asctime)s - %(message)s')
+logging.basicConfig(level=logging.DEBUG, format='\n(%(asctime)s) \n%(message)s')
 logging.getLogger('matplotlib.font_manager').disabled = True
 
 class ScalingRelationPlot:
@@ -123,10 +123,10 @@ class ScalingRelationPlot:
         
 class ScalingRelation(ScalingRelationPlot):
     """New version of CO2RR scaling relation using panda, and thus less varalbe would be used"""
-    def __init__(self, df,descriper1, descriper2, fig_name):
+    def __init__(self, df, descriper1, descriper2, fig_name):
         self.descriper1 = df[descriper1]
         self.descriper2 = df[descriper2]
         self.obser_names = df.index
         self.fig_name = fig_name
         super().__init__(self.descriper1, self.descriper2, self.obser_names, self.fig_name)
-        logging.debug(f'loaded scaling relation table: \n {df}')
+        logging.debug(f'Loaded scaling relation table: \n{df}')
