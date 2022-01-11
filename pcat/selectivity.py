@@ -35,7 +35,7 @@ class SelectivityPlot:
         # self.DefaultColor=cm.rainbow(np.linspace(0,1,len(self.obser_names)))
         
     
-    def plot(self, title='', save = False, ymin=None, ymax=None):
+    def plot(self, title='', save = False, ymin=None, ymax=None,xlabel='Doping elements', tune_tex_pos=1.5, legend=True):
         """Plot formation energy"""
         
         color_list = ['k', 'lime', 'r', 'b', 'darkcyan', 'cyan', 'olive', 'magenta', 'pink', 'gray', 'orange', 'purple', 'g']
@@ -45,13 +45,14 @@ class SelectivityPlot:
         
         for i in range(len(self.type_names)):    
             plt.plot(x, self.X[:,i], 'o', color=color_list[i])  #plot dots
-           
-        plt.legend(self.type_names, framealpha=0.5, fontsize=12,  edgecolor='grey')
+          
+        if legend == True:
+            plt.legend(self.type_names, framealpha=0.5, fontsize=12,  edgecolor='grey')
+            
         plt.axhline(y=0, color='r', linestyle='--')
-        
         # plt.xlim([-0.3, 23.5])
         plt.ylim([-2.5, 2.5])
-        plt.xlabel('Doping elements', fontsize=16)
+        plt.xlabel(xlabel, fontsize=16)
         plt.ylabel('$\Delta G_{HOCO*}$-$\Delta G_{H*}$', fontsize=16)
         ax = fig.gca()
         ax.set_xticks(x)
@@ -62,12 +63,12 @@ class SelectivityPlot:
         for axis in ['top','bottom','left','right']:
             ax.spines[axis].set_linewidth(1.2) # linewith of frame
         
-            
-        plt.arrow(x=23, y=0, dx=0, dy=2, width=.4, head_width=0.8, head_length=0.3, color='grey') 
-        plt.annotate('HER', xy = (22, 1), rotation=90, fontsize=14, color='grey')
+        max_x = len(self.obser_names)
+        plt.arrow(x=max_x, y=0, dx=0, dy=2, width=.4, head_width=0.8, head_length=0.3, color='grey') 
+        plt.annotate('HER', xy = (max_x-tune_tex_pos, 1), rotation=90, fontsize=14, color='grey')
         
-        plt.arrow(x=23, y=0, dx=0, dy=-2, width=.4, head_width=0.8, head_length=0.3, color='grey') 
-        plt.annotate('CO$_2$RR', xy = (22, -1.5), rotation=90, fontsize=14, color='grey')
+        plt.arrow(x=max_x, y=0, dx=0, dy=-2, width=.4, head_width=0.8, head_length=0.3, color='grey') 
+        plt.annotate('CO$_2$RR', xy = (max_x-tune_tex_pos, -1.5), rotation=90, fontsize=14, color='grey')
         plt.show()
         
         if save:
