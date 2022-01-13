@@ -12,6 +12,11 @@ from pcat.lib.kinetic_model import CO2toCO
 from matplotlib import rc
 import pcat.utils.constants as cons
 from pcat.lib.io import pd_read_excel
+import pandas as pd
+import logging
+logging.basicConfig(level=logging.DEBUG, format='\n(%(asctime)s) \n%(message)s')
+logging.getLogger('matplotlib.font_manager').disabled = True
+
 # rc('font', **{'family':'sans-serif','sans-serif':['Helvetica'], 'size':8})
 
 class Activity:
@@ -19,6 +24,24 @@ class Activity:
     
     BEEF-vdw correction
     
+    Parameters
+    
+    descriper1: str
+        one column for x axis
+    descriper1: str
+        one column for y axis
+    fig_name: str
+        figure name to be saved
+    U0: float
+        applied potential (v)
+    T0: float
+        applied temperature (K)
+    pCO2g: float
+        partial pressure for CO2 gas
+    pCOg: float
+        partial pressure for CO gas
+    pH2Og: float
+        partial pressure for H2O gas
     Gact*: float
         activative free energy
     cHp0: float
@@ -26,17 +49,27 @@ class Activity:
     UHE0 or URHE0: float
         potential shifted by pH or concentraion of H proton
     nu_e: float
-        pre-exponential factor
+        pre-exponential factor for k1 and k2 (depatched)
     ne_c: float 
-        common pre-exponential factor
+        common pre-exponential factor for k3
     A_prior: float
-        pre-exponential factor used here
+        pre-exponential factor used here for k1 and k2
         
     """
     
     
-    def __init__(self, df, descriper1 = '*HOCO', descriper2 = '*CO', 
-                 U0=-0.3, T0=297.15, pCO2g = 1., pCOg=0.005562, pH2Og = 1., cHp0 = 10.**(-0.), Gact=0.2, p_factor = 3.6 * 10**4):
+    def __init__(self, df, 
+                 descriper1 = 'E(*CO)',
+                 descriper2 = 'E(*HOCO)', 
+                 fig_name = 'activity.jpg',
+                 U0=-0.3, 
+                 T0=297.15, 
+                 pCO2g = 1., 
+                 pCOg=0.005562, 
+                 pH2Og = 1., 
+                 cHp0 = 10.**(-0.), 
+                 Gact=0.2, 
+                 p_factor = 3.6 * 10**4):
         
         global G_H2g
         global G_CO2g
@@ -75,13 +108,20 @@ class Activity:
         
         self.df = df
         self.descriper1 = descriper1
-        self.descriper2 = descriper2
+        self.descriper2 = descriper2   
+        self.fig_name = fig_name
         
-        # global tc0, tc1, tc2
+        global UHER0, URHE0
         global A_act1, A_act2
         global G_1act_cap, G_2act_cap
         global A_prior
-        global UHER0, URHE0
+        UHER0 = URHE0 = kB * T0 * np.log(cHp0)   # introduced to shift the plotted potential window to the relevant range w
+        Gact1 = Gact2 = Gact # activative free energy 0.475
+        A_act1 = np.exp( - Gact1 / ( kB * T0 ) ) # 
+        A_act2 = np.exp( - Gact2 / ( kB * T0 ) ) # electrochemical prefactor, fitting
+        G_1act_cap = -Gact1
+        G_2act_cap = -Gact2
+        A_prior = p_factor
         
         # U0 = applied_p # applied potential vs. she
         self.T0 = T0 # 297.15, higher 370
@@ -92,14 +132,6 @@ class Activity:
         self.cHp = cHp0 #1.
         self.nu_e = kB * T0 / hplanck
         self.nu_c = 1.e13
-        UHER0 = URHE0 = kB * T0 * np.log(cHp0)   # introduced to shift the plotted potential window to the relevant range w
-        Gact1 = Gact2 = Gact # activative free energy 0.475
-        A_act1 = np.exp( - Gact1 / ( kB * T0 ) ) # 
-        A_act2 = np.exp( - Gact2 / ( kB * T0 ) ) # electrochemical prefactor, fitting
-        G_1act_cap = -Gact1
-        G_2act_cap = -Gact2
-        A_prior = p_factor
-        
         
     def get_K1(self, Eb_HOCO, U, T):
         """ K1 using HOCO binding
@@ -144,6 +176,23 @@ class Activity:
         K3 = exp( - dG * beta )
         return K3
     
+    def verify_BE2FE(self):
+        """Verify if it is right from binding energy to free energy of three steps
+        Eb_HOCO, ddG_HOCO, Eb_CO, ddG_CO, G_CO2g, G_H2g, G_H2Og, G_COg"""
+        Eb_CO = (self.df[self.descriper1]).values
+        Eb_HOCO = (self.df[self.descriper2]).values
+        obser_names = (self.df.index).values
+        G1 = Eb_HOCO + ddG_HOCO
+        G2 = Eb_CO + ddG_CO - Eb_HOCO - ddG_HOCO - G_CO2g - G_H2g + G_H2Og + G_COg
+        G3 = - (Eb_CO + ddG_CO)
+        tuples = {'Surface': obser_names,
+                  'G_step1': G1,
+                  'G_step2': G1+G2,
+                  'G_step3': G1+G2+G3,
+                  }
+        df_all_FE = pd.DataFrame(tuples)
+        logging.debug(f'Transform binding energy to free energy of three steps:\n{df_all_FE}')
+    
     def get_k1(self, nu, Eb_HOCO, U, T, tc):
         """ k1 using HOCO binding (vs CO2 and H2)
         """
@@ -176,7 +225,8 @@ class Activity:
         dE = max(dE,0)
         k3 = nu * exp( - dE * beta )
         return k3
-    
+        
+        
     def get_rates(self, nu_e, nu_c, Eb_HOCO, Eb_CO, U, T, tc1, tc2, tc0):
         """ Returns rate constants and equilibirum constants,
         """
@@ -188,64 +238,67 @@ class Activity:
         k3 = self.get_k3(nu_c, Eb_CO, U, T=T, tc=tc0)
         return k1, K1, k2, K2, k3, K3
     
-    def plot_scaling_rev(self, fig, ax, contours, Eb_CO_e, Eb_HOCO_e, subtitle=''):
-        EHOCO_d = (self.df[self.descriper1]).values
-        ECO_d = (self.df[self.descriper2]).values
+    def plot_scaling_rev(self, ax, contours, Eb_CO_model, Eb_HOCO_model, title='', subtitle=''):
+        """Plot scaling relation but slope is inverse in order to correspond to previous scaling relation"""
+        
+        Eb_CO_d = (self.df[self.descriper1]).values
+        Eb_HOCO_d = (self.df[self.descriper2]).values
         obser_names = (self.df.index).values
         
         for i,obser_name in enumerate(obser_names):
-            plt.plot(ECO_d[i], EHOCO_d[i], 'o', color='white') 
-            plt.text(ECO_d[i], EHOCO_d[i]+0.05, obser_name, fontsize=12, horizontalalignment='center', verticalalignment='bottom', color='white')
+            plt.plot(Eb_CO_d[i], Eb_HOCO_d[i], 'o', color='white') 
+            plt.text(Eb_CO_d[i], Eb_HOCO_d[i]+0.05, obser_name, fontsize=12, horizontalalignment='center', verticalalignment='bottom', color='white')
         
+        m, b = np.polyfit(Eb_HOCO_d, Eb_CO_d, 1)
+        plt.axline(( Eb_CO_d[0], Eb_CO_d[0]/m-b/m), slope=1/m, color='white')
+        # plt.plot(self.descriper2, m * self.descriper2 + b, linewidth=2, color=linecolor)
         
-        m, b = np.polyfit(EHOCO_d, ECO_d, 1)
-        plt.axline(( ECO_d[0], ECO_d[0]/m-b/m), slope=1/m, color='white')
-        # plt.plot(self.descriper1, m * self.descriper1 + b, linewidth=2, color=linecolor)
-        
-        plt.xlim([min(ECO_d)-0.2, max(ECO_d)+0.2])
-        plt.ylim([min(EHOCO_d)-0.1, max(EHOCO_d)+0.1])
-        ax.tick_params(labelsize=12) #tick label font size
-        # plt.title(text[index], fontsize=14,)
+        plt.xlim([min(Eb_CO_d)-0.2, max(Eb_CO_d)+0.2])
+        plt.ylim([min(Eb_HOCO_d)-0.1, max(Eb_HOCO_d)+0.1])
+        ax.tick_params(labelsize=12) # tick label font size
+        plt.title(title, fontsize=14,)
         plt.text(0.05, 0.93, subtitle, horizontalalignment='left', verticalalignment='center', transform=ax.transAxes, fontsize=14, color='white', fontweight='bold')        
         plt.xlabel(r'$E_{\mathrm{CO}}$ (eV)', fontsize=14,)
         plt.ylabel(r'$E_{\mathrm{HOCO}}$ (eV)', fontsize=14,)
         bar = plt.colorbar(ticks=np.arange(min(contours), max(contours), 0.5))
         bar.ax.tick_params(labelsize=10)
         bar.set_label(r'log$_{10}$(j/$\mu$Acm$^{-2}$)', fontsize=14,)
-            
+        """add figure index in front of figure"""
         # import string
         # ax.text(-0.17, 0.97, string.ascii_lowercase[index], transform=ax.transAxes, size=20, weight='bold')
         # import pdb; pdb.set_trace()
         
     
-    def plot(self, ):
-        # global T0
-        # global tc0, tc1, tc2
-        # global A_act1, A_act2
-        # global G_1act_cap, G_2act_cap
-        # global A_prior
-        # global UHER0, URHE0
+    def plot(self, save=True, TOF_to_j=47.96):
+        """Old version
+        global T0
+        global tc0, tc1, tc2
+        global A_act1, A_act2
+        global G_1act_cap, G_2act_cap
+        global A_prior
+        global UHER0, URHE0
         
-        # U0 = applied_p # applied potential vs. she
-        # T0 = temp # 297.15, higher 370
-        # UHER0 = URHE0 = kB * T0 * np.log(cHp0)   # introduced to shift the plotted potential window to the relevant range w
-        # U = U0 + UHER0
+        U0 = applied_p # applied potential vs. she
+        T0 = temp # 297.15, higher 370
+        UHER0 = URHE0 = kB * T0 * np.log(cHp0)   # introduced to shift the plotted potential window to the relevant range w
+        U = U0 + UHER0
         
-        # pCO2g = pCO2g
-        # pCOg =  pCOg
-        # pH2Og = pH2Og
-        # cHp = cHp0 #1.
+        pCO2g = pCO2g
+        pCOg =  pCOg
+        pH2Og = pH2Og
+        cHp = cHp0 #1.
         
-        # nu_e = kB * T0 / hplanck
-        # nu_c = 1.e13
-        # Gact1 = Gact2 = Gact # activative free energy 0.475
-        # A_act1 = np.exp( - Gact1 / ( kB * T0 ) ) # 
-        # A_act2 = np.exp( - Gact2 / ( kB * T0 ) ) # electrochemical prefactor, fitting
-        # G_1act_cap = -Gact1
-        # G_2act_cap = -Gact2
+        nu_e = kB * T0 / hplanck
+        nu_c = 1.e13
+        Gact1 = Gact2 = Gact # activative free energy 0.475
+        A_act1 = np.exp( - Gact1 / ( kB * T0 ) ) # 
+        A_act2 = np.exp( - Gact2 / ( kB * T0 ) ) # electrochemical prefactor, fitting
+        G_1act_cap = -Gact1
+        G_2act_cap = -Gact2
         
-        # tc0 = tc1 = tc2 = 0.5 # transfer coefficiency
-        # A_prior = p_factor
+        tc0 = tc1 = tc2 = 0.5 # transfer coefficiency
+        A_prior = p_factor
+        """
         
         T0 = self.T0
         U = self.U
@@ -257,24 +310,23 @@ class Activity:
         nu_c = self.nu_c
         
         tc0 = tc1 = tc2 = 0.5 # transfer coefficiency
+        TOF_to_j = TOF_to_j
         
         N, M = 20*4, 20*4
         R = np.empty([M,N])
         Thetas = np.empty([M,N,3])
-        # Eb_HOCO_e = np.linspace(-0.8, 1.45, M)
-        # Eb_CO_e = np.linspace(-2.2, 0.6, N)
         
-        EHOCO_d = (self.df[self.descriper1]).values
-        ECO_d = (self.df[self.descriper2]).values
-        Eb_CO_e = np.linspace(min(ECO_d)-0.2, max(ECO_d)+0.2, N)
-        Eb_HOCO_e = np.linspace(min(EHOCO_d)-0.1, max(EHOCO_d)+0.1, M)
-        # Eb_CO_e = np.linspace(-1.8, 1., N)
-        # Eb_HOCO_e = np.linspace(-1.2, 1.8, M)
+        Eb_CO_d = (self.df[self.descriper1]).values
+        Eb_HOCO_d = (self.df[self.descriper2]).values
+        Eb_CO_model = np.linspace(min(Eb_CO_d)-0.2, max(Eb_CO_d)+0.2, N)
+        Eb_HOCO_model = np.linspace(min(Eb_HOCO_d)-0.1, max(Eb_HOCO_d)+0.1, M)
+        # Eb_CO_model = np.linspace(-1.8, 1., N)
+        # Eb_HOCO_model = np.linspace(-1.2, 1.8, M)
         
         jmax = 10.0e3 # exptl current plateau's at 10 mA/cm2 
         jmin = 0.1
-        for j, Eb_CO in enumerate(Eb_CO_e):
-            for i, Eb_HOCO in enumerate(Eb_HOCO_e):
+        for j, Eb_CO in enumerate(Eb_CO_model):
+            for i, Eb_HOCO in enumerate(Eb_HOCO_model):
                 k1, K1, k2, K2, k3, K3 = self.get_rates(nu_e, nu_c, Eb_HOCO, Eb_CO, U, T0, tc1, tc2, tc0)
                 rm = CO2toCO(pCO2g, pCOg, pH2Og, cHp, k1, K1, k2, K2, k3, K3)
                 # rm = CO2toCO(pCO2g, pCOg, pH2Og, cOHm, k1, K1, k2, K2, k3, K3, T0)
@@ -282,16 +334,16 @@ class Activity:
                 # print(rates)
                 rate = min(jmax, rates[0])
                 rate = max(jmin, rate)
-                R[i,j] = np.log10(rate*47.96) # TOF to current
+                R[i,j] = np.log10(rate*TOF_to_j) # TOF to current
                 Thetas[i,j,:] = thetas
         
-        
-        fig = plt.figure(figsize=(8, 6), dpi = 100)
+        fig = plt.figure(figsize=(9, 6), dpi = 150)
         ax = plt.subplot(111)
-        contours = np.linspace(np.log10(jmin*47.96), np.log10(jmax*47.96), 11) 
-        plt.contourf(Eb_CO_e, Eb_HOCO_e, R, contours, cmap=plt.cm.jet) # plot countour
-        self.plot_scaling_rev(fig, ax, contours, Eb_CO_e, Eb_HOCO_e, )
+        contours = np.linspace(np.log10(jmin*TOF_to_j), np.log10(jmax*TOF_to_j), 11) 
+        plt.contourf(Eb_CO_model, Eb_HOCO_model, R, contours, cmap=plt.cm.jet) # plot countour
+        self.plot_scaling_rev(ax, contours, Eb_CO_model, Eb_HOCO_model)
+        plt.show()
         
-        # # fig.tight_layout()
-        # plt.savefig('./paper1/Rate_vs_HOCO_CO.png', dpi=300, bbox_inches='tight')    
-        # plt.show()
+        if save == True:
+            fig.savefig(self.fig_name, dpi=300, bbox_inches='tight')    
+        

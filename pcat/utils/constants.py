@@ -30,6 +30,7 @@ Gcor_OH = 0.355 + 0.056 - 0.103 # eV
 
 ddG_HOCO = 0.414
 ddG_CO =  0.456
+# ddG_CO = 0.579
 """
 ddG_HOCO explanation:
     ddG_HOCO is the correction for the whole first equations, not for only *HOCO
