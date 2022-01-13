@@ -39,7 +39,7 @@ def selectivity():
     df = pd_read_excel(filename='./data/data.xlsx', sheet='selectivity')
     df.set_axis(['Single', 'Dimer', 'Triangle', 'Parall.', 'Island', 'Overlayer'], axis='columns', inplace=True)
     selectivity = Selectivity(df, fig_name='./figures/Selectivity_example.jpg')
-    selectivity.plot(save=True, title='')
+    selectivity.plot(save=True, title='', tune_tex_pos=0.8)
 
 if __name__ == '__main__':
     selectivity()
