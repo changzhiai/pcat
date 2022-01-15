@@ -15,7 +15,7 @@ import pickle
 import matplotlib.pyplot as plt 
 import matplotlib as mpl
 from mpl_toolkits.mplot3d.art3d import Poly3DCollection
-mpl.rcParams['savefig.dpi'] = 100
+mpl.rcParams['savefig.dpi'] = 300
 mpl.rcParams['font.size'] = 8
 mpl.use('TkAgg')
 
@@ -99,7 +99,9 @@ def get_candidates(pts, db_name='results_last.db', db_cand_name='candidates.db')
     """Get candidates on vertex of convex hull
     
     Parameters
-    
+
+    pts: array(n, 3)
+        each formation energy corresponding to each 2d concentration. | cons_Pd | cons_H | form_energies |
     db_name: str
         database name of structures of the lowest energy in each concentration
     db_cand_name: str
@@ -119,7 +121,11 @@ def get_candidates(pts, db_name='results_last.db', db_cand_name='candidates.db')
         db_cand.write(row)
 
 def plot_convex_hull_ref_metals_3d_line(pts):
-    """Convex hull in the style of 3d line"""
+    """Convex hull in the style of 3d line
+    
+    pts: array(n, 3)
+        each formation energy corresponding to each 2d concentration. | cons_Pd | cons_H | form_energies |
+    """
     hull = ConvexHull(pts)
     fig = plt.figure()
     ax = fig.add_subplot(111, projection="3d")
@@ -146,7 +152,11 @@ def plot_convex_hull_ref_metals_3d_line(pts):
         f.write(html_string) 
 
 def plot_convex_hull_ref_metals_3d_plane(pts):
-    """Convex hull in the style of 3d plane"""
+    """Convex hull in the style of 3d plane
+    
+    pts: array(n, 3)
+        each formation energy corresponding to each 2d concentration. | cons_Pd | cons_H | form_energies |
+    """
     hull = ConvexHull(pts)
     fig = plt.figure()
     ax = fig.add_subplot(111, projection="3d")
@@ -172,7 +182,11 @@ def plot_convex_hull_ref_metals_3d_plane(pts):
     # plt.savefig('plot_convex_hull_ref_metals_3d_plane.png')
 
 def plot_convex_hull_ref_metals_3d_poly(pts):
-    """Convex hull in the style of 3d polygon"""
+    """Convex hull in the style of 3d polygon
+    
+    pts: array(n, 3)
+        each formation energy corresponding to each 2d concentration. | cons_Pd | cons_H | form_energies |
+    """
     hull = ConvexHull(pts)
     fig = plt.figure()
     ax = fig.add_subplot(111, projection="3d")
@@ -194,7 +208,11 @@ def plot_convex_hull_ref_metals_3d_poly(pts):
 
 
 def plot_2d_contour(pts, vertices=True):
-    """Projection 3d convex hull to 2d contour"""
+    """Projection 3d convex hull to 2d contour
+    
+    pts: array(n, 3)
+        each formation energy corresponding to each 2d concentration. | cons_Pd | cons_H | form_energies |
+    """
     ax = plt.figure()
     # scat = plt.contourf(pts[:,0], pts[:,1], pts[:,2], cmap=plt.cm.jet)
     # scat = plt.scatter(pts[:,0], pts[:,1], c=pts[:,2], marker='o', cmap="viridis")
@@ -210,9 +228,19 @@ def plot_2d_contour(pts, vertices=True):
     bar.set_label(r'Formation energy (eV/atom)', fontsize=12,)
     plt.title(str(pts.shape[0]) + ' data points')
     plt.xlim([0, 1])
+    ticks = []
+    # set ticks
+    for each in range(65):
+        a = round(each/64, 2)
+        b = each
+        if each%2 == 0:
+            ticks.append(format(a,'.2f')+' ('+str(b)+')')
+    plt.xticks(np.arange(0, 65, 2)/64, ticks, rotation ='vertical')
+    plt.yticks(np.arange(0, 65, 2)/64, ticks)
     plt.ylim([0, 1])
-    plt.xlabel('Concentration of Pd')
-    plt.ylabel('Concentration of H')
+    plt.xlabel('Concentration of Pd', fontsize=12,)
+    plt.ylabel('Concentration of H', fontsize=12,)
+    ax.tight_layout()
     plt.show()
     ax.savefig('2d_contour.png')
 
@@ -250,7 +278,14 @@ def get_y_range(pts):
     return y_min, y_max
 
 def convex_hull_stacking_subplots(pts, fix_ele='H', metal_obj='Ti'):
-    """Plot stacking convex hull in 2d"""
+    """Plot stacking convex hull in 2d
+    
+    pts: dict
+        each key corresponding to each concentration of Pd
+        for example:
+            key: x, value: | x | cons_H | form_energies | ids | clease_es |
+                           | x | ...... | ............. | ... | ......... |
+    """
     fig = plt.figure(figsize=(16,16))
     M = 8
     N = 9
@@ -281,19 +316,24 @@ def convex_hull_stacking_subplots(pts, fix_ele='H', metal_obj='Ti'):
     plt.show()
     fig.savefig('stacking_subplots_{}'.format(fix_ele))
 
-def dct_to_array(pts_dict):
+def dct_to_array(pts_dict, all_cols=False):
     """Dictionay format to 3d array"""
     pts = np.zeros((0,5))
     for k, v in pts_dict.items():
         pts = np.concatenate((pts, v), axis=0)
-    pts = pts[:,0:3].astype(np.float32)
+    if all_cols==False:
+        pts = pts[:,0:3].astype(np.float32)
     return pts
 
 def get_chem_pot_H_continuous_cons(pts, num_metal_obj=0):
     """
     specific at PdHx
 
-    X H form
+    pts: dict
+        each key corresponding to each concentration of Pd
+        for example:
+            key: x, value: | x | cons_H | form_energies | ids | clease_es |
+                           | x | ...... | ............. | ... | ......... |
     """
     alloy_Hx = pts[num_metal_obj]  # PdHx
     Etot = alloy_Hx[:,4].astype(np.float32)
@@ -320,13 +360,18 @@ def get_chem_pot_H_vertices(pts, fix_ele, metal_obj, db_name, num_metal_obj=0, s
     """
     specific at PdHx
 
-    X H form ids pot_E
+    pts: dict
+        each key corresponding to each concentration of Pd
+        for example:
+            key: 1, value: | 1 | cons_H | form_energies | ids | clease_es |
+                           | 1 | ...... | ............. | ... | ......... |
+        note: when num_metal_obj=0, pts should be pts_rev
     """
     pts = pts[num_metal_obj]  # PdHx
     if fix_ele == 'H':
         col1 = pts[:,0].astype(np.float32)
         col2 = pts[:,2].astype(np.float32)
-    elif fix_ele == metal_obj:
+    elif fix_ele == metal_obj: # pts_rev
         col1 = pts[:,1].astype(np.float32)
         col2 = pts[:,2].astype(np.float32)
     points = np.column_stack((col1, col2))
@@ -350,7 +395,7 @@ def get_chem_pot_H_vertices(pts, fix_ele, metal_obj, db_name, num_metal_obj=0, s
     for i in range(len(Etot)-1):
         dyf[i] = (Etot[i+1] - Etot[i])/((Hcons[i+1]-Hcons[i])*64)
         # print(Etot[i])
-    #set last element by backwards difference
+    # set last element by backwards difference
     dyf[-1] = (Etot[-1] - Etot[-2])/((Hcons[-1] - Hcons[-2])*64)
     # print(dyf)
     plt.figure()
@@ -360,8 +405,13 @@ def get_chem_pot_H_vertices(pts, fix_ele, metal_obj, db_name, num_metal_obj=0, s
     plt.show()
 
 def get_chem_pot_H_2d_contour(pts):
-    """
-    X H form
+    """Use points in each 2d concentration to get chemical potentials
+
+    pts: dict
+        each key corresponding to each concentration of Pd
+        for example:
+            key: x, value: | x | cons_H | form_energies | ids | clease_es |
+                           | x | ...... | ............. | ... | ......... |
     """
     Pdxcons = []
     Hycons = []
@@ -395,8 +445,13 @@ def get_chem_pot_H_2d_contour(pts):
     plt.show()
 
 def get_chem_pot_H_vertices_2d_contour(pts, fix_ele='Ti', metal_obj='Ti'):
-    """
-    X H form ids E_pot
+    """Only use points in vetices to get chemical potentials
+
+    pts: dict
+        each key corresponding to each concentration of Pd
+        for example:
+            key: x, value: | x | cons_H | form_energies | ids | clease_es |
+                           | x | ...... | ............. | ... | ......... |
     """
     Pdxcons = []
     Hycons = []
@@ -439,7 +494,7 @@ def get_chem_pot_H_vertices_2d_contour(pts, fix_ele='Ti', metal_obj='Ti'):
     plt.show()
 
 def collect_array_all_data(energy_ref_eles, db_name='results.db', data_name='data_tot.npy', eles=['Pd', 'Ti', 'H']):
-    """get all data in array format, otherwise get the late one
+    """Get all data in array format
     
     Parameters: 
     
@@ -487,7 +542,7 @@ def collect_array_all_data(energy_ref_eles, db_name='results.db', data_name='dat
     # plot_convex_hull_ref_metals_3d_plane(pts=pts)
 
 def collec_array_last_data(energy_ref_eles, db_name='results_last.db', data_name='data_last.npy', eles=['Pd', 'Ti', 'H']):
-    """get the last one in numpy array format.
+    """Only get the last one in numpy array format.
     
     Not recommended
     
@@ -533,14 +588,15 @@ def collec_array_last_data(energy_ref_eles, db_name='results_last.db', data_name
         pts = pts[:,0:3].astype(np.float32)
     else:
         pts = np.load(data_name, mmap_mode='r')
-        # get_candidates(pts, db_name='results_last1.db')
+        # get_candidates(pts, db_name='results_last.db')
         pts = pts[:,0:3].astype(np.float32)
+        
     # plot_convex_hull_ref_metals_3d_line(pts=pts)
     # plot_convex_hull_ref_metals_3d_plane(pts=pts)
     # plot_2d_contour(pts=pts)
 
 def collec_dict_all_data(energy_ref_eles, db_name='results.db', data_name='data_tot_dict.pkl', eles=['Pd', 'Ti', 'H']):
-    """get the all data in dictionary format
+    """Get the all data in dictionary format
     
     Parameters: 
     
@@ -592,14 +648,17 @@ def collec_dict_last_data(energy_ref_eles,
                           db_name='results_last.db', 
                           data_name='data_last_dict.pkl', 
                           eles=['Pd', 'Ti', 'H']):
-    """get the last data in dictionary format
+    """Only get the last data in dictionary format
     
     Parameters: 
     
     db_name: str
-         OUTPUT for last data including structures. This would need larger storage.
+        OUTPUT for last data including structures. This would need larger storage.
     data_name: str
-         OUTPUT for needed last dict data saved pickle format. This would need less storage.
+        OUTPUT for needed last dict data saved pickle format. This would need less storage.
+
+    Output:
+        H as keys of pts dict
     """
     if 1:
         # if os.path.exists('results_last1_dic.db'): # get the last one (the lowest energies in each concentration)
@@ -648,15 +707,17 @@ def collec_dict_last_data_reverse(energy_ref_eles,
                                   db_name='results_last.db', 
                                   data_name_rev='data_last_dict_reverse.pkl', 
                                   eles=['Pd', 'Ti', 'H']):
-    """get the last one in dictionary but in reverse fix_ele sequence
-    
+    """Only get the last one in dictionary but in reverse fix_ele sequence
     
     Parameters: 
     
     db_name: str
-         OUTPUT for last data including structures. This would need larger storage.
+        OUTPUT for last data including structures. This would need larger storage.
     data_name: str
-         OUTPUT for needed last dict data saved pickle format. This would need less storage.
+        OUTPUT for needed last dict data saved pickle format. This would need less storage.
+
+    Output:
+        metal object as keys of pts dict， such as Ti.
     """
     if 1:
         # if os.path.exists('results_last1_dic.db'): # get the last one (the lowest energies in each concentration)
@@ -743,25 +804,26 @@ if __name__ == '__main__':
     #                               db_name=db_name, 
     #                               data_name=data_name_rev, 
     #                               eles=eles)
-    with open(data_name_rev, 'rb') as f:
+
+
+    with open(data_name, 'rb') as f:
         pts = pickle.load(f)
-    
-    plot_convex_hull_ref_metals_3d_line(pts=dct_to_array(pts))
-    plot_convex_hull_ref_metals_3d_plane(pts=dct_to_array(pts))
-    plot_convex_hull_ref_metals_3d_poly(pts=dct_to_array(pts))
+    # plot_convex_hull_ref_metals_3d_line(pts=dct_to_array(pts))
+    # plot_convex_hull_ref_metals_3d_plane(pts=dct_to_array(pts))
+    # plot_convex_hull_ref_metals_3d_poly(pts=dct_to_array(pts))
     plot_2d_contour(pts=dct_to_array(pts))
-    
-    
+    get_candidates(pts=dct_to_array(pts,all_cols=True), db_name='results_last.db', db_cand_name='candidates.db') # candidates on vertices of convex hull
     plot_convex_hull_stacking_subplots(data_name, data_name_rev, fix_ele='H', metal_obj=metal_obj)
     plot_convex_hull_stacking_subplots(data_name, data_name_rev, fix_ele=metal_obj, metal_obj=metal_obj)
-    # get_chem_pot_H_vertices(pts, num_metal_obj=0, fix_ele='Ti')
-    # get_chem_pot_H_vertices_2d_contour(pts, fix_ele='Ti')
     
-    get_chem_pot_H_vertices(pts, 
+    
+    with open(data_name_rev, 'rb') as f:
+        pts_rev = pickle.load(f)
+    get_chem_pot_H_vertices(pts_rev, # use reverse data, such as data_last_dict_reverse.pkl
                             fix_ele=metal_obj, 
                             db_name=db_name, 
                             metal_obj=metal_obj, 
                             num_metal_obj=0, 
                             save_cand=False, 
                             db_candidate='PdHx_vertices.db') # PdHy
-    
+    get_chem_pot_H_vertices_2d_contour(pts_rev, fix_ele=metal_obj, metal_obj=metal_obj)
