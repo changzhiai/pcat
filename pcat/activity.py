@@ -12,6 +12,7 @@ from pcat.lib.kinetic_model import CO2toCO
 from matplotlib import rc
 import pcat.utils.constants as cons
 from pcat.lib.io import pd_read_excel
+from pcat.utils.styles import ColorDict
 import pandas as pd
 import logging
 logging.basicConfig(level=logging.DEBUG, format='\n(%(asctime)s) \n%(message)s')
@@ -246,15 +247,20 @@ class Activity:
         obser_names = (self.df.index).values
         
         for i,obser_name in enumerate(obser_names):
-            plt.plot(Eb_CO_d[i], Eb_HOCO_d[i], 'o', color='white') 
-            plt.text(Eb_CO_d[i], Eb_HOCO_d[i]+0.05, obser_name, fontsize=12, horizontalalignment='center', verticalalignment='bottom', color='white')
+            try:
+                plt.plot(Eb_CO_d[i], Eb_HOCO_d[i], 'o', color=ColorDict[obser_name]) 
+                plt.text(Eb_CO_d[i], Eb_HOCO_d[i]+0.05, obser_name, fontsize=12, horizontalalignment='center', verticalalignment='bottom', color=ColorDict[obser_name],zorder=10)
+            except:
+                plt.plot(Eb_CO_d[i], Eb_HOCO_d[i], 'o', color='white') 
+                plt.text(Eb_CO_d[i], Eb_HOCO_d[i]+0.05, obser_name, fontsize=12, horizontalalignment='center', verticalalignment='bottom', color='white')
         
         m, b = np.polyfit(Eb_HOCO_d, Eb_CO_d, 1)
         plt.axline(( Eb_CO_d[0], Eb_CO_d[0]/m-b/m), slope=1/m, color='white')
         # plt.plot(self.descriper2, m * self.descriper2 + b, linewidth=2, color=linecolor)
         
-        plt.xlim([min(Eb_CO_d)-0.2, max(Eb_CO_d)+0.2])
-        plt.ylim([min(Eb_HOCO_d)-0.1, max(Eb_HOCO_d)+0.1])
+        plt.xlim([min(Eb_CO_model), max(Eb_CO_model)])
+        plt.ylim([min(Eb_HOCO_model), max(Eb_HOCO_model)])
+
         ax.tick_params(labelsize=12) # tick label font size
         plt.title(title, fontsize=14,)
         plt.text(0.05, 0.93, subtitle, horizontalalignment='left', verticalalignment='center', transform=ax.transAxes, fontsize=14, color='white', fontweight='bold')        
@@ -269,7 +275,10 @@ class Activity:
         # import pdb; pdb.set_trace()
         
     
-    def plot(self, save=True, TOF_to_j=47.96):
+    def plot(self, save=True, Eb_CO_d=None, Eb_HOCO_d=None, TOF_to_j=47.96):
+        """
+        Set range, for example, Eb_CO_d=[-2,0.3], Eb_HOCO_d=[-1,1.3]
+        """
         """Old version
         global T0
         global tc0, tc1, tc2
@@ -316,12 +325,13 @@ class Activity:
         R = np.empty([M,N])
         Thetas = np.empty([M,N,3])
         
-        Eb_CO_d = (self.df[self.descriper1]).values
-        Eb_HOCO_d = (self.df[self.descriper2]).values
+        if Eb_CO_d == None:
+            Eb_CO_d = (self.df[self.descriper1]).values
+        if Eb_HOCO_d == None:
+            Eb_HOCO_d = (self.df[self.descriper2]).values
+            
         Eb_CO_model = np.linspace(min(Eb_CO_d)-0.2, max(Eb_CO_d)+0.2, N)
         Eb_HOCO_model = np.linspace(min(Eb_HOCO_d)-0.1, max(Eb_HOCO_d)+0.1, M)
-        # Eb_CO_model = np.linspace(-1.8, 1., N)
-        # Eb_HOCO_model = np.linspace(-1.2, 1.8, M)
         
         jmax = 10.0e3 # exptl current plateau's at 10 mA/cm2 
         jmin = 0.1
@@ -342,6 +352,7 @@ class Activity:
         contours = np.linspace(np.log10(jmin*TOF_to_j), np.log10(jmax*TOF_to_j), 11) 
         plt.contourf(Eb_CO_model, Eb_HOCO_model, R, contours, cmap=plt.cm.jet) # plot countour
         self.plot_scaling_rev(ax, contours, Eb_CO_model, Eb_HOCO_model)
+        fig.tight_layout()
         plt.show()
         
         if save == True:

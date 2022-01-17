@@ -70,7 +70,7 @@ class ScalingRelationPlot:
                 self.ColorDict[name] = dot_color
             try:
                 plt.plot(self.descriper1[i], self.descriper2[i], 's', color=self.ColorDict[name])  # plot dots
-                plt.annotate(name, (self.descriper1[i], self.descriper2[i]+0.005), color=self.ColorDict[name], fontsize=14, horizontalalignment='center', verticalalignment='bottom')
+                plt.annotate(name, (self.descriper1[i], self.descriper2[i]+0.005), color=self.ColorDict[name], fontsize=14, horizontalalignment='center', verticalalignment='bottom', zorder=10)
             except:
                 plt.plot(self.descriper1[i], self.descriper2[i], 's', color=dot_color)  # plot dots
                 plt.annotate(name, (self.descriper1[i], self.descriper2[i]+0.005), color=dot_color, fontsize=14, horizontalalignment='center', verticalalignment='bottom')

@@ -15,9 +15,9 @@ import pickle
 import matplotlib.pyplot as plt 
 import matplotlib as mpl
 from mpl_toolkits.mplot3d.art3d import Poly3DCollection
-mpl.rcParams['savefig.dpi'] = 300
-mpl.rcParams['font.size'] = 8
-mpl.use('TkAgg')
+# mpl.rcParams['savefig.dpi'] = 300
+# mpl.rcParams['font.size'] = 8
+# mpl.use('TkAgg')
 
 @contextmanager
 def cd(newdir):
@@ -34,7 +34,10 @@ def cd(newdir):
 
 def num_ele(atoms, ele):
     """Numbers calculation of object element"""
-    num_ele = len(atoms[[atom.index for atom in atoms if atom.symbol==ele]])
+    try:
+        num_ele = len(atoms[[atom.index for atom in atoms if atom.symbol==ele]])
+    except:
+        num_ele = 0
     return num_ele
 
 def con_ele(atoms, ele, ref_eles=['Pd', 'Ti']):

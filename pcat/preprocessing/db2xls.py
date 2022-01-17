@@ -6,10 +6,20 @@ Created on Sat Jan 15 17:26:19 2022
 """
 
 import pandas as pd
-import pcat.utils.constants as cons
+import pcat.utils.constants as const
+from pcat.convex_hull import con_ele
 
-
-def db2xls(system_name, xls_name, db, sheet_name_origin, sheet_name_stable, sheet_free_energy, sheet_binding_energy, sheet_name_allFE, sheet_selectivity):
+def db2xls(system_name, 
+           xls_name, 
+           db, 
+           ref_eles, # such as, ref_eles=['Pd', 'Ti']
+           sheet_name_origin, 
+           sheet_name_stable, 
+           sheet_free_energy, 
+           sheet_binding_energy,
+           sheet_cons,
+           sheet_name_allFE, 
+           sheet_selectivity):
     """
     convert database into excel
     
@@ -37,20 +47,20 @@ def db2xls(system_name, xls_name, db, sheet_name_origin, sheet_name_stable, shee
     Gcor_CO = 0.186 + 0.080 - 0.156 + 0 - 0.10
     Gcor_OH = 0.355 + 0.056 - 0.103
     """
-    E_H2g = cons.E_H2g
-    E_CO2g = cons.E_CO2g
-    E_H2Og = cons.E_H2Og
-    E_COg = cons.E_COg
+    E_H2g = const.E_H2g
+    E_CO2g = const.E_CO2g
+    E_H2Og = const.E_H2Og
+    E_COg = const.E_COg
     
-    G_H2g = cons.G_H2g
-    G_CO2g = cons.G_CO2g
-    G_H2Og = cons.G_H2Og
-    G_COg = cons.G_COg
+    G_H2g = const.G_H2g
+    G_CO2g = const.G_CO2g
+    G_H2Og = const.G_H2Og
+    G_COg = const.G_COg
     
-    Gcor_H = cons.Gcor_H
-    Gcor_HOCO = cons.Gcor_HOCO
-    Gcor_CO = cons.Gcor_CO
-    Gcor_OH = cons.Gcor_OH
+    Gcor_H = const.Gcor_H
+    Gcor_HOCO = const.Gcor_HOCO
+    Gcor_CO = const.Gcor_CO
+    Gcor_OH = const.Gcor_OH
     
     # import pdb; pdb.set_trace()
     ids = []
@@ -59,6 +69,8 @@ def db2xls(system_name, xls_name, db, sheet_name_origin, sheet_name_stable, shee
     adsors = []
     energies = []
     ori_ids = []
+    cons_Pd = []
+    cons_H = []
     for row in db.select():
         uniqueid = row.uniqueid
         items = uniqueid.split('_')
@@ -70,16 +82,27 @@ def db2xls(system_name, xls_name, db, sheet_name_origin, sheet_name_stable, shee
         adsor = items[3]
         ori_id = items[4]
         
+        if adsor == 'surface':
+            con_Pd = con_ele(row.toatoms(), ele='Pd', ref_eles=ref_eles) 
+            con_H = con_ele(row.toatoms(), ele='H', ref_eles=ref_eles)
+        else:
+            con_Pd = None
+            con_H = None
+        
         ids.append(id)
         formulas.append(formula)
         sites.append(site)
         adsors.append(adsor)
         energies.append(row.energy)
         ori_ids.append(ori_id)
+        cons_Pd.append(con_Pd)
+        cons_H.append(con_H)
     
     tuples = {'Id': ids,
               'Origin_id': ori_ids,
               'Surface': formulas,
+              'Cons_Pd': cons_Pd,
+              'Cons_H': cons_H,
               'Site': sites,
               'Adsorbate': adsors,
               'Energy': energies,
@@ -98,6 +121,11 @@ def db2xls(system_name, xls_name, db, sheet_name_origin, sheet_name_stable, shee
         
         Surface = df_sub.loc[df_sub['Adsorbate'] == 'surface']
         E_Surface = Surface.Energy.values[0]
+        
+        con_Pd = Surface.Cons_Pd.values[0]
+        con_H = Surface.Cons_H.values[0]
+        df_sub.Cons_Pd = con_Pd
+        df_sub.Cons_H = con_H
         
         Binding_energy = []
         for i,row in df_sub.iterrows():
@@ -139,11 +167,14 @@ def db2xls(system_name, xls_name, db, sheet_name_origin, sheet_name_stable, shee
     G_COs = []
     G_Hs = []
     G_OHs = []
+    cons_Pd = []
+    cons_H = []
     FE_final = G_COg + G_H2Og - G_CO2g - G_H2g
     df_new  = pd.DataFrame()
     for id in uniqueids:
         # print(id)
-        df_sub = df.loc[df['Origin_id'].astype(int) == id]
+        df_sub = df_sort.loc[df['Origin_id'].astype(int) == id]
+        del df_sub['BE']
         Surface = df_sub.loc[df_sub['Adsorbate'] == 'surface']
         E_Surface = Surface.Energy.values[0]
         # print(df_sub)
@@ -200,6 +231,9 @@ def db2xls(system_name, xls_name, db, sheet_name_origin, sheet_name_stable, shee
         
         selectivities.append(G_HOCO - G_H)
         
+        cons_Pd.append(Surface.Cons_Pd.values[0])
+        cons_H.append(Surface.Cons_H.values[0])
+        
     """
     Save the most stable site into excel
     """
@@ -232,7 +266,24 @@ def db2xls(system_name, xls_name, db, sheet_name_origin, sheet_name_stable, shee
     df_BE = pd.DataFrame(tuples)
     with pd.ExcelWriter(xls_name, engine='openpyxl', mode='a') as writer:
         df_BE.to_excel(writer, sheet_name=sheet_binding_energy, index=False, float_format='%.3f')
-        
+    
+    
+    """
+    Save concentration sheet to excel
+    """
+    tuples = {'Surface': surfaces,
+              'Cons_Pd': cons_Pd,
+              'Cons_H': cons_H,
+              'E(*HOCO)': Eb_HOCOs,
+              'E(*CO)': Eb_COs,
+              'E(*H)': Eb_Hs,
+              'E(*OH)': Eb_OHs,
+              }
+    df_cons = pd.DataFrame(tuples)
+    with pd.ExcelWriter(xls_name, engine='openpyxl', mode='a') as writer:
+        df_cons.to_excel(writer, sheet_name=sheet_cons, index=False, float_format='%.3f')
+    
+    
     """
     Save all intermediate`s free energy sheet to excel for check
     """

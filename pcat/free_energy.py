@@ -15,7 +15,7 @@ from typing import List
 import logging
 logging.basicConfig(level=logging.DEBUG, format='\n(%(asctime)s) \n%(message)s')
 logging.getLogger('matplotlib.font_manager').disabled = True
-# logging.disable()
+logging.disable()
 
 class CO2RRFEDplot:
     """Class for CO2RR free energy diagram without TS data
