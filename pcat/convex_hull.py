@@ -9,6 +9,7 @@ from contextlib import contextmanager
 import numpy as np
 import os
 from ase.db import connect
+from ase.visualize import view
 from mpl_toolkits.mplot3d import Axes3D
 from scipy.spatial import ConvexHull
 import pickle
@@ -328,6 +329,31 @@ def dct_to_array(pts_dict, all_cols=False):
         pts = pts[:,0:3].astype(np.float32)
     return pts
 
+
+def views(num_Pd, num_H, save=False, db_target='target.db'):
+    """Views one structure in specific 2d concentration
+    
+    pts: dict
+        each key corresponding to each concentration of Pd
+        for example:
+            key: x, value: | x | cons_H | form_energies | ids | clease_es |
+                           | x | ...... | ............. | ... | ......... |
+    note: when num_metal_obj=0, pts should be pts_rev
+    """
+    alloy_Hx = pts_rev[64-num_Pd]
+    Hcons = alloy_Hx[:,1].astype(np.float32)
+    ids = alloy_Hx[:,3]
+    for Hcon, index in zip(Hcons, ids):
+        if Hcon == num_H/64.:
+            db = connect(db_name)
+            row = list(db.select(uni_id=index))[0]
+            if save==True:
+                db_targ = connect(db_target)
+                ori_id = 'i_'+str(row.id)
+                db_targ.write(row, ori_id=ori_id)
+            view(row.toatoms())
+            
+
 def get_chem_pot_H_continuous_cons(pts, num_metal_obj=0):
     """
     specific at PdHx
@@ -337,6 +363,7 @@ def get_chem_pot_H_continuous_cons(pts, num_metal_obj=0):
         for example:
             key: x, value: | x | cons_H | form_energies | ids | clease_es |
                            | x | ...... | ............. | ... | ......... |
+    note: when num_metal_obj=0, pts should be pts_rev
     """
     alloy_Hx = pts[num_metal_obj]  # PdHx
     Etot = alloy_Hx[:,4].astype(np.float32)
@@ -368,7 +395,7 @@ def get_chem_pot_H_vertices(pts, fix_ele, metal_obj, db_name, num_metal_obj=0, s
         for example:
             key: 1, value: | 1 | cons_H | form_energies | ids | clease_es |
                            | 1 | ...... | ............. | ... | ......... |
-        note: when num_metal_obj=0, pts should be pts_rev
+    note: when num_metal_obj=0, pts should be pts_rev
     """
     pts = pts[num_metal_obj]  # PdHx
     if fix_ele == 'H':
@@ -796,9 +823,11 @@ if __name__ == '__main__':
     data_name='data_last_dict.pkl'
     data_name_rev='data_last_dict_reverse.pkl'
     metal_obj = 'Sc'
-    eles=['Pd', metal_obj, 'H']
+    
     Ti_energy_ref_eles={'Pd':-1.951, metal_obj:-5.858, 'H': -7.158*0.5}
     Sc_energy_ref_eles={'Pd':-1.951, metal_obj:-3.626, 'H': -7.158*0.5}
+    
+    # eles=['Pd', metal_obj, 'H']
     # collec_dict_last_data(Sc_energy_ref_eles,
     #                       db_name=db_name, 
     #                       data_name=data_name, 
@@ -807,26 +836,31 @@ if __name__ == '__main__':
     #                               db_name=db_name, 
     #                               data_name=data_name_rev, 
     #                               eles=eles)
-
-
-    with open(data_name, 'rb') as f:
-        pts = pickle.load(f)
-    # plot_convex_hull_ref_metals_3d_line(pts=dct_to_array(pts))
-    # plot_convex_hull_ref_metals_3d_plane(pts=dct_to_array(pts))
-    # plot_convex_hull_ref_metals_3d_poly(pts=dct_to_array(pts))
-    plot_2d_contour(pts=dct_to_array(pts))
-    get_candidates(pts=dct_to_array(pts,all_cols=True), db_name='results_last.db', db_cand_name='candidates.db') # candidates on vertices of convex hull
-    plot_convex_hull_stacking_subplots(data_name, data_name_rev, fix_ele='H', metal_obj=metal_obj)
-    plot_convex_hull_stacking_subplots(data_name, data_name_rev, fix_ele=metal_obj, metal_obj=metal_obj)
+    if False:
+        with open(data_name, 'rb') as f:
+            pts = pickle.load(f)
+        # plot_convex_hull_ref_metals_3d_line(pts=dct_to_array(pts))
+        # plot_convex_hull_ref_metals_3d_plane(pts=dct_to_array(pts))
+        # plot_convex_hull_ref_metals_3d_poly(pts=dct_to_array(pts))
+        plot_2d_contour(pts=dct_to_array(pts))
+        get_candidates(pts=dct_to_array(pts,all_cols=True), db_name='results_last.db', db_cand_name='candidates.db') # candidates on vertices of convex hull
+        plot_convex_hull_stacking_subplots(data_name, data_name_rev, fix_ele='H', metal_obj=metal_obj)
+        plot_convex_hull_stacking_subplots(data_name, data_name_rev, fix_ele=metal_obj, metal_obj=metal_obj)
     
     
-    with open(data_name_rev, 'rb') as f:
-        pts_rev = pickle.load(f)
-    get_chem_pot_H_vertices(pts_rev, # use reverse data, such as data_last_dict_reverse.pkl
-                            fix_ele=metal_obj, 
-                            db_name=db_name, 
-                            metal_obj=metal_obj, 
-                            num_metal_obj=0, 
-                            save_cand=False, 
-                            db_candidate='PdHx_vertices.db') # PdHy
-    get_chem_pot_H_vertices_2d_contour(pts_rev, fix_ele=metal_obj, metal_obj=metal_obj)
+    
+    if True:
+        with open(data_name_rev, 'rb') as f:
+            pts_rev = pickle.load(f)
+        # get_chem_pot_H_vertices(pts_rev, # use reverse data, such as data_last_dict_reverse.pkl
+        #                         fix_ele=metal_obj, 
+        #                         db_name=db_name, 
+        #                         metal_obj=metal_obj, 
+        #                         num_metal_obj=0, 
+        #                         save_cand=False, 
+        #                         db_candidate='PdHx_vertices.db') # PdHy
+        # get_chem_pot_H_vertices_2d_contour(pts_rev, fix_ele=metal_obj, metal_obj=metal_obj)
+        
+        # save to database
+        # for num_H in [32, 33, 34, 35]:
+        #     views(num_Pd=64, num_H=num_H, save=True)
