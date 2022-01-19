@@ -10,7 +10,7 @@ import numpy as np
 from numpy import exp
 from pcat.lib.kinetic_model import CO2toCO
 from matplotlib import rc
-import pcat.utils.constants as cons
+import pcat.utils.constants as const
 from pcat.lib.io import pd_read_excel
 from pcat.utils.styles import ColorDict
 import pandas as pd
@@ -81,16 +81,16 @@ class Activity:
         global ddG_HOCO
         global ddG_CO
         
-        G_H2g = cons.G_H2g
-        G_CO2g = cons.G_CO2g
-        G_H2Og = cons.G_H2Og
-        G_COg = cons.G_COg
+        G_H2g = const.G_H2g
+        G_CO2g = const.G_CO2g
+        G_H2Og = const.G_H2Og
+        G_COg = const.G_COg
         
-        kB = cons.kB # Boltzmann constant in eV/K
-        hplanck = cons.hplanck # eV s
+        kB = const.kB # Boltzmann constant in eV/K
+        hplanck = const.hplanck # eV s
         
-        ddG_HOCO = cons.ddG_HOCO
-        ddG_CO =  cons.ddG_CO
+        ddG_HOCO = const.ddG_HOCO
+        ddG_CO =  const.ddG_CO
         """
         ddG_HOCO explanation:
             ddG_HOCO is the correction for the whole first equations, not for only *HOCO

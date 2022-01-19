@@ -19,7 +19,8 @@ def db2xls(system_name,
            sheet_binding_energy,
            sheet_cons,
            sheet_name_allFE, 
-           sheet_selectivity):
+           sheet_selectivity,
+           sheet_name_dGs):
     """
     convert database into excel
     
@@ -169,6 +170,11 @@ def db2xls(system_name,
     G_OHs = []
     cons_Pd = []
     cons_H = []
+    dG1s = []
+    dG2s = []
+    dG3s = []
+    dG4s = []
+    dG5s = []
     FE_final = G_COg + G_H2Og - G_CO2g - G_H2g
     df_new  = pd.DataFrame()
     for id in uniqueids:
@@ -233,6 +239,18 @@ def db2xls(system_name,
         
         cons_Pd.append(Surface.Cons_Pd.values[0])
         cons_H.append(Surface.Cons_H.values[0])
+        
+        # calculate each equation:
+        dG1 = E_HOCO + Gcor_HOCO - E_Surface - G_CO2g - 0.5 * G_H2g
+        dG2 = E_CO + Gcor_CO + G_H2Og - E_HOCO - Gcor_HOCO - 0.5 * G_H2g
+        dG3 = G_COg + E_Surface - E_CO - Gcor_CO
+        dG4 = E_H + Gcor_H - E_Surface - 0.5 * G_H2g
+        dG5 = E_OH + Gcor_OH - E_Surface - G_H2Og + 0.5 * G_H2g
+        dG1s.append(dG1)
+        dG2s.append(dG2)
+        dG3s.append(dG3)
+        dG4s.append(dG4)
+        dG5s.append(dG5)
         
     """
     Save the most stable site into excel
@@ -307,3 +325,20 @@ def db2xls(system_name,
     df_select = pd.DataFrame(tuples)
     with pd.ExcelWriter(xls_name, engine='openpyxl', mode='a') as writer:
         df_select.to_excel(writer, sheet_name=sheet_selectivity, index=False, float_format='%.3f')
+        
+    """
+    Save each reaction equation`s free energy difference sheet to excel for check
+    """
+    tuples = {'Surface': surfaces,
+              'dG1': dG1s,
+              'dG2': dG2s,
+              'dG3': dG3s,
+              'dG4': dG4s,
+              'dG5': dG5s,
+              }
+    df_dGs = pd.DataFrame(tuples)
+    with pd.ExcelWriter(xls_name, engine='openpyxl', mode='a') as writer:
+        df_dGs.to_excel(writer, sheet_name=sheet_name_dGs, index=False, float_format='%.3f')
+        
+        
+        
