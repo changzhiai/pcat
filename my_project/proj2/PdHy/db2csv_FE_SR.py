@@ -171,6 +171,24 @@ def plot_stability():
     """Plot convex hull by formation energy"""
     ''
     
+def plot_chemical_potential(xls_name, sheet_name_origin):
+    """Plot chemical potential using DFT energy"""
+    df = pd_read_excel(filename=xls_name, sheet=sheet_name_origin)
+    df = df.loc[df['Adsorbate'] == 'surface']
+    df = df.sort_values(by=['Cons_H'], ascending=False)
+    cons_H = df['Cons_H'].to_numpy()
+    dft_energy = df['Energy'].to_numpy()
+    dyf = [0.0] * len(cons_H)
+    for i in range(len(dft_energy)-1):
+        dyf[i] = (dft_energy[i+1] - dft_energy[i])/((cons_H[i+1]-cons_H[i])*64)
+    # set last element by backwards difference
+    dyf[-1] = (dft_energy[-1] - dft_energy[-2])/((cons_H[-1] - cons_H[-2])*64)
+    plt.figure()
+    plt.plot(cons_H, dyf)
+    plt.show()
+    
+    
+    
 def plot_selectivity(xls_name, sheet_selectivity, fig_dir):
     """Plot selectivity of CO2RR and HER"""
     
@@ -242,3 +260,4 @@ if __name__ == '__main__':
     # view(db_name)
     # plot_BE_as_Hcons(xls_name, sheet_cons)
     # plot_pourbaix_diagram(xls_name, sheet_name_dGs)
+    # plot_chemical_potential(xls_name, sheet_name_origin)
