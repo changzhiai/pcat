@@ -31,6 +31,18 @@ def concatenate_db(db_name1, db_name2, db_tot):
         db_tot.write(row)
     for row in db2.select():
         db_tot.write(row)
+        
+def concatenate_all_db(db_tot: str, db_names: list ):
+    """Contatenate all database into the total one"""
+    
+    if os.path.exists(db_tot):
+        assert False
+    db_tot = connect(db_tot)
+    for db_name in db_names:
+        if os.path.exsits(db_name):
+            db = connect(db_name)
+            for row in db.select():
+                db_tot.write(row)
 
 def views(formula, all_sites=False):
     """View specific structures
@@ -187,8 +199,6 @@ def plot_chemical_potential(xls_name, sheet_name_origin):
     plt.plot(cons_H, dyf)
     plt.show()
     
-    
-    
 def plot_selectivity(xls_name, sheet_selectivity, fig_dir):
     """Plot selectivity of CO2RR and HER"""
     
@@ -202,7 +212,7 @@ def plot_selectivity(xls_name, sheet_selectivity, fig_dir):
 def plot_activity(xls_name, sheet_binding_energy, fig_dir):
     """Plot activity of CO2RR"""
     df = pd_read_excel(filename=xls_name, sheet=sheet_binding_energy)
-    df.drop(['Pd16Ti48H8', 'Pd16Ti48H24'], inplace=True)
+    # df.drop(['Pd16Ti48H8', 'Pd16Ti48H24'], inplace=True)
     name_fig_act = f'{fig_dir}/{system_name}_activity.jpg'
     activity = Activity(df, descriper1 = 'E(*CO)', descriper2 = 'E(*HOCO)', fig_name=name_fig_act,
                         U0=-0.3, 
@@ -221,8 +231,9 @@ if __name__ == '__main__':
         db_tot = '../data/collect_vasp_PdHy_and_Pd16Hy_and_Pd32Hy_and_Pd48Hy_and_Pd51Hy.db'
         concatenate_db('../data/collect_vasp_PdHy_and_Pd16Hy_and_Pd32Hy_and_Pd48Hy.db', '../data/collect_vasp_Pd51Hy.db', db_tot)
     
-    
-    system_name = 'collect_vasp_PdHy_v3'
+    # system_name = 'collect_vasp_test_m'
+    system_name = 'collect_vasp_Pd0Hy'
+    # system_name = 'collect_vasp_PdHy_v3'
     # system_name = 'collect_vasp_Pd32Hy'
     # system_name = 'collect_vasp_Pd48Hy'
     # system_name = 'collect_vasp_Pd16Hy'
@@ -246,10 +257,10 @@ if __name__ == '__main__':
     sheet_name_dGs = 'dGs'
     
     db = connect(db_name)
-    if False: # database to excel
+    if True: # database to excel
         db2xls(system_name, xls_name, db, ref_eles, sheet_name_origin, sheet_name_stable, sheet_free_energy, sheet_binding_energy, sheet_cons, sheet_name_allFE, sheet_selectivity, sheet_name_dGs)
     
-    if False: # plot
+    if True: # plot
         plot_free_enegy(xls_name, sheet_free_energy, fig_dir)
         plot_scaling_relations(xls_name, sheet_binding_energy, fig_dir)
         plot_selectivity(xls_name, sheet_selectivity, fig_dir)
