@@ -24,13 +24,14 @@ def concatenate_db(db_name1, db_name2, db_tot):
     
     if os.path.exists(db_tot):
         assert False
-    db1 = connect(db_name1)
-    db2 = connect(db_name2)
     db_tot = connect(db_tot)
-    for row in db1.select():
-        db_tot.write(row)
-    for row in db2.select():
-        db_tot.write(row)
+    if os.path.exists(db_name1) and os.path.exists(db_name2):
+        db1 = connect(db_name1)
+        db2 = connect(db_name2)
+        for row in db1.select():
+            db_tot.write(row)
+        for row in db2.select():
+            db_tot.write(row)
         
 def concatenate_all_db(db_tot: str, db_names: list ):
     """Contatenate all database into the total one"""
@@ -39,7 +40,7 @@ def concatenate_all_db(db_tot: str, db_names: list ):
         assert False
     db_tot = connect(db_tot)
     for db_name in db_names:
-        if os.path.exsits(db_name):
+        if os.path.exists(db_name):
             db = connect(db_name)
             for row in db.select():
                 db_tot.write(row)
@@ -96,10 +97,54 @@ def views(formula, all_sites=False):
                 # view(r.toatoms())
                 atoms_list.append(r.toatoms())
     view(atoms_list)
+    
+        
+def view_db(db_name):
+    """View all structures in the database"""
+    db = connect(db_name)
+    atoms_all = []
+    for row in db.select():
+        atoms_all.append(row.toatoms())
+    view(atoms_all)
+    
+def view_ads(ads, all_sites=False):
+    """View one kind of adsorbate`s all structures in the database
+    
+    ads: str
+        'HOCO' or 'CO' or 'H' or 'OH'
+        
+    Global variables
+        
+    db_name: str
+        database name given atoms
+    """
+    db = connect(db_name)
+    
+    if all_sites==True:
+        sheet = sheet_name_origin
+    else:
+        sheet = sheet_name_stable
+    df = pd_read_excel(xls_name, sheet)
+    df = df.sort_values(by=['Cons_H'])
+    df_sub = df.loc[df['Adsorbate'] == ads]
+    atoms_list = []
+    for index, row in df_sub.iterrows():
+        origin_id = row['Origin_id']
+        site = row['Site']
+        adsorbate = row['Adsorbate']
+        for r in db.select():
+            unique_id = r.uniqueid
+            r_origin_id = unique_id.split('_')[4]
+            r_site = unique_id.split('_')[2]
+            r_adsorbate = unique_id.split('_')[3]
+            if str(origin_id)==r_origin_id and site==r_site and adsorbate==r_adsorbate:
+                atoms_list.append(r.toatoms())
+    view(atoms_list) 
 
 def plot_BE_as_Hcons(xls_name, sheet_cons):
     """Plot binding energy as a function of hydrogen concentrations"""
     df = pd_read_excel(xls_name, sheet_cons)
+    df = df.sort_values(by=['Cons_H'])
     cons_H = df['Cons_H'].values
     E_HOCO = df['E(*HOCO)'].values
     E_CO = df['E(*CO)'].values
@@ -109,21 +154,13 @@ def plot_BE_as_Hcons(xls_name, sheet_cons):
     plt.plot(cons_H, E_HOCO, c='blue', label='*HOCO')
     plt.plot(cons_H, E_CO, c='orange', label='*CO')
     plt.plot(cons_H, E_H, c='green', label='*H')
-    plt.plot(cons_H, E_OH, c='brown', label='OH')
+    plt.plot(cons_H, E_OH, c='brown', label='*OH')
     plt.xlabel('Concentration of H', fontsize=12)
     plt.ylabel('Binding energy (eV)', fontsize=12)
     plt.legend()
     plt.show()
     # df.plot(kind='scatter',x='Cons_H',y='E(*HOCO)',ax=ax)
    
-    
-def view_db(db_name):
-    """View all structures in the database"""
-    db = connect(db_name)
-    atoms_all = []
-    for row in db.select():
-        atoms_all.append(row.toatoms())
-    view(atoms_all)
     
 def plot_pourbaix_diagram(xls_name, sheet_name_dGs):
     """Plot pourbaix diagram"""
@@ -228,11 +265,14 @@ def plot_activity(xls_name, sheet_binding_energy, fig_dir):
 
 if __name__ == '__main__':
     if False:
-        db_tot = '../data/collect_vasp_PdHy_and_Pd16Hy_and_Pd32Hy_and_Pd48Hy_and_Pd51Hy.db'
-        concatenate_db('../data/collect_vasp_PdHy_and_Pd16Hy_and_Pd32Hy_and_Pd48Hy.db', '../data/collect_vasp_Pd51Hy.db', db_tot)
+        db_tot = '../data/collect_vasp_PdHy_and_insert.db'
+        concatenate_db('../data/collect_vasp_PdHy_v3.db', '../data/collect_vasp_insert_PdHy.db', db_tot)
     
     # system_name = 'collect_vasp_test_m'
-    system_name = 'collect_vasp_Pd0Hy'
+    # system_name = 'collect_vasp_Pd0Hy'
+    system_name = 'collect_vasp_layers_H'
+    # system_name = 'collect_vasp_PdHy_and_insert'
+    
     # system_name = 'collect_vasp_PdHy_v3'
     # system_name = 'collect_vasp_Pd32Hy'
     # system_name = 'collect_vasp_Pd48Hy'
@@ -257,10 +297,10 @@ if __name__ == '__main__':
     sheet_name_dGs = 'dGs'
     
     db = connect(db_name)
-    if True: # database to excel
+    if False: # database to excel
         db2xls(system_name, xls_name, db, ref_eles, sheet_name_origin, sheet_name_stable, sheet_free_energy, sheet_binding_energy, sheet_cons, sheet_name_allFE, sheet_selectivity, sheet_name_dGs)
     
-    if True: # plot
+    if False: # plot
         plot_free_enegy(xls_name, sheet_free_energy, fig_dir)
         plot_scaling_relations(xls_name, sheet_binding_energy, fig_dir)
         plot_selectivity(xls_name, sheet_selectivity, fig_dir)
@@ -269,6 +309,7 @@ if __name__ == '__main__':
     
     # views(formula='Pd51Ti13H59', all_sites=True)
     # view(db_name)
-    # plot_BE_as_Hcons(xls_name, sheet_cons)
+    plot_BE_as_Hcons(xls_name, sheet_cons)
     # plot_pourbaix_diagram(xls_name, sheet_name_dGs)
     # plot_chemical_potential(xls_name, sheet_name_origin)
+    view_ads('CO')
