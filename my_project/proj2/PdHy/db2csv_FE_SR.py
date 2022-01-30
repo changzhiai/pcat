@@ -261,7 +261,8 @@ def plot_activity(xls_name, sheet_binding_energy, fig_dir):
                         Gact=0.2, 
                         p_factor = 3.6 * 10**4)
     # activity.verify_BE2FE()
-    activity.plot(save=True, )
+    activity.plot(save=True)
+    # activity.plot(save=True, xlim=[-2.5, 2.5], ylim=[-2.5, 2.5])
 
 def del_partial_db(db):
     """Delet uncomplete database"""
@@ -283,7 +284,7 @@ if __name__ == '__main__':
     
     # system_name = 'collect_vasp_test_m'
     # system_name = 'collect_vasp_Pd0Hy'
-    # system_name = 'collect_vasp_layers_H'
+    system_name = 'collect_vasp_layers_H'
     # system_name = 'collect_vasp_PdHy_and_insert'
     # system_name = 'collect_ce_candidates'
     
@@ -296,7 +297,7 @@ if __name__ == '__main__':
     # system_name = 'collect_vasp_PdHy_and_Pd32Hy'
     # system_name = 'collect_vasp_PdHy_and_Pd16Hy_and_Pd32Hy'
     # system_name = 'collect_vasp_PdHy_and_Pd16Hy_and_Pd32Hy_and_Pd48Hy'
-    system_name = 'collect_vasp_PdHy_and_Pd16Hy_and_Pd32Hy_and_Pd48Hy_and_Pd51Hy'
+    # system_name = 'collect_vasp_PdHy_and_Pd16Hy_and_Pd32Hy_and_Pd48Hy_and_Pd51Hy'
     ref_eles=['Pd', 'Ti']
     db_name = f'../data/{system_name}.db' # the only one needed
     xls_name = f'../data/{system_name}.xlsx'
@@ -322,11 +323,11 @@ if __name__ == '__main__':
         plot_selectivity(xls_name, sheet_selectivity, fig_dir)
         plot_activity(xls_name, sheet_binding_energy, fig_dir)
         
-    plot_free_enegy(xls_name, sheet_free_energy, fig_dir)
+    # plot_free_enegy(xls_name, sheet_free_energy, fig_dir)
     # plot_activity(xls_name, sheet_binding_energy, fig_dir)
     # views(formula='Pd51Ti13H59', all_sites=True)
     # view(db_name)
-    # plot_BE_as_Hcons(xls_name, sheet_cons)
+    plot_BE_as_Hcons(xls_name, sheet_cons)
     # plot_pourbaix_diagram(xls_name, sheet_name_dGs)
     # plot_chemical_potential(xls_name, sheet_name_origin)
     # view_ads('CO')
