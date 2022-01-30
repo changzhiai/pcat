@@ -160,7 +160,6 @@ def plot_BE_as_Hcons(xls_name, sheet_cons):
     plt.legend()
     plt.show()
     # df.plot(kind='scatter',x='Cons_H',y='E(*HOCO)',ax=ax)
-   
     
 def plot_pourbaix_diagram(xls_name, sheet_name_dGs):
     """Plot pourbaix diagram"""
@@ -187,7 +186,8 @@ def plot_free_enegy(xls_name, sheet_free_energy, fig_dir):
     ax = fig.add_subplot(111)
     CO2RR_FED = CO2RRFED(df, fig_name=name_fig_FE)
     CO2RR_FED.plot(ax=ax, save=False, title='')
-    plt.legend(loc = "lower left", bbox_to_anchor=(0.00, -0.50, 0.8, 1.02), ncol=5, borderaxespad=0)
+    plt.legend(loc='upper center', bbox_to_anchor=(0.5, -0.12), fancybox=True, shadow=True, ncol=5)
+    # plt.legend(loc = "lower left", bbox_to_anchor=(0.00, -0.50, 0.8, 1.02), ncol=5, borderaxespad=0)
     plt.show()
     fig.savefig(name_fig_FE, dpi=300, bbox_inches='tight')
     
@@ -244,7 +244,7 @@ def plot_selectivity(xls_name, sheet_selectivity, fig_dir):
     name_fig_select = f'{fig_dir}/{system_name}_{sheet_selectivity}.jpg'
     
     selectivity = Selectivity(df, fig_name=name_fig_select)
-    selectivity.plot(save=True, title='',xlabel='Different surfaces', tune_tex_pos=1.5, legend=False)
+    selectivity.plot(save=True, title='', xlabel='Different surfaces', tune_tex_pos=1.5, legend=False)
     
 def plot_activity(xls_name, sheet_binding_energy, fig_dir):
     """Plot activity of CO2RR"""
@@ -263,6 +263,19 @@ def plot_activity(xls_name, sheet_binding_energy, fig_dir):
     # activity.verify_BE2FE()
     activity.plot(save=True, )
 
+def del_partial_db(db):
+    """Delet uncomplete database"""
+    # db = connect(db_name)
+    del_ids = [142, 141, 140, 139, 138]
+    del_rows = []
+    for row in db.select():
+        for del_id in del_ids:
+            if row.start_id == del_id:
+                del_rows.append(row.id)
+    db.delete(del_rows)
+    print(del_rows)
+    return db
+
 if __name__ == '__main__':
     if False:
         db_tot = '../data/collect_vasp_PdHy_and_insert.db'
@@ -270,18 +283,20 @@ if __name__ == '__main__':
     
     # system_name = 'collect_vasp_test_m'
     # system_name = 'collect_vasp_Pd0Hy'
-    system_name = 'collect_vasp_layers_H'
+    # system_name = 'collect_vasp_layers_H'
     # system_name = 'collect_vasp_PdHy_and_insert'
+    # system_name = 'collect_ce_candidates'
     
     # system_name = 'collect_vasp_PdHy_v3'
     # system_name = 'collect_vasp_Pd32Hy'
+    # system_name = 'collect_vasp_Pd13Hy'
     # system_name = 'collect_vasp_Pd48Hy'
     # system_name = 'collect_vasp_Pd16Hy'
     # system_name = 'collect_vasp_Pd51Hy'
     # system_name = 'collect_vasp_PdHy_and_Pd32Hy'
     # system_name = 'collect_vasp_PdHy_and_Pd16Hy_and_Pd32Hy'
     # system_name = 'collect_vasp_PdHy_and_Pd16Hy_and_Pd32Hy_and_Pd48Hy'
-    # system_name = 'collect_vasp_PdHy_and_Pd16Hy_and_Pd32Hy_and_Pd48Hy_and_Pd51Hy'
+    system_name = 'collect_vasp_PdHy_and_Pd16Hy_and_Pd32Hy_and_Pd48Hy_and_Pd51Hy'
     ref_eles=['Pd', 'Ti']
     db_name = f'../data/{system_name}.db' # the only one needed
     xls_name = f'../data/{system_name}.xlsx'
@@ -298,6 +313,7 @@ if __name__ == '__main__':
     
     db = connect(db_name)
     if False: # database to excel
+        # db = del_partial_db(db)
         db2xls(system_name, xls_name, db, ref_eles, sheet_name_origin, sheet_name_stable, sheet_free_energy, sheet_binding_energy, sheet_cons, sheet_name_allFE, sheet_selectivity, sheet_name_dGs)
     
     if False: # plot
@@ -306,10 +322,11 @@ if __name__ == '__main__':
         plot_selectivity(xls_name, sheet_selectivity, fig_dir)
         plot_activity(xls_name, sheet_binding_energy, fig_dir)
         
-    
+    plot_free_enegy(xls_name, sheet_free_energy, fig_dir)
+    # plot_activity(xls_name, sheet_binding_energy, fig_dir)
     # views(formula='Pd51Ti13H59', all_sites=True)
     # view(db_name)
-    plot_BE_as_Hcons(xls_name, sheet_cons)
+    # plot_BE_as_Hcons(xls_name, sheet_cons)
     # plot_pourbaix_diagram(xls_name, sheet_name_dGs)
     # plot_chemical_potential(xls_name, sheet_name_origin)
-    view_ads('CO')
+    # view_ads('CO')
