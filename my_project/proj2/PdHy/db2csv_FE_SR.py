@@ -284,9 +284,9 @@ if __name__ == '__main__':
     
     # system_name = 'collect_vasp_test_m'
     # system_name = 'collect_vasp_Pd0Hy'
-    system_name = 'collect_vasp_layers_H'
-    # system_name = 'collect_vasp_PdHy_and_insert'
-    # system_name = 'collect_ce_candidates'
+    # system_name = 'collect_vasp_layers_H'
+    system_name = 'collect_vasp_PdHy_and_insert'
+    # system_name = 'collect_ce_candidates_v0'
     
     # system_name = 'collect_vasp_PdHy_v3'
     # system_name = 'collect_vasp_Pd32Hy'
@@ -331,3 +331,4 @@ if __name__ == '__main__':
     # plot_pourbaix_diagram(xls_name, sheet_name_dGs)
     # plot_chemical_potential(xls_name, sheet_name_origin)
     # view_ads('CO')
+    view_db(db_name)
