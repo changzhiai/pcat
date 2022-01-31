@@ -179,7 +179,7 @@ def db2xls(system_name,
     df_new  = pd.DataFrame()
     for id in uniqueids:
         # print(id)
-        df_sub = df_sort.loc[df['Origin_id'].astype(int) == id]
+        df_sub = df_sort.loc[df_sort['Origin_id'].astype(int) == id]
         del df_sub['BE']
         Surface = df_sub.loc[df_sub['Adsorbate'] == 'surface']
         E_Surface = Surface.Energy.values[0]

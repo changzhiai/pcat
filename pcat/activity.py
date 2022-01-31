@@ -239,43 +239,32 @@ class Activity:
         k3 = self.get_k3(nu_c, Eb_CO, U, T=T, tc=tc0)
         return k1, K1, k2, K2, k3, K3
     
-    def plot_scaling_rev(self, ax, contours, Eb_CO_model, Eb_HOCO_model, title='', subtitle=''):
+    def plot_scaling_rev(self, Eb_CO_model, Eb_HOCO_model, xlim, ylim):
         """Plot scaling relation but slope is inverse in order to correspond to previous scaling relation"""
         
         Eb_CO_d = (self.df[self.descriper1]).values
         Eb_HOCO_d = (self.df[self.descriper2]).values
         obser_names = (self.df.index).values
         
+        # xlim = [-1, 1]
+        # ylim = [-2, 1]
         for i,obser_name in enumerate(obser_names):
             try:
-                plt.plot(Eb_CO_d[i], Eb_HOCO_d[i], 'o', color=ColorDict[obser_name]) 
-                plt.text(Eb_CO_d[i], Eb_HOCO_d[i]+0.05, obser_name, fontsize=12, horizontalalignment='center', verticalalignment='bottom', color=ColorDict[obser_name],zorder=10)
+                if Eb_CO_d[i] >= min(xlim) and Eb_CO_d[i] <= max(xlim) and Eb_HOCO_d[i] >= min(ylim) and Eb_HOCO_d[i] <= max(ylim):
+                    plt.plot(Eb_CO_d[i], Eb_HOCO_d[i], 'o', color=ColorDict[obser_name]) 
+                    # plt.text would fail xlim and ylim 
+                    plt.text(Eb_CO_d[i], Eb_HOCO_d[i]+0.05, obser_name, fontsize=12, horizontalalignment='center', verticalalignment='bottom', color=ColorDict[obser_name],zorder=10)
             except:
-                plt.plot(Eb_CO_d[i], Eb_HOCO_d[i], 'o', color='white') 
-                plt.text(Eb_CO_d[i], Eb_HOCO_d[i]+0.05, obser_name, fontsize=12, horizontalalignment='center', verticalalignment='bottom', color='white')
+                if Eb_CO_d[i] >= min(xlim) and Eb_CO_d[i] <= max(xlim) and Eb_HOCO_d[i] >= min(ylim) and Eb_HOCO_d[i] <= max(ylim):
+                    plt.plot(Eb_CO_d[i], Eb_HOCO_d[i], 'o', color='white') 
+                    plt.text(Eb_CO_d[i], Eb_HOCO_d[i]+0.05, obser_name, fontsize=12, horizontalalignment='center', verticalalignment='bottom', color='white')
         
         m, b = np.polyfit(Eb_HOCO_d, Eb_CO_d, 1)
         plt.axline(( Eb_CO_d[0], Eb_CO_d[0]/m-b/m), slope=1/m, color='white')
-        # plt.plot(self.descriper2, m * self.descriper2 + b, linewidth=2, color=linecolor)
-        
-        plt.xlim([min(Eb_CO_model), max(Eb_CO_model)])
-        plt.ylim([min(Eb_HOCO_model), max(Eb_HOCO_model)])
-
-        ax.tick_params(labelsize=12) # tick label font size
-        plt.title(title, fontsize=14,)
-        plt.text(0.05, 0.93, subtitle, horizontalalignment='left', verticalalignment='center', transform=ax.transAxes, fontsize=14, color='white', fontweight='bold')        
-        plt.xlabel(r'$E_{\mathrm{CO}}$ (eV)', fontsize=14,)
-        plt.ylabel(r'$E_{\mathrm{HOCO}}$ (eV)', fontsize=14,)
-        bar = plt.colorbar(ticks=np.arange(min(contours), max(contours), 0.5))
-        bar.ax.tick_params(labelsize=10)
-        bar.set_label(r'log$_{10}$(j/$\mu$Acm$^{-2}$)', fontsize=14,)
-        """add figure index in front of figure"""
-        # import string
-        # ax.text(-0.17, 0.97, string.ascii_lowercase[index], transform=ax.transAxes, size=20, weight='bold')
-        # import pdb; pdb.set_trace()
+        # plt.plot(self.descriper2, m * self.descriper2 + b, linewidth=2, color=linecolor)   
         
     
-    def plot(self, save=True, Eb_CO_d=None, Eb_HOCO_d=None, TOF_to_j=47.96):
+    def plot(self, save=True, Eb_CO_d=None, Eb_HOCO_d=None, TOF_to_j=47.96, title='', subtitle='', xlim=None, ylim=None):
         """
         Set range, for example, Eb_CO_d=[-2,0.3], Eb_HOCO_d=[-1,1.3]
         """
@@ -307,6 +296,13 @@ class Activity:
         
         tc0 = tc1 = tc2 = 0.5 # transfer coefficiency
         A_prior = p_factor
+        
+        Parameters：
+        
+        xlim: list, float
+            a range of x axis
+        ylim: list, float
+            a range of y axis
         """
         
         T0 = self.T0
@@ -348,10 +344,32 @@ class Activity:
                 Thetas[i,j,:] = thetas
         
         fig = plt.figure(figsize=(9, 6), dpi = 150)
-        ax = plt.subplot(111)
+        ax = plt.gca()
         contours = np.linspace(np.log10(jmin*TOF_to_j), np.log10(jmax*TOF_to_j), 11) 
         plt.contourf(Eb_CO_model, Eb_HOCO_model, R, contours, cmap=plt.cm.jet) # plot countour
-        self.plot_scaling_rev(ax, contours, Eb_CO_model, Eb_HOCO_model)
+        bar = plt.colorbar(ticks=np.arange(min(contours), max(contours), 0.5))
+        bar.ax.tick_params(labelsize=10)
+        bar.set_label(r'log$_{10}$(j/$\mu$Acm$^{-2}$)', fontsize=14,)
+        
+        
+        if xlim == None:
+            xlim = [min(Eb_CO_model), max(Eb_CO_model)]
+        if ylim == None:
+            ylim = [min(Eb_HOCO_model), max(Eb_HOCO_model)]
+        self.plot_scaling_rev(Eb_CO_model, Eb_HOCO_model, xlim, ylim)
+        
+        plt.tick_params(labelsize=12) # tick label font size
+        plt.title(title, fontsize=14,)
+        plt.text(0.05, 0.93, subtitle, horizontalalignment='left', verticalalignment='center', transform=ax.transAxes, fontsize=14, color='white', fontweight='bold')        
+        plt.xlabel(r'$E_{\mathrm{CO}}$ (eV)', fontsize=14,)
+        plt.ylabel(r'$E_{\mathrm{HOCO}}$ (eV)', fontsize=14,)
+        
+        """add figure index in front of figure"""
+        # import string
+        # ax.text(-0.17, 0.97, string.ascii_lowercase[index], transform=ax.transAxes, size=20, weight='bold')
+        
+        plt.xlim(xlim)
+        plt.ylim(ylim)
         fig.tight_layout()
         plt.show()
         
