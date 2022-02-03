@@ -51,7 +51,8 @@ class ScalingRelationPlot:
              ylabel='*CO', 
              title='', 
              text='',
-             color_ditc=False):
+             annotate=True,
+             color_dict=False):
         
         # plot data points
         if not ax:
@@ -66,17 +67,19 @@ class ScalingRelationPlot:
         # plt.plot(self.descriper1, self.descriper2, 's', color='black')  #plot dots
         
         for i, name in enumerate(self.obser_names):
-            if color_ditc==False:
+            if color_dict==False:
                 self.ColorDict[name] = dot_color
             try:
                 plt.plot(self.descriper1[i], self.descriper2[i], 's', color=self.ColorDict[name])  # plot dots
-                plt.annotate(name, (self.descriper1[i], self.descriper2[i]+0.005), color=self.ColorDict[name], fontsize=14, horizontalalignment='center', verticalalignment='bottom', zorder=10)
+                if annotate == True:
+                    plt.annotate(name, (self.descriper1[i], self.descriper2[i]+0.005), color=self.ColorDict[name], fontsize=14, horizontalalignment='center', verticalalignment='bottom', zorder=10)
             except:
                 plt.plot(self.descriper1[i], self.descriper2[i], 's', color=dot_color)  # plot dots
-                plt.annotate(name, (self.descriper1[i], self.descriper2[i]+0.005), color=dot_color, fontsize=14, horizontalalignment='center', verticalalignment='bottom')
+                if annotate == True:
+                    plt.annotate(name, (self.descriper1[i], self.descriper2[i]+0.005), color=dot_color, fontsize=14, horizontalalignment='center', verticalalignment='bottom')
 
         # add element tags
-        if False: #detached
+        if False: # deprecated
             if isinstance(dot_color, dict)==True:
                 for i, name in enumerate(self.obser_names):
                     plt.plot(self.descriper1[i], self.descriper2[i], 's', color=dot_color[name]) 
@@ -98,9 +101,9 @@ class ScalingRelationPlot:
         
         # get current axis object and change format
         # ax = fig.gca()
-        ax.tick_params(labelsize=12) #tick label font size
+        ax.tick_params(labelsize=12) # tick label font size
         for axis in ['top','bottom','left','right']:
-            ax.spines[axis].set_linewidth(1.2) #linewith of frame
+            ax.spines[axis].set_linewidth(1.2) # linewith of frame
         
         # linear fiting and plot linear line
         m, b = np.polyfit(self.descriper1, self.descriper2, 1)
