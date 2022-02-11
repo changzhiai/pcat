@@ -18,6 +18,7 @@ from pcat.activity import Activity
 from ase.visualize import view
 import matplotlib.pyplot as plt
 from pcat.pourbaix import PourbaixDiagram
+import numpy as np
 
 def concatenate_db(db_name1, db_name2, db_tot):
     """Contatenate two database into the total one"""
@@ -139,7 +140,46 @@ def view_ads(ads, all_sites=False):
             r_adsorbate = unique_id.split('_')[3]
             if str(origin_id)==r_origin_id and site==r_site and adsorbate==r_adsorbate:
                 atoms_list.append(r.toatoms())
-    view(atoms_list) 
+    view(atoms_list)
+    
+def get_each_layer_cons(atoms, obj):
+    """Get concentration in each layer"""
+    if obj == 'Pd':
+        obj_lys = [(-1, 1), (2, 3), (4, 5), (6.5, 7.5)]
+    elif obj == 'H':
+        obj_lys = [(1, 2), (3, 4), (5, 6.5), (7.5, 8.5)]
+    obj_cons = np.zeros(4)
+    for atom in atoms:
+        for i, obj_ly in enumerate(obj_lys):
+            min_z = min(obj_ly)
+            max_z = max(obj_ly)
+            if atom.symbol == obj and atom.z > min_z and atom.z < max_z:
+                obj_cons[i] += 1
+    obj_cons= obj_cons/16
+    # print(obj_cons)
+    return obj_cons
+
+def plot_cons_as_layers(obj='H'):
+    """Plot concentrations as a function of layers"""
+    db = connect(db_name)
+    for row in db.select():
+        # atoms_all.append(row.toatoms())
+        atoms = row.toatoms()
+        obj_cons = get_each_layer_cons(atoms, obj=obj)
+        con_tot = sum(obj_cons)/4
+        formula = row.formula
+        i_X = formula.find('X')
+        formula = formula[:i_X] + formula[i_X+4:] # remove Xxxx
+        xs = ['layer 1', 'layer 2', 'layer 3', 'layer 4']
+        plt.figure()
+        plt.bar(xs, obj_cons, color='blue')
+        plt.ylim(0, 1.18)
+        if obj == 'H':
+            plt.title(formula + ', H cons:' + str(round(con_tot, 3)))
+            plt.ylabel('Concentration of H')
+        elif obj == 'Pd':
+            plt.title(formula + ', Pd cons:' + str(round(con_tot, 3)))
+            plt.ylabel('Concentration of Pd')
 
 def plot_BE_as_Hcons(xls_name, sheet_cons):
     """Plot binding energy as a function of hydrogen concentrations"""
@@ -211,7 +251,14 @@ def plot_scaling_relations(xls_name, sheet_binding_energy, fig_dir):
             descriper1 = df.columns[col1[i]-2]
             descriper2 = df.columns[col2[i]-2]
             sr = ScalingRelation(df, descriper1, descriper2, fig_name=name_fig_BE)
-            sr.plot(ax = ax, save=False,color_ditc=True, title='', xlabel=descriper1, ylabel=descriper2, dot_color='red', line_color='red')
+            sr.plot(ax = ax, save=False, 
+                    color_dict=True, 
+                    title='', 
+                    xlabel=descriper1, 
+                    ylabel=descriper2, 
+                    dot_color='red', 
+                    line_color='red',
+                    annotate=True,)
             i+=1
     plt.show()
     fig.savefig(name_fig_BE, dpi=300, bbox_inches='tight')
@@ -285,8 +332,12 @@ if __name__ == '__main__':
     # system_name = 'collect_vasp_test_m'
     # system_name = 'collect_vasp_Pd0Hy'
     # system_name = 'collect_vasp_layers_H'
-    system_name = 'collect_vasp_PdHy_and_insert'
+    # system_name = 'collect_vasp_PdHy_and_insert'
     # system_name = 'collect_ce_candidates_v0'
+    # system_name = 'collect_ce_candidates'
+    # system_name = 'collect_ce_Pd32Hy'
+    system_name = 'cand_init_Pd64Hy'
+    
     
     # system_name = 'collect_vasp_PdHy_v3'
     # system_name = 'collect_vasp_Pd32Hy'
@@ -324,11 +375,14 @@ if __name__ == '__main__':
         plot_activity(xls_name, sheet_binding_energy, fig_dir)
         
     # plot_free_enegy(xls_name, sheet_free_energy, fig_dir)
+    # plot_scaling_relations(xls_name, sheet_binding_energy, fig_dir)
     # plot_activity(xls_name, sheet_binding_energy, fig_dir)
     # views(formula='Pd51Ti13H59', all_sites=True)
     # view(db_name)
-    plot_BE_as_Hcons(xls_name, sheet_cons)
+    # plot_BE_as_Hcons(xls_name, sheet_cons)
     # plot_pourbaix_diagram(xls_name, sheet_name_dGs)
     # plot_chemical_potential(xls_name, sheet_name_origin)
     # view_ads('CO')
-    view_db(db_name)
+    # view_db(db_name)
+    
+    plot_cons_as_layers(obj='Pd')
