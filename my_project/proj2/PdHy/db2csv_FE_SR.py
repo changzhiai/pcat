@@ -160,7 +160,10 @@ def get_each_layer_cons(atoms, obj):
     return obj_cons
 
 def plot_cons_as_layers(obj='H'):
-    """Plot concentrations as a function of layers"""
+    """Plot concentrations as a function of layers
+    
+    obj = 'H' or 'Pd'
+    """
     db = connect(db_name)
     for row in db.select():
         # atoms_all.append(row.toatoms())
@@ -335,8 +338,9 @@ if __name__ == '__main__':
     # system_name = 'collect_vasp_PdHy_and_insert'
     # system_name = 'collect_ce_candidates_v0'
     # system_name = 'collect_ce_candidates'
+    system_name = 'collect_ce_candidates_single_ads'
     # system_name = 'collect_ce_Pd32Hy'
-    system_name = 'cand_init_Pd64Hy'
+    # system_name = 'cand_init_Pd64Hy'
     
     
     # system_name = 'collect_vasp_PdHy_v3'
@@ -364,11 +368,11 @@ if __name__ == '__main__':
     sheet_name_dGs = 'dGs'
     
     db = connect(db_name)
-    if False: # database to excel
+    if True: # database to excel
         # db = del_partial_db(db)
         db2xls(system_name, xls_name, db, ref_eles, sheet_name_origin, sheet_name_stable, sheet_free_energy, sheet_binding_energy, sheet_cons, sheet_name_allFE, sheet_selectivity, sheet_name_dGs)
     
-    if False: # plot
+    if True: # plot
         plot_free_enegy(xls_name, sheet_free_energy, fig_dir)
         plot_scaling_relations(xls_name, sheet_binding_energy, fig_dir)
         plot_selectivity(xls_name, sheet_selectivity, fig_dir)
@@ -385,4 +389,4 @@ if __name__ == '__main__':
     # view_ads('CO')
     # view_db(db_name)
     
-    plot_cons_as_layers(obj='Pd')
+    # plot_cons_as_layers(obj='Pd')
