@@ -338,9 +338,11 @@ if __name__ == '__main__':
     # system_name = 'collect_vasp_PdHy_and_insert'
     # system_name = 'collect_ce_candidates_v0'
     # system_name = 'collect_ce_candidates'
-    system_name = 'collect_ce_candidates_single_ads'
+    # system_name = 'collect_ce_candidates_single_ads'
+    # system_name = 'collect_ce_candidates_single_ads_72s'
     # system_name = 'collect_ce_Pd32Hy'
     # system_name = 'cand_init_Pd64Hy'
+    # system_name = 'collect_ce_candidates_predict_vasp'
     
     
     # system_name = 'collect_vasp_PdHy_v3'
@@ -352,7 +354,7 @@ if __name__ == '__main__':
     # system_name = 'collect_vasp_PdHy_and_Pd32Hy'
     # system_name = 'collect_vasp_PdHy_and_Pd16Hy_and_Pd32Hy'
     # system_name = 'collect_vasp_PdHy_and_Pd16Hy_and_Pd32Hy_and_Pd48Hy'
-    # system_name = 'collect_vasp_PdHy_and_Pd16Hy_and_Pd32Hy_and_Pd48Hy_and_Pd51Hy'
+    system_name = 'collect_vasp_PdHy_and_Pd16Hy_and_Pd32Hy_and_Pd48Hy_and_Pd51Hy'
     ref_eles=['Pd', 'Ti']
     db_name = f'../data/{system_name}.db' # the only one needed
     xls_name = f'../data/{system_name}.xlsx'
@@ -368,7 +370,7 @@ if __name__ == '__main__':
     sheet_name_dGs = 'dGs'
     
     db = connect(db_name)
-    if True: # database to excel
+    if False: # database to excel
         # db = del_partial_db(db)
         db2xls(system_name, xls_name, db, ref_eles, sheet_name_origin, sheet_name_stable, sheet_free_energy, sheet_binding_energy, sheet_cons, sheet_name_allFE, sheet_selectivity, sheet_name_dGs)
     
