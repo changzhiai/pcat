@@ -353,8 +353,8 @@ if __name__ == '__main__':
     # system_name = 'collect_vasp_Pd51Hy'
     # system_name = 'collect_vasp_PdHy_and_Pd32Hy'
     # system_name = 'collect_vasp_PdHy_and_Pd16Hy_and_Pd32Hy'
-    # system_name = 'collect_vasp_PdHy_and_Pd16Hy_and_Pd32Hy_and_Pd48Hy'
-    system_name = 'collect_vasp_PdHy_and_Pd16Hy_and_Pd32Hy_and_Pd48Hy_and_Pd51Hy'
+    system_name = 'collect_vasp_PdHy_and_Pd16Hy_and_Pd32Hy_and_Pd48Hy'
+    # system_name = 'collect_vasp_PdHy_and_Pd16Hy_and_Pd32Hy_and_Pd48Hy_and_Pd51Hy'
     ref_eles=['Pd', 'Ti']
     db_name = f'../data/{system_name}.db' # the only one needed
     xls_name = f'../data/{system_name}.xlsx'
