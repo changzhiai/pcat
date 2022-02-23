@@ -318,6 +318,7 @@ def del_partial_db(db):
     """Delet uncomplete database"""
     # db = connect(db_name)
     del_ids = [142, 141, 140, 139, 138]
+    # del_ids = np.arange(311)
     del_rows = []
     for row in db.select():
         for del_id in del_ids:
@@ -343,6 +344,7 @@ if __name__ == '__main__':
     # system_name = 'collect_ce_Pd32Hy'
     # system_name = 'cand_init_Pd64Hy'
     # system_name = 'collect_ce_candidates_predict_vasp'
+    system_name = 'collect_ce_candidates_vasp_for_surface'
     
     
     # system_name = 'collect_vasp_PdHy_v3'
@@ -353,7 +355,7 @@ if __name__ == '__main__':
     # system_name = 'collect_vasp_Pd51Hy'
     # system_name = 'collect_vasp_PdHy_and_Pd32Hy'
     # system_name = 'collect_vasp_PdHy_and_Pd16Hy_and_Pd32Hy'
-    system_name = 'collect_vasp_PdHy_and_Pd16Hy_and_Pd32Hy_and_Pd48Hy'
+    # system_name = 'collect_vasp_PdHy_and_Pd16Hy_and_Pd32Hy_and_Pd48Hy'
     # system_name = 'collect_vasp_PdHy_and_Pd16Hy_and_Pd32Hy_and_Pd48Hy_and_Pd51Hy'
     ref_eles=['Pd', 'Ti']
     db_name = f'../data/{system_name}.db' # the only one needed
@@ -370,7 +372,7 @@ if __name__ == '__main__':
     sheet_name_dGs = 'dGs'
     
     db = connect(db_name)
-    if False: # database to excel
+    if True: # database to excel
         # db = del_partial_db(db)
         db2xls(system_name, xls_name, db, ref_eles, sheet_name_origin, sheet_name_stable, sheet_free_energy, sheet_binding_energy, sheet_cons, sheet_name_allFE, sheet_selectivity, sheet_name_dGs)
     
