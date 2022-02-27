@@ -161,28 +161,46 @@ def get_each_layer_cons(atoms, obj):
 
 def plot_cons_as_layers(obj='H'):
     """Plot concentrations as a function of layers
+    for CE bare surface (initial structures of DFT)
     
     obj = 'H' or 'Pd'
     """
     db = connect(db_name)
+    M = 7
+    N = 8
+    m1 = 0
+    m2 = 0
+    fig = plt.figure(figsize=(16,16))
     for row in db.select():
         # atoms_all.append(row.toatoms())
+        ax = plt.subplot(N, M, m1*M + m2 + 1)
         atoms = row.toatoms()
         obj_cons = get_each_layer_cons(atoms, obj=obj)
         con_tot = sum(obj_cons)/4
         formula = row.formula
         i_X = formula.find('X')
         formula = formula[:i_X] + formula[i_X+4:] # remove Xxxx
-        xs = ['layer 1', 'layer 2', 'layer 3', 'layer 4']
-        plt.figure()
+        xs = ['ly1', 'ly2', 'ly3', 'ly4']
+        # xs = ['layer 1', 'layer 2', 'layer 3', 'layer 4']
+        # plt.figure()
         plt.bar(xs, obj_cons, color='blue')
         plt.ylim(0, 1.18)
         if obj == 'H':
-            plt.title(formula + ', H cons:' + str(round(con_tot, 3)))
-            plt.ylabel('Concentration of H')
+            title = formula + ', H:' + str(round(con_tot, 3))
+            plt.text(0.05, 0.92, title, fontsize=8, horizontalalignment='left', verticalalignment='center', transform=ax.transAxes, color='black', fontweight='bold')
+            # plt.title(formula + ', H:' + str(round(con_tot, 3)), fontsize=8)
+            if m2==0:
+                plt.ylabel('Concentration of H', fontsize=10)
         elif obj == 'Pd':
             plt.title(formula + ', Pd cons:' + str(round(con_tot, 3)))
             plt.ylabel('Concentration of Pd')
+        
+        m2 += 1
+        if m2 == M:
+            m2 = 0
+            m1 += 1
+        name_fig_cons_as_lys=f'{fig_dir}/{system_name}_cons_as_lys.jpg'
+        fig.savefig(name_fig_cons_as_lys, dpi=300, bbox_inches='tight')
 
 def plot_BE_as_Hcons(xls_name, sheet_cons):
     """Plot binding energy as a function of hydrogen concentrations"""
@@ -337,14 +355,15 @@ if __name__ == '__main__':
     # system_name = 'collect_vasp_Pd0Hy'
     # system_name = 'collect_vasp_layers_H'
     # system_name = 'collect_vasp_PdHy_and_insert'
+    # system_name = 'collect_vasp_coverage_H'
     # system_name = 'collect_ce_candidates_v0'
     # system_name = 'collect_ce_candidates'
     # system_name = 'collect_ce_candidates_single_ads'
     # system_name = 'collect_ce_candidates_single_ads_72s'
     # system_name = 'collect_ce_Pd32Hy'
-    # system_name = 'cand_init_Pd64Hy'
+    system_name = 'cand_init_Pd64Hy' # to see H concentration as layers
     # system_name = 'collect_ce_candidates_predict_vasp'
-    system_name = 'collect_ce_candidates_vasp_for_surface'
+    # system_name = 'collect_ce_candidates_vasp_for_surface'
     
     
     # system_name = 'collect_vasp_PdHy_v3'
@@ -372,11 +391,11 @@ if __name__ == '__main__':
     sheet_name_dGs = 'dGs'
     
     db = connect(db_name)
-    if True: # database to excel
+    if False: # database to excel
         # db = del_partial_db(db)
         db2xls(system_name, xls_name, db, ref_eles, sheet_name_origin, sheet_name_stable, sheet_free_energy, sheet_binding_energy, sheet_cons, sheet_name_allFE, sheet_selectivity, sheet_name_dGs)
     
-    if True: # plot
+    if False: # plot
         plot_free_enegy(xls_name, sheet_free_energy, fig_dir)
         plot_scaling_relations(xls_name, sheet_binding_energy, fig_dir)
         plot_selectivity(xls_name, sheet_selectivity, fig_dir)
@@ -394,3 +413,4 @@ if __name__ == '__main__':
     # view_db(db_name)
     
     # plot_cons_as_layers(obj='Pd')
+    plot_cons_as_layers(obj='H')
