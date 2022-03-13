@@ -558,7 +558,9 @@ def get_PdHx_candidates(cand_ids, db_name):
 
 
 if __name__ == '__main__':
-    system = 'collect_ce_PdHx_results'
+    # system = 'collect_ce_PdHx_results'
+    system = 'collect_vasp_candidates_PdHx'
+
     # system = 'results_again'
     fig_dir = './figures/'
     data_dir = './data'
