@@ -504,13 +504,16 @@ def db2xls(db_name):
     cons_H = []
     form_energies = []
     ids = []
+    energies = []
     for row in db.select():
         cons_H.append(row.con_H)
         form_energies.append(row.form_energy)
         ids.append(row.uni_id)
+        energies.append(row.energy)
     tuples = {'cons_H': cons_H,
       'form_energies': form_energies,
       'ids': ids,
+      'Energies': energies,
     }
     df = pd.DataFrame(tuples)
     df.to_excel(xls_name, sheet_name_convex_hull, float_format='%.3f')
@@ -537,6 +540,7 @@ def plot_convex_hull_PdHx(db_name):
     fig.savefig(f'./{fig_dir}/convex_hull.png', dpi=300, bbox_inches='tight')
 
 def get_PdHx_candidates(cand_ids, db_name):
+    """Get and save candidates"""
     db_cand_name='candidates_PdHx.db'
     db = connect(db_name)
     if os.path.exists(db_cand_name):
@@ -545,6 +549,36 @@ def get_PdHx_candidates(cand_ids, db_name):
     for uni_id in cand_ids:
         row = db.get(uni_id=uni_id)
         db_cand.write(row)
+
+def plot_chem_pot_H_PdHx_discrete():
+    """
+    specific at PdHx for CE
+
+    X H form ids pot_E
+    """
+    df = pd_read_excel(filename=xls_name, sheet=sheet_name_convex_hull)
+    df = df.sort_values(by=['cons_H'], ascending=False)
+    Hcons = df['cons_H'].values
+    Etot = df['Energies'].values
+    plt.figure()
+    plt.plot(Hcons, Etot)
+    plt.xlabel('Concentration of H')
+    plt.ylabel('CE energy (eV)')
+    plt.show()
+    # print(Etot)
+    # print(Hcons)
+    dyf = [0.0] * len(Hcons)
+    for i in range(len(Etot)-1):
+        dyf[i] = (Etot[i+1] - Etot[i])/((Hcons[i+1]-Hcons[i])*64)
+        # print(Etot[i])
+    #set last element by backwards difference
+    dyf[-1] = (Etot[-1] - Etot[-2])/((Hcons[-1] - Hcons[-2])*64)
+    # print(dyf)
+    plt.figure()
+    plt.xlabel('Concentration of H')
+    plt.ylabel('$\Delta \mu_H $ (eV)')
+    plt.plot(Hcons, dyf)
+    plt.show()
 
 
 # convex_hull_ref_metals_3d_line(pts=dct_to_array(pts)) # input: dict to array
@@ -558,8 +592,12 @@ def get_PdHx_candidates(cand_ids, db_name):
 
 
 if __name__ == '__main__':
-    # system = 'collect_ce_PdHx_results'
-    system = 'results'
+    
+    # system = 'candidates_PdHx'
+    system = 'results_last1'
+    
+    # system = 'results'
+    
 
     # system = 'results_again'
     fig_dir = './figures/'
@@ -572,4 +610,5 @@ if __name__ == '__main__':
     # get_db_and_excel()
     
     db2xls(db_name)
-    plot_convex_hull_PdHx(db_name)
+    # plot_convex_hull_PdHx(db_name)
+    plot_chem_pot_H_PdHx_discrete()
