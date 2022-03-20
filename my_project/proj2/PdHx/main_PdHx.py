@@ -19,6 +19,7 @@ from ase.visualize import view
 import matplotlib.pyplot as plt
 from pcat.pourbaix import PourbaixDiagram
 import numpy as np
+import pandas as pd
 
 def concatenate_db(db_name1, db_name2, db_tot):
     """Contatenate two database into the total one"""
@@ -108,7 +109,7 @@ def view_db(db_name):
         atoms_all.append(row.toatoms())
     view(atoms_all)
     
-def view_ads(ads, all_sites=False):
+def view_ads(ads, all_sites=False, save=False):
     """View one kind of adsorbate`s all structures in the database
     
     ads: str
@@ -129,6 +130,11 @@ def view_ads(ads, all_sites=False):
     df = df.sort_values(by=['Cons_H'])
     df_sub = df.loc[df['Adsorbate'] == ads]
     atoms_list = []
+    if save==True:
+        db_surface_name = '{}_vasp.db'.format(ads)
+        if os.path.exists(db_surface_name):
+            assert False
+        db_surface = connect(db_surface_name)
     for index, row in df_sub.iterrows():
         origin_id = row['Origin_id']
         site = row['Site']
@@ -140,15 +146,17 @@ def view_ads(ads, all_sites=False):
             r_adsorbate = unique_id.split('_')[3]
             if str(origin_id)==r_origin_id and site==r_site and adsorbate==r_adsorbate:
                 atoms_list.append(r.toatoms())
+                if save==True:
+                    db_surface.write(r)
     view(atoms_list)
     
-def get_each_layer_cons(atoms, obj):
+def get_each_layer_cons(db_name, atoms, obj):
     """Get concentration in each layer"""
     if obj == 'Pd':
         obj_lys = [(-1, 1), (2, 3), (4, 5), (6.5, 7.5)]
     elif obj == 'H':
         # obj_lys = [(1, 2), (3, 4), (5, 6.5), (7.5, 8.5)]
-        obj_lys = [(1, 2), (3, 4), (5, 7), (7.5, 8.5)]
+        obj_lys = [(1, 2), (3, 4.6), (4.6, 7), (6.9999, 8.5)]
     obj_cons = np.zeros(4)
     for atom in atoms:
         for i, obj_ly in enumerate(obj_lys):
@@ -156,18 +164,21 @@ def get_each_layer_cons(atoms, obj):
             max_z = max(obj_ly)
             if atom.symbol == obj and atom.z > min_z and atom.z < max_z:
                 obj_cons[i] += 1
+    # if adsorbate is H for vasp calculation, remove one
+    if db_name == './data/H_vasp.db' and obj == 'H':
+        obj_cons[3] -= 1
     obj_cons= obj_cons/16
     # print(obj_cons)
     return obj_cons
 
-def plot_cons_as_layers(obj='H'):
+def plot_cons_as_layers(db_name, obj='H', removeX=False):
     """Plot concentrations as a function of layers
     for CE bare surface without adsorbate (initial structures of DFT)
     
     obj = 'H' or 'Pd'
     """
     db = connect(db_name)
-    M = 7
+    M = 6
     N = 8
     m1 = 0
     m2 = 0
@@ -176,11 +187,13 @@ def plot_cons_as_layers(obj='H'):
         # atoms_all.append(row.toatoms())
         ax = plt.subplot(N, M, m1*M + m2 + 1)
         atoms = row.toatoms()
-        obj_cons = get_each_layer_cons(atoms, obj=obj)
+        atoms =  atoms[[atom.index for atom in atoms if atom.z < 8.5]] # remove adsorbate
+        obj_cons = get_each_layer_cons(db_name, atoms, obj=obj)
         con_tot = sum(obj_cons)/4
         formula = row.formula
-        i_X = formula.find('X')
-        formula = formula[:i_X] + formula[i_X+4:] # remove Xxxx
+        if removeX == True:
+            i_X = formula.find('X')
+            formula = formula[:i_X] + formula[i_X+4:] # remove Xxxx
         xs = ['ly1', 'ly2', 'ly3', 'ly4']
         # xs = ['layer 1', 'layer 2', 'layer 3', 'layer 4']
         # plt.figure()
@@ -200,8 +213,8 @@ def plot_cons_as_layers(obj='H'):
         if m2 == M:
             m2 = 0
             m1 += 1
-        name_fig_cons_as_lys=f'{fig_dir}/{system_name}_cons_as_lys.jpg'
-        fig.savefig(name_fig_cons_as_lys, dpi=300, bbox_inches='tight')
+        # name_fig_cons_as_lys=f'{fig_dir}/{system_name}_cons_as_lys.jpg'
+        # fig.savefig(name_fig_cons_as_lys, dpi=300, bbox_inches='tight')
         
 def plot_cons_as_layers_with_ads(obj='H'):
     """Plot concentrations as a function of layers
@@ -387,13 +400,26 @@ def plot_chemical_potential(xls_name, sheet_name_origin):
     df = df.sort_values(by=['Cons_H'], ascending=False)
     cons_H = df['Cons_H'].to_numpy()
     dft_energy = df['Energy'].to_numpy()
+    plt.figure()
+    plt.plot(cons_H, dft_energy)
+    plt.xlabel('Concentration of H')
+    plt.ylabel('DFT energy (eV)')
+    plt.show()
     dyf = [0.0] * len(cons_H)
     for i in range(len(dft_energy)-1):
         dyf[i] = (dft_energy[i+1] - dft_energy[i])/((cons_H[i+1]-cons_H[i])*64)
     # set last element by backwards difference
     dyf[-1] = (dft_energy[-1] - dft_energy[-2])/((cons_H[-1] - cons_H[-2])*64)
     plt.figure()
+    ids = []
+    for i, y in enumerate(dyf):
+        if y < -5:
+            ids.append(i)
+    cons_H = np.delete(cons_H, ids)
+    dyf = np.delete(dyf, ids)
     plt.plot(cons_H, dyf)
+    plt.xlabel('Concentration of H')
+    plt.ylabel('$\Delta \mu$ (eV)')
     plt.show()
     
 def plot_selectivity(xls_name, sheet_selectivity, fig_dir):
@@ -439,12 +465,56 @@ def del_partial_db(db):
     print(del_rows)
     return db
 
+def sort_db(db):
+    """Sort database according to H concentration"""
+    db_sort = connect('{}_sort.db'.format(system_name))
+    ids = []
+    num_Hs = []
+    for row in db.select():
+        atoms = row.toatoms()
+        try:
+            num_H = len(atoms[[atom.index for atom in atoms if atom.symbol=='H']])
+        except:
+            num_H = 0
+        ids.append(row.id)
+        num_Hs.append(num_H)
+    tuples = {'Id': ids,
+          'Numbers_H': num_Hs,
+          }
+    df = pd.DataFrame(tuples)
+    df = df.sort_values(by=['Numbers_H'])
+    for index, row in df.iterrows():
+        id = row['Id']
+        for r in db.select(id=int(id)):
+            db_sort.write(r)
+
+def plot_H_distribution():
+    """Plot all H distributions"""
+    plot_cons_as_layers(db_name='./data/candidates_PdHx_sort.db', obj='H', removeX=True) # plot slab for CE
+    plot_cons_as_layers(db_name='./data/surface_vasp.db', obj='H', removeX=False) # plot slab for vasp
+    
+    for system in ['HOCO', 'CO', 'OH', 'H']:
+        db_name=f'./data/{system}_vasp.db'
+        if os.path.exists(db_name):
+            plot_cons_as_layers(db_name=db_name, obj='H', removeX=False)
+            plt.show()
+    
+    
+
 if __name__ == '__main__':
     if False:
         db_tot = '../data/collect_vasp_PdHy_and_insert.db'
         concatenate_db('../data/collect_vasp_PdHy_v3.db', '../data/collect_vasp_insert_PdHy.db', db_tot)
     
-    system_name = 'collect_vasp_candidates_PdHx'
+    # system_name = 'candidates_PdHx_sort' # candidates surface of CE
+    # system_name = 'surface_vasp' # vasp 
+    # system_name = 'HOCO_vasp' # vasp HOCO
+    # system_name = 'CO_vasp' # vasp CO
+    
+    # system_name = 'candidates_PdHx_sort' # candidates surface of CE
+    
+    system_name = 'collect_vasp_candidates_PdHx' # 9 times
+    
     
 
     ref_eles=['Pd', 'Ti']
@@ -474,17 +544,20 @@ if __name__ == '__main__':
         
     # plot_free_enegy(xls_name, sheet_free_energy, fig_dir)
     # plot_scaling_relations(xls_name, sheet_binding_energy, fig_dir)
-    plot_activity(xls_name, sheet_binding_energy, fig_dir)
+    # plot_activity(xls_name, sheet_binding_energy, fig_dir)
     # views(formula='Pd51Ti13H59', all_sites=True)
     # view(db_name)
-    plot_BE_as_Hcons(xls_name, sheet_cons)
+    # plot_BE_as_Hcons(xls_name, sheet_cons)
     # plot_pourbaix_diagram(xls_name, sheet_name_dGs)
     plot_chemical_potential(xls_name, sheet_name_origin)
-    # view_ads('CO')
+    # view_ads('H', all_sites=False, save=True)
     # view_db(db_name)
     # view_ads('surface', all_sites=True)
     
     # plot_cons_as_layers(obj='Pd')
-    # plot_cons_as_layers(obj='H')
     
+    # plot_cons_as_layers(obj='H')
     # plot_cons_as_layers_with_ads(obj='H')
+    # sort_db(db)
+    # print(len(db_name))
+    # plot_H_distribution()
