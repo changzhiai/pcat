@@ -518,7 +518,7 @@ def db2xls(db_name):
     df = pd.DataFrame(tuples)
     df.to_excel(xls_name, sheet_name_convex_hull, float_format='%.3f')
 
-def plot_convex_hull_PdHx(db_name):
+def plot_convex_hull_PdHx(db_name, cand=False):
     """Plot convex hull"""
     df = pd_read_excel(filename=xls_name, sheet=sheet_name_convex_hull)
     cons_H = df['cons_H']
@@ -531,7 +531,8 @@ def plot_convex_hull_PdHx(db_name):
     hull = ConvexHull(points=points[:, 0:2])
     vertices = points[hull.vertices] # get convex hull vertices
     cand_ids = vertices[:,2]
-    get_PdHx_candidates(cand_ids, db_name=db_name)
+    if cand==True:
+        get_PdHx_candidates(cand_ids, db_name=db_name)
     plot_basical_convex_hull(vertices, ax=ax)
     plt.xlabel('Concentration of H')
     plt.ylabel('Formation energies (eV/atom)')

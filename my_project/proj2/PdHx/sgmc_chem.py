@@ -188,7 +188,7 @@ if __name__ == '__main__':
     if True:
         # get_quantities(xls_name, sheet=sheet_name_convex_hull)
         # plot_chem_vs_cons(xls_name, sheet=sheet_name_convex_hull, T=500)
-        for T in [300, 400, 500, 600, 700]:
+        for T in [100, 200, 300, 400, 500, 600, 700, 800, 1000, 2000, 1500, 4000]:
             plot_chem_vs_cons(xls_name, sheet=sheet_name_convex_hull, T=T)
         plt.xlabel('Concentration of H')
         plt.ylabel('H chemical potential')
