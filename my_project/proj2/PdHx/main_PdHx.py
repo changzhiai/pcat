@@ -467,7 +467,7 @@ def del_partial_db(db):
 
 def sort_db(db):
     """Sort database according to H concentration"""
-    db_sort = connect('{}_sort.db'.format(system_name))
+    db_sort = connect('./data/{}_sort.db'.format(system_name))
     ids = []
     num_Hs = []
     for row in db.select():
@@ -486,7 +486,9 @@ def sort_db(db):
     for index, row in df.iterrows():
         id = row['Id']
         for r in db.select(id=int(id)):
+            print(id)
             db_sort.write(r)
+    print('sort success')
 
 def plot_H_distribution():
     """Plot all H distributions"""
@@ -506,16 +508,22 @@ if __name__ == '__main__':
         db_tot = '../data/collect_vasp_PdHy_and_insert.db'
         concatenate_db('../data/collect_vasp_PdHy_v3.db', '../data/collect_vasp_insert_PdHy.db', db_tot)
     
+    # system_name = 'collect_ce_init_PdHx_r2_sort'
+    # system_name = 'collect_ce_init_PdHx_r3'
+    system_name = 'collect_ce_init_PdHx_r4'
+    # system_name = 'collect_vasp_candidates_PdHx_r2_sort'
+    # system_name = 'collect_vasp_candidates_PdHx_r3'
+    # system_name = 'collect_vasp_candidates_PdHx_r4'
     # system_name = 'candidates_PdHx_sort' # candidates surface of CE
     # system_name = 'surface_vasp' # vasp 
+    
     # system_name = 'HOCO_vasp' # vasp HOCO
     # system_name = 'CO_vasp' # vasp CO
-    
-    # system_name = 'candidates_PdHx_sort' # candidates surface of CE
-    
-    system_name = 'collect_vasp_candidates_PdHx' # 9 times
+    # system_name = 'collect_ce_init_PdHx_r2'
     
     
+    # system_name = 'collect_vasp_candidates_PdHx' # 9 times
+
 
     ref_eles=['Pd', 'Ti']
     db_name = f'./data/{system_name}.db' # the only one needed
@@ -549,14 +557,18 @@ if __name__ == '__main__':
     # view(db_name)
     # plot_BE_as_Hcons(xls_name, sheet_cons)
     # plot_pourbaix_diagram(xls_name, sheet_name_dGs)
-    plot_chemical_potential(xls_name, sheet_name_origin)
+    # plot_chemical_potential(xls_name, sheet_name_origin)
+    
     # view_ads('H', all_sites=False, save=True)
     # view_db(db_name)
     # view_ads('surface', all_sites=True)
     
     # plot_cons_as_layers(obj='Pd')
     
+    
     # plot_cons_as_layers(obj='H')
+    # sort_db(db)
+    plot_cons_as_layers(db_name=db_name, obj='H', removeX=False)
     # plot_cons_as_layers_with_ads(obj='H')
     # sort_db(db)
     # print(len(db_name))
