@@ -16,18 +16,22 @@ kB = 8.617e-5  # Boltzmann constant in eV/K
 def Hcons(atoms):
     try:
         sites_H = [a.index for a in atoms if a.symbol == 'H']
+        nums_H = len(sites_H)
         cons_H = len(sites_H) / 64.
     except:
         sites_H = []
+        nums_H = 0
         cons_H = 0
-    return cons_H
+        
+    return cons_H, nums_H
         
 
 def db2xls(db_name='./data/sgmc_results.db'):
     """Convert database to excel"""
     db = connect(db_name)
     cons_H = []
-    form_energies = []
+    nums_H = []
+    # form_energies = []
     ids = []
     energies = []
     Ts = []
@@ -36,7 +40,9 @@ def db2xls(db_name='./data/sgmc_results.db'):
     # for temp in [700, 600, 500, 400, 300, 200, 100, 0]:
     for row in db.select():
         atoms = row.toatoms()
-        cons_H.append(Hcons(atoms))
+        con_H, num_H = Hcons(atoms)
+        cons_H.append(con_H)
+        nums_H.append(num_H)
         # form_energies.append(row.form_energy)
         mu_H = row.data.chem_pot_H
         chem_Hs.append(mu_H)
@@ -46,15 +52,16 @@ def db2xls(db_name='./data/sgmc_results.db'):
         Ts.append(temp)
         pH2 = P_H2_s(mu_H, temp)
         pH2s.append(pH2)
-        print(row.id)
+        # print(row.id)
     tuples = {'cons_H': cons_H,
-      # 'form_energies': form_energies,
-      '$\mu$_H': chem_Hs,
-      'ids': ids,
-      'Energies': energies,
-      'temp_H2': Ts,
-      'pH2': pH2s,
-    }
+              'nums_H': nums_H,
+            # 'form_energies': form_energies,
+            '$\mu$_H': chem_Hs,
+            'ids': ids,
+            'Energies': energies,
+            'temp_H2': Ts,
+            'pH2': pH2s,
+             }
     df = pd.DataFrame(tuples)
     df.to_excel(xls_name, sheet_name_convex_hull, float_format='%.3f')
     
@@ -88,42 +95,45 @@ def T_H2_s(mu_H, P):
     temp_H2 = (2*mu_H + 7.096) / (kB*np.log(P) - 0.00135)
     return temp_H2
 
+def get_real_quan(df):
+    row_E_Pd = df[df['cons_H'] == 0]
+    E_Pd = (row_E_Pd['Energies'].values)[0]
+
+    nums_Hs = []
+    mu_Hs = []
+    pH2s = []
+    temp_H2s = []
+    for i, row in df.iterrows():
+        dft_energy = row['Energies']
+        nums_H = row['nums_H']
+        if nums_H != 0:
+            # print(nums_H)
+            mu_H = (dft_energy - E_Pd) / nums_H
+        else:
+            mu_H = -4.2 #-3.548
+
+        pH2 = P_H2_s(mu_H, T)
+        # temp_H2 = T_H2_s(mu_H, P)
+
+        mu_Hs.append(mu_H)
+        pH2s.append(pH2)
+    #     # temp_H2s.append(temp_H2)
+
+    df['$\mu$_H'] = mu_Hs
+    df['pH2'] = pH2s
+    # df['temp_H2']=temp_H2s
+    return df
 
 
 def get_quantities(xls_name, sheet, T=500, P=100):
     """Get chemical potential using energy difference"""
     df = pd_read_excel(filename=xls_name, sheet=sheet)
-    df = df.loc[(df['temp_H2']==T) | (df['cons_H']==0) | (df['cons_H']==1)]
+    df = df.loc[df['temp_H2']==T]
+    # df = df.loc[(df['temp_H2']==T) | (df['cons_H']==0) | (df['cons_H']==1)]
     
-    df = df.sort_values(by=['cons_H'], ascending=False)
-
-    # row_E_Pd = df[df['cons_H'] == 0]
-    # E_Pd = (row_E_Pd['Energies'].values)[0]
-
-    # nums_Hs = []
-    # mu_Hs = []
-    # pH2s = []
-    # temp_H2s = []
-    # for i, row in df.iterrows():
-    #     dft_energy = row['Energies']
-    #     splits = row['ids'].split('_')
-    #     nums_H = 64 - int(splits[1])
-    #     if nums_H != 0:
-    #         mu_H = (dft_energy - E_Pd) / nums_H
-    #     else:
-    #         mu_H = -4.2 #-3.548
-
-    #     pH2 = P_H2_s(mu_H, T)
-    #     # temp_H2 = T_H2_s(mu_H, P)
-
-    #     nums_Hs.append(nums_H)
-    #     mu_Hs.append(mu_H)
-    #     pH2s.append(pH2)
-    #     # temp_H2s.append(temp_H2)
-    # df['num_H'] = nums_Hs
-    # df['$\mu$_H'] = mu_Hs
-    # df['pH2'] = pH2s
-    # df['temp_H2']=temp_H2s
+    df = df.sort_values(by=['$\mu$_H'], ascending=False)
+    
+    # df = get_real_quan(df)
     print(df)
     return df
 
@@ -135,7 +145,10 @@ def plot_chem_vs_cons(xls_name, sheet, T):
     mu_Hs = df['$\mu$_H']
     cons_Hs = df['cons_H']
     # plt.figure()
-    plt.plot(cons_Hs, mu_Hs)
+    plt.plot(cons_Hs[:-1], mu_Hs[:-1], 'o')
+    plt.plot(cons_Hs[:-1], mu_Hs[:-1], )
+    # plt.plot(cons_Hs, mu_Hs, 'o')
+    # plt.plot(cons_Hs, mu_Hs, )
     # plt.plot(cons_Hs[:-1], mu_Hs[:-1])
     # plt.plot( mu_Hs[:-1], cons_Hs[:-1])
     # plt.xlabel('Concentration of H')
@@ -146,6 +159,8 @@ def plot_chem_vs_cons(xls_name, sheet, T):
 def plot_pressure_vs_cons(xls_name, sheet, T):
     """Plot partial pressure vs. concentration"""
     df = get_quantities(xls_name, sheet, T=T)
+    # df = get_real_quan(df)
+    # print(df)
 
     pH2s = df['pH2']
     cons_Hs = df['cons_H']
@@ -175,6 +190,14 @@ if __name__ == '__main__':
     # system = 'candidates_PdHx'  # candidates surface of CE
     # system = 'results_last1'  # candidates surface of CE
     system = 'sgmc_results'  # candidates surface of CE
+    # system = 'sgmc_results_r2'  # candidates surface of CE
+    # system = 'sgmc_results_r3'  # candidates surface of CE
+    # system = 'sgmc_results_r3re'  # candidates surface of CE
+    # system = 'sgmc_results_r4'  # candidates surface of CE
+    # system = 'sgmc_results_r4re'  # candidates surface of CE
+    # system = 'sgmc_results_r4_Hchem'
+    # system = 'sgmc_results_r5_re'
+    # system = 'sgmc_results_r6'
 
     fig_dir = './figures/'
     data_dir = './data'
@@ -188,14 +211,17 @@ if __name__ == '__main__':
     if True:
         # get_quantities(xls_name, sheet=sheet_name_convex_hull)
         # plot_chem_vs_cons(xls_name, sheet=sheet_name_convex_hull, T=500)
-        for T in [100, 200, 300, 400, 500, 600, 700, 800, 1000, 2000, 1500, 4000]:
-            plot_chem_vs_cons(xls_name, sheet=sheet_name_convex_hull, T=T)
-        plt.xlabel('Concentration of H')
-        plt.ylabel('H chemical potential')
-        plt.show()
+        if True:
+            for T in [300]:
+            # for T in [100, 200, 300, 400, 500, 600, 700, 800]:
+                plot_chem_vs_cons(xls_name, sheet=sheet_name_convex_hull, T=T)
+            plt.xlabel('Concentration of H')
+            plt.ylabel('H chemical potential')
+            plt.show()
             
         # plot_pressure_vs_cons(xls_name, sheet=sheet_name_convex_hull, T=300)
-        for T in [300, 400, 500, 600, 700]:
+        # for T in [300, 400, 500, 600, 700]:
+        for T in [100, 200, 300, 400, 500, 600, 700, 800]:
             plot_pressure_vs_cons(xls_name, sheet=sheet_name_convex_hull, T=T)
         plt.xlabel('Concentration of H')
         plt.ylabel('Pressure')
