@@ -16,8 +16,11 @@ kB = 8.617e-5  # Boltzmann constant in eV/K
 def Hcons(atoms):
     try:
         sites_H = [a.index for a in atoms if a.symbol == 'H']
+        sites_Pd = [a.index for a in atoms if a.symbol == 'Pd']
         nums_H = len(sites_H)
-        cons_H = len(sites_H) / 64.
+        nums_Pd = len(sites_Pd)
+        # cons_H = len(sites_H) / 64.
+        cons_H = len(sites_H) / nums_Pd
     except:
         sites_H = []
         nums_H = 0
@@ -63,7 +66,7 @@ def db2xls(db_name='./data/sgmc_results.db'):
             'pH2': pH2s,
              }
     df = pd.DataFrame(tuples)
-    df.to_excel(xls_name, sheet_name_convex_hull, float_format='%.3f')
+    df.to_excel(xls_name, sheet_name_convex_hull, float_format='%.20f')
     
 def P_H2(mu_H, T):
     """Get presure of H2"""
@@ -145,8 +148,7 @@ def plot_chem_vs_cons(xls_name, sheet, T):
     mu_Hs = df['$\mu$_H']
     cons_Hs = df['cons_H']
     # plt.figure()
-    plt.plot(cons_Hs[:-1], mu_Hs[:-1], 'o')
-    plt.plot(cons_Hs[:-1], mu_Hs[:-1], )
+    plt.plot(cons_Hs[:-1], mu_Hs[:-1], '-o', label=str(T)+'K')
     # plt.plot(cons_Hs, mu_Hs, 'o')
     # plt.plot(cons_Hs, mu_Hs, )
     # plt.plot(cons_Hs[:-1], mu_Hs[:-1])
@@ -166,7 +168,7 @@ def plot_pressure_vs_cons(xls_name, sheet, T):
     cons_Hs = df['cons_H']
     # plt.figure()
     # plt.plot(cons_Hs[:-1], np.log(pH2s[:-1]))
-    plt.semilogy(cons_Hs, pH2s)
+    plt.semilogy(cons_Hs, pH2s, '-o', label=str(T)+'K')
     # plt.semilogy(cons_Hs[:-1], pH2s[:-1])
     # plt.xlabel('Concentration of H')
     # plt.ylabel('Pressure')
@@ -187,46 +189,56 @@ def plot_temp_vs_cons(xls_name, sheet, P):
 
 
 if __name__ == '__main__':
-    # system = 'candidates_PdHx'  # candidates surface of CE
-    # system = 'results_last1'  # candidates surface of CE
-    system = 'sgmc_results'  # candidates surface of CE
-    # system = 'sgmc_results_r2'  # candidates surface of CE
-    # system = 'sgmc_results_r3'  # candidates surface of CE
-    # system = 'sgmc_results_r3re'  # candidates surface of CE
-    # system = 'sgmc_results_r4'  # candidates surface of CE
-    # system = 'sgmc_results_r4re'  # candidates surface of CE
-    # system = 'sgmc_results_r4_Hchem'
-    # system = 'sgmc_results_r5_re'
-    # system = 'sgmc_results_r6'
-
-    fig_dir = './figures/'
-    data_dir = './data'
-    db_name = f'./{data_dir}/{system}.db'
-    xls_name = f'./{data_dir}/{system}.xlsx'
-
-    sheet_name_convex_hull = 'convex_hull'
     
-    if True:
-        db2xls(db_name=db_name)
-    if True:
-        # get_quantities(xls_name, sheet=sheet_name_convex_hull)
-        # plot_chem_vs_cons(xls_name, sheet=sheet_name_convex_hull, T=500)
-        if True:
-            for T in [300]:
-            # for T in [100, 200, 300, 400, 500, 600, 700, 800]:
-                plot_chem_vs_cons(xls_name, sheet=sheet_name_convex_hull, T=T)
-            plt.xlabel('Concentration of H')
-            plt.ylabel('H chemical potential')
-            plt.show()
-            
-        # plot_pressure_vs_cons(xls_name, sheet=sheet_name_convex_hull, T=300)
-        # for T in [300, 400, 500, 600, 700]:
-        for T in [100, 200, 300, 400, 500, 600, 700, 800]:
-            plot_pressure_vs_cons(xls_name, sheet=sheet_name_convex_hull, T=T)
-        plt.xlabel('Concentration of H')
-        plt.ylabel('Pressure')
-        plt.show()
+    # for i in [1, 2, 3, 4, 5, 6]:
+    # for i in [6,]:
+        # system = 'candidates_PdHx'  # candidates surface of CE
+        # system = 'results_last1'  # candidates surface of CE
+        # system = 'sgmc_results_r1'  # candidates surface of CE
+        # system = 'sgmc_results_r2'  # candidates surface of CE
+        # system = 'sgmc_results_r3'  # candidates surface of CE
+        # system = 'sgmc_results_r4'  # candidates surface of CE
+        # system = 'sgmc_results_r5'
+        # system = 'sgmc_results_r6'
+        # system = f'sgmc_results_r{i}'
+        # system = 'sgmc_results_r6_lar'
+        # system = 'sgmc_results_r6_supercell'
+        system = 'sgmc_results_r6_supercell_large_range'
+    
+        fig_dir = './figures/'
+        data_dir = './data'
+        db_name = f'./{data_dir}/{system}.db'
+        xls_name = f'./{data_dir}/{system}.xlsx'
+    
+        sheet_name_convex_hull = 'convex_hull'
         
-        # plot_temp_vs_cons(xls_name, sheet=sheet_name_convex_hull, P=100)
-    
-    
+        if True:
+            db2xls(db_name=db_name)
+        if True:
+            # get_quantities(xls_name, sheet=sheet_name_convex_hull)
+            # plot_chem_vs_cons(xls_name, sheet=sheet_name_convex_hull, T=500)
+            if False:
+                # for T in [300, ]:
+                for T in [100, 200, 300, 400, 500, 600, 700, 800]:
+                    plot_chem_vs_cons(xls_name, sheet=sheet_name_convex_hull, T=T)
+                plt.xlabel('Concentration of H')
+                plt.ylabel('H chemical potential')
+                plt.legend()
+                plt.show()
+                
+            # plot_pressure_vs_cons(xls_name, sheet=sheet_name_convex_hull, T=300)
+            if True:
+                # for T in [300, 400, 500, 600, 700]:
+                for T in [1, 50, 100, 150,  200, 300, 400, 500, 600, 700, 800]:
+                    plot_pressure_vs_cons(xls_name, sheet=sheet_name_convex_hull, T=T)
+                plt.xlabel('Concentration of H')
+                plt.ylabel('Pressure')
+                plt.ylim(10**(-20), 10**6)
+                # plt.ylim(10**(-3), 10**7)
+                plt.legend()
+                plt.show()
+            
+            # plot_temp_vs_cons(xls_name, sheet=sheet_name_convex_hull, P=100)
+            # temps = [1e10, 10000, 6000, 4000, 2000, 1500, 1000, 800, 700, 600, 500, 400, 350, 300, 250, 200, 150, 100, 75, 50, 25, 2, 1]
+        
+        
