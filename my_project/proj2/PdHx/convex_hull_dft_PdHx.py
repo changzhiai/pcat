@@ -530,7 +530,7 @@ def db2xls_dft(db_name):
     df = pd.DataFrame(tuples)
     df.to_excel(xls_name, sheet_name_convex_hull, float_format='%.3f')
 
-def plot_convex_hull_PdHx(db_name, cand=False):
+def plot_convex_hull_PdHx_dft(db_name, cand=False):
     """Plot convex hull"""
     df = pd_read_excel(filename=xls_name, sheet=sheet_name_convex_hull)
     cons_H = df['cons_H']
@@ -547,22 +547,27 @@ def plot_convex_hull_PdHx(db_name, cand=False):
         get_PdHx_candidates_dft(cand_ids, db_name=db_name)
     plot_basical_convex_hull(vertices, ax=ax)
     plt.xlabel('Concentration of H')
-    plt.ylabel('Formation energies (eV/atom)')
+    plt.ylabel('Mixing energies (eV/atom)')
     plt.ylim([0., 0.5])
-    plt.title('Convex hull of PdHx')
+    plt.title(f'Convex hull {i} of PdHx ({len(ids)} DFT data points)')
     fig.savefig(f'./{fig_dir}/convex_hull.png', dpi=300, bbox_inches='tight')
 
 def get_PdHx_candidates_dft(cand_ids, db_name):
     """Get and save candidates"""
-    db_cand_name='candidates_PdHx_r5.db'
+    db_cand_name='dft_candidates_PdHx_r6.db'
     db = connect(db_name)
     if os.path.exists(db_cand_name):
         os.remove(db_cand_name)
     db_cand = connect(db_cand_name)
     for uni_id in cand_ids:
         splits = uni_id.split('_')
-        row = db.get(id=splits[0])
-        db_cand.write(row)
+        id = splits[0]
+        row_vasp = db.get(id=id)
+        db_cand.write(row_vasp, ori_vasp_id=int(id), calc='vasp')
+        
+        row_ce = db.get(final_struct_id=id)
+        db_cand.write(row_ce, ori_vasp_id=int(id), calc='clease')
+        
 
 def plot_chem_pot_H_PdHx_discrete():
     """
@@ -597,19 +602,22 @@ def plot_chem_pot_H_PdHx_discrete():
 
 if __name__ == '__main__':
     
-
-    system = 'PdHx_train_r5' # round 5, ce and dft
+    # for i in [1, 2, 3, 4, 5, 6]:
+    for i in [6]:
+        system = f'PdHx_train_r{i}' # round 1, ce and dft
+        # system = 'PdHx_train_r1' # round 1, ce and dft
+        # system = 'PdHx_train_r5' # round 5, ce and dft
+        
     
-
-    fig_dir = './figures/'
-    data_dir = './data'
-    db_name = f'./{data_dir}/{system}.db'
-    xls_name = f'./{data_dir}/{system}.xlsx'
-    
-    sheet_name_convex_hull = 'convex_hull'
-    # plot_simulated_annealing()
-    # get_db_and_excel()
-    
-    db2xls_dft(db_name)
-    plot_convex_hull_PdHx(db_name, cand=True)
-    # plot_chem_pot_H_PdHx_discrete()
+        fig_dir = './figures/'
+        data_dir = './data'
+        db_name = f'./{data_dir}/{system}.db'
+        xls_name = f'./{data_dir}/{system}.xlsx'
+        
+        sheet_name_convex_hull = 'convex_hull'
+        # plot_simulated_annealing()
+        # get_db_and_excel()
+        
+        db2xls_dft(db_name)
+        plot_convex_hull_PdHx_dft(db_name, cand=True)
+        # plot_chem_pot_H_PdHx_discrete()
