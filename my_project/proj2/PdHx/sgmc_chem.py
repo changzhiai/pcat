@@ -89,8 +89,14 @@ def mu_H2(T, pH2):
     return mu_H
 
 def P_H2_s(mu_H, T):
-    """Get presure of H2 using standard method"""
+    """Get presure of H2 using standard method
+    P_H2_ref = 101325 Pa = 1.01325 bar, approximate 1 Bar
+    
+    Therefore, the unit is bar
+    
+    """
     pH2 = np.exp((2*mu_H + 0.00135*T + 7.096)/(kB*T))
+    # pH2 = np.exp((2*mu_H + 7.096 + 0.0012*T - 0.3547)/(kB*T))
     return pH2
 
 def T_H2_s(mu_H, P):
@@ -128,7 +134,7 @@ def get_real_quan(df):
     return df
 
 
-def get_quantities(xls_name, sheet, T=500, P=100):
+def get_quantities(xls_name, sheet, T=500):
     """Get chemical potential using energy difference"""
     df = pd_read_excel(filename=xls_name, sheet=sheet)
     df = df.loc[df['temp_H2']==T]
@@ -148,7 +154,8 @@ def plot_chem_vs_cons(xls_name, sheet, T):
     mu_Hs = df['$\mu$_H']
     cons_Hs = df['cons_H']
     # plt.figure()
-    plt.plot(cons_Hs[:-1], mu_Hs[:-1], '-o', label=str(T)+'K')
+    plt.plot(cons_Hs, mu_Hs, '-o', label=str(T)+' K')
+    # plt.plot(cons_Hs[:-1], mu_Hs[:-1], '-o', label=str(T)+'K')
     # plt.plot(cons_Hs, mu_Hs, 'o')
     # plt.plot(cons_Hs, mu_Hs, )
     # plt.plot(cons_Hs[:-1], mu_Hs[:-1])
@@ -168,13 +175,14 @@ def plot_pressure_vs_cons(xls_name, sheet, T):
     cons_Hs = df['cons_H']
     # plt.figure()
     # plt.plot(cons_Hs[:-1], np.log(pH2s[:-1]))
-    plt.semilogy(cons_Hs, pH2s, '-o', label=str(T)+'K')
+    plt.semilogy(cons_Hs, pH2s, '-o', label=str(T)+' K')
+    # plt.plot(cons_Hs, pH2s, '-o', label=str(T)+'K')
     # plt.semilogy(cons_Hs[:-1], pH2s[:-1])
     # plt.xlabel('Concentration of H')
     # plt.ylabel('Pressure')
     # plt.show()
 
-def get_quantities_P(xls_name, sheet, T=300, P=100):
+def get_quantities_P(xls_name, sheet, P=100):
     """Get chemical potential using energy difference"""
     df = pd_read_excel(filename=xls_name, sheet=sheet)
     df = df.loc[np.abs(df['pH2']-P) < 0.5*P]
@@ -193,14 +201,48 @@ def plot_temp_vs_cons(xls_name, sheet, P):
     cons_Hs = df['cons_H']
     temp_H2 = df['temp_H2']
     # plt.figure()
-    plt.plot(cons_Hs[:-1], temp_H2[:-1], '-o', label=str(P)+'Pa')
+    plt.plot(cons_Hs, temp_H2, '-o', label=str(P)+' bar')
+    # plt.plot(cons_Hs[:-1], temp_H2[:-1], '-o', label=str(P)+'Pa')
     # plt.xlabel('Concentration of H')
     # plt.ylabel('Temperature (K)')
     # plt.show()
 
+def plot_chem_vs_pressure(xls_name, sheet, T):
+    """Plot H chemical potential vs. H2 pressure"""
+    df = get_quantities(xls_name, sheet, T=T)
+
+    mu_Hs = df['$\mu$_H']
+    # cons_Hs = df['cons_H']
+    pH2s = df['pH2']
+    # plt.figure()
+    # plt.plot(pH2s[:-1], mu_Hs[:-1], '-o', label=str(T)+'K')
+    plt.semilogx(pH2s, mu_Hs, '-o', label=str(T)+' K')
+    # plt.semilogx(pH2s[:-1], mu_Hs[:-1], '-o', label=str(T)+'K')
+
+def get_quantities_mu(xls_name, sheet, mu):
+    """Get chemical potential using energy difference"""
+    df = pd_read_excel(filename=xls_name, sheet=sheet)
+    df = df.loc[df['$\mu$_H']==mu]
+    
+    df = df.sort_values(by=['pH2'], ascending=False)
+    
+    # df = get_real_quan(df)
+    print(df)
+    return df
+
+def plot_pressure_vs_revT(xls_name, sheet, mu):
+    """Plot H2 pressure vs. 1/T"""
+    df = get_quantities_mu(xls_name, sheet, mu=mu)
+
+    pH2s = 10**-3 * df['pH2']
+    temp_H2 = 10**3 * 1./df['temp_H2']
+    # plt.figure()
+    # plt.plot(cons_Hs[:-1], np.log(pH2s[:-1]))
+    plt.semilogy(temp_H2, pH2s, '-o', label=str(round(mu, 3)))
+    
 
 if __name__ == '__main__':
-    
+    # temps = [1e10, 10000, 6000, 4000, 2000, 1500, 1000, 800, 700, 600, 500, 400, 350, 300, 250, 200, 150, 100, 75, 50, 25, 2, 1]
     # for i in [1, 2, 3, 4, 5, 6]:
     for i in [6,]:
         # system = 'candidates_PdHx'  # candidates surface of CE
@@ -214,8 +256,9 @@ if __name__ == '__main__':
         # system = f'sgmc_results_r{i}'
         # system = 'sgmc_results_r6_lar'
         # system = 'sgmc_results_r6_supercell'
-        system = 'sgmc_results_r6_supercell_dense'
+        # system = 'sgmc_results_r6_supercell_dense'
         # system = 'sgmc_results_r6_supercell_large_range'
+        system = 'sgmc_results_r7_s500' # 10x10
     
         fig_dir = './figures/'
         data_dir = './data'
@@ -224,11 +267,9 @@ if __name__ == '__main__':
     
         sheet_name_convex_hull = 'convex_hull'
         
-        if True:
+        if False:
             db2xls(db_name=db_name)
         if True:
-            # get_quantities(xls_name, sheet=sheet_name_convex_hull)
-            # plot_chem_vs_cons(xls_name, sheet=sheet_name_convex_hull, T=500)
             if True:
                 # for T in [300, ]:
                 for T in [100, 200, 300, 400, 500, 600, 700, 800]:
@@ -237,26 +278,52 @@ if __name__ == '__main__':
                 plt.ylabel('H chemical potential')
                 plt.legend()
                 plt.show()
-                
-            # plot_pressure_vs_cons(xls_name, sheet=sheet_name_convex_hull, T=300)
+                            
             if True:
                 # for T in [300, 400, 500, 600, 700]:
                 for T in [1, 50, 100, 150,  200, 300, 400, 500, 600, 700, 800]:
                     plot_pressure_vs_cons(xls_name, sheet=sheet_name_convex_hull, T=T)
                 plt.xlabel('Concentration of H')
-                plt.ylabel('Pressure')
-                plt.ylim(10**(-5), 10**6)
-                # plt.ylim(10**(-3), 10**7)
+                plt.ylabel('Pressure (bar)')
+                # plt.ylim(10**(-15), 10**15)
+                plt.ylim(10**(-6), 10**5)
                 plt.legend()
                 plt.show()
             
             if True:
-                for P in [0.1, 10**-2, 10**-3, 10**-4, 10**-5, 10**-6]:
+                for P in [10**3, 10**2, 10, 1, 0.1, 10**-2, 10**-3, 10**-4, 10**-5, 10**-6]:
                     plot_temp_vs_cons(xls_name, sheet=sheet_name_convex_hull, P=P)
                 plt.xlabel('Concentration of H')
                 plt.ylabel('Temperature (K)')
                 plt.legend()
                 plt.show()
-            # temps = [1e10, 10000, 6000, 4000, 2000, 1500, 1000, 800, 700, 600, 500, 400, 350, 300, 250, 200, 150, 100, 75, 50, 25, 2, 1]
+                
+            if True:
+                # for T in [600, ]:
+                for T in [100, 200, 300, 400, 500, 600, 700, 800]:
+                    plot_chem_vs_pressure(xls_name, sheet=sheet_name_convex_hull, T=T)
+                plt.xlabel('Pressure (bar)')
+                plt.ylabel('H chemical potential')
+                # plt.xlim(-10**6, 10**8)
+                plt.xlim(10**0, 10**15)
+                # plt.ylim(-3.6, -3.4)
+                plt.ylim(-3.8, -3.4)
+                plt.legend()
+                plt.show()
+            
+            if True:
+                H_mus = np.linspace(-4.5,-3,200).tolist()
+                H_mus = H_mus[110:120]
+                for mu in H_mus:
+                    plot_pressure_vs_revT(xls_name, sheet=sheet_name_convex_hull, mu=mu) 
+                plt.xlabel('1/T')
+                plt.ylabel('Pressure (bar)')
+                plt.xlim(-0.001, 5)
+                # plt.xlim(-0.001, 0.005)
+                # plt.xlim(10**0, 10**15)
+                plt.ylim(10**-3, 10**5)
+                plt.legend()
+                # plt.show()
+           
         
         
