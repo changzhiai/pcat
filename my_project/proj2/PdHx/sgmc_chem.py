@@ -258,7 +258,8 @@ if __name__ == '__main__':
         # system = 'sgmc_results_r6_supercell'
         # system = 'sgmc_results_r6_supercell_dense'
         # system = 'sgmc_results_r6_supercell_large_range'
-        system = 'sgmc_results_r7_s500' # 10x10
+        # system = 'sgmc_results_r7_s500' # 10x10
+        system = 'sgmc_results_r7_s1000_20x20' # 20x20
     
         fig_dir = './figures/'
         data_dir = './data'
