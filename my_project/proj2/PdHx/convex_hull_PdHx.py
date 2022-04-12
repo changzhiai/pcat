@@ -542,7 +542,7 @@ def plot_convex_hull_PdHx(db_name, cand=False):
 
 def get_PdHx_candidates(cand_ids, db_name):
     """Get and save candidates"""
-    db_cand_name='candidates_PdHx_r5.db'
+    db_cand_name='candidates_PdHx_r6.db'
     db = connect(db_name)
     if os.path.exists(db_cand_name):
         os.remove(db_cand_name)
@@ -604,6 +604,7 @@ if __name__ == '__main__':
     # system = 'results_r4' # round 4
     # system = 'results_r5' # round 5
     system = 'results_r6' # round 6
+    # system = 'results_r7' # round 7
     
     
     
