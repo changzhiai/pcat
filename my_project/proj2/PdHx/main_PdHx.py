@@ -171,13 +171,16 @@ def get_each_layer_cons(db_name, atoms, obj):
     # print(obj_cons)
     return obj_cons
 
-def plot_cons_as_layers(db_name, obj='H', removeX=False):
+def plot_cons_as_layers(db='', obj='H', removeX=False):
     """Plot concentrations as a function of layers
     for CE bare surface without adsorbate (initial structures of DFT)
     
     obj = 'H' or 'Pd'
     """
-    db = connect(db_name)
+    if db == '':
+        db = connect(db_name)
+    else:
+        db = db
     M = 6
     N = 8
     m1 = 0
@@ -279,7 +282,7 @@ def plot_cons_as_layers_with_ads(obj='H'):
                         title = 'OH*'
                     
                     # atoms_list.append(r.toatoms())
-                    obj_cons = get_each_layer_cons(atoms, obj=obj)
+                    obj_cons = get_each_layer_cons(db_name, atoms, obj=obj)
                     con_tot = sum(obj_cons)/4
                     formula = f'{row.Surface}_{ads}'
                     xs = ['ly1', 'ly2', 'ly3', 'ly4']
@@ -490,16 +493,74 @@ def sort_db(db):
             db_sort.write(r)
     print('sort success')
 
-def plot_H_distribution():
+def get_ads_db(ads, save=True):
+    """Get database of slab with one specific adsorbate from slab with all adsorbates
+    
+    get bare slab, or HOCO, CO, OH, H
+    """
+    db = connect(db_name)
+    
+    if ads == 'surface':
+        sheet = sheet_name_origin
+    else:
+        sheet = sheet_name_stable
+    df = pd_read_excel(xls_name, sheet)
+    df = df.sort_values(by=['Cons_H'])
+    df_sub = df.loc[df['Adsorbate'] == ads]
+    atoms_list = []
+    if save==True:
+        db_surface_name = '{}_vasp_temporary.db'.format(ads)
+        if os.path.exists(db_surface_name):
+            os.remove(db_surface_name)
+        db_surface = connect(db_surface_name)
+    for index, row in df_sub.iterrows():
+        origin_id = row['Origin_id']
+        site = row['Site']
+        adsorbate = row['Adsorbate']
+        for r in db.select():
+            unique_id = r.uniqueid
+            r_origin_id = unique_id.split('_')[4]
+            r_site = unique_id.split('_')[2]
+            r_adsorbate = unique_id.split('_')[3]
+            if str(origin_id)==r_origin_id and site==r_site and adsorbate==r_adsorbate:
+                atoms_list.append(r.toatoms())
+                if save==True:
+                    db_surface.write(r)
+    if save==True:
+        return db_surface, atoms_list
+    else:
+        return atoms_list
+    
+def plot_ce_H_distribution():
     """Plot all H distributions"""
-    plot_cons_as_layers(db_name='./data/candidates_PdHx_sort.db', obj='H', removeX=True) # plot slab for CE
-    plot_cons_as_layers(db_name='./data/surface_vasp.db', obj='H', removeX=False) # plot slab for vasp
+    db = connect('./data/candidates_PdHx_sort.db')
+    plot_cons_as_layers(db=db, obj='H', removeX=True) # plot slab for CE
+    db = connect('./data/surface_vasp.db')
+    plot_cons_as_layers(db=db, obj='H', removeX=False) # plot slab for vasp
     
     for system in ['HOCO', 'CO', 'OH', 'H']:
         db_name=f'./data/{system}_vasp.db'
         if os.path.exists(db_name):
-            plot_cons_as_layers(db_name=db_name, obj='H', removeX=False)
+            plot_cons_as_layers(db=connect(db_name), obj='H', removeX=False)
             plt.show()
+
+def plot_H_distribution(save=False):
+    """Plot all H distributions"""
+    # db_surf, _ = get_ads_db(ads='surface')
+    # plot_cons_as_layers(db=db_surf, obj='H', removeX=True) # plot slab for CE
+    
+    for system in ['surface', 'HOCO', 'CO', 'OH', 'H']: # plot for vasp
+        db_ads, _ = get_ads_db(ads=system)
+        fig = plt.figure()
+        plot_cons_as_layers(db=db_ads, obj='H', removeX=False)
+        # fig.add_subplot(111, frameon=False) # hide frame
+        # plt.tick_params(labelcolor='none', which='both', top=False, bottom=False, left=False, right=False) # hide 
+        st = plt.suptitle(str(system))
+        st.set_y(0.90)
+        # fig.subplots_adjust(top=0.85)
+        plt.show()
+        if save==True:
+            fig.savefig(fig_dir+'/{}.png'.format(system))
     
     
 
@@ -510,17 +571,22 @@ if __name__ == '__main__':
     
     # system_name = 'collect_ce_init_PdHx_r2_sort'
     # system_name = 'collect_ce_init_PdHx_r3'
-    system_name = 'collect_ce_init_PdHx_r4'
+    # system_name = 'collect_ce_init_PdHx_r4'
+    # system_name = 'collect_ce_init_PdHx_r7'
+    
     # system_name = 'collect_vasp_candidates_PdHx_r2_sort'
     # system_name = 'collect_vasp_candidates_PdHx_r3'
     # system_name = 'collect_vasp_candidates_PdHx_r4'
+    system_name = 'collect_vasp_candidates_PdHx_r7'
+    
+    
+    
     # system_name = 'candidates_PdHx_sort' # candidates surface of CE
     # system_name = 'surface_vasp' # vasp 
     
     # system_name = 'HOCO_vasp' # vasp HOCO
     # system_name = 'CO_vasp' # vasp CO
     # system_name = 'collect_ce_init_PdHx_r2'
-    
     
     # system_name = 'collect_vasp_candidates_PdHx' # 9 times
 
@@ -544,11 +610,16 @@ if __name__ == '__main__':
         # db = del_partial_db(db)
         db2xls(system_name, xls_name, db, ref_eles, sheet_name_origin, sheet_name_stable, sheet_free_energy, sheet_binding_energy, sheet_cons, sheet_name_allFE, sheet_selectivity, sheet_name_dGs)
     
-    if False: # plot
+    if True: # plot
         plot_free_enegy(xls_name, sheet_free_energy, fig_dir)
         plot_scaling_relations(xls_name, sheet_binding_energy, fig_dir)
         plot_selectivity(xls_name, sheet_selectivity, fig_dir)
         plot_activity(xls_name, sheet_binding_energy, fig_dir)
+    
+    if True:
+        plot_BE_as_Hcons(xls_name, sheet_cons)
+        plot_cons_as_layers_with_ads(obj='H')
+        plot_H_distribution(save=False)
         
     # plot_free_enegy(xls_name, sheet_free_energy, fig_dir)
     # plot_scaling_relations(xls_name, sheet_binding_energy, fig_dir)
@@ -568,7 +639,7 @@ if __name__ == '__main__':
     
     # plot_cons_as_layers(obj='H')
     # sort_db(db)
-    plot_cons_as_layers(db_name=db_name, obj='H', removeX=False)
+    # plot_cons_as_layers(db_name=db_name, obj='H', removeX=False)
     # plot_cons_as_layers_with_ads(obj='H')
     # sort_db(db)
     # print(len(db_name))
