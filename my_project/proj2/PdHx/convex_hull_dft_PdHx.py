@@ -603,7 +603,7 @@ def plot_chem_pot_H_PdHx_discrete():
 if __name__ == '__main__':
     
     # for i in [1, 2, 3, 4, 5, 6]:
-    for i in [6]:
+    for i in [7]:
         system = f'PdHx_train_r{i}' # round 1, ce and dft
         # system = 'PdHx_train_r1' # round 1, ce and dft
         # system = 'PdHx_train_r5' # round 5, ce and dft
