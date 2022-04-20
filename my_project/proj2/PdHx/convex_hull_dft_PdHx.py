@@ -92,6 +92,25 @@ def formation_energy_ref_metals(atoms, energy):
     # print(Pds, Tis, Hs, form_e)
     return form_e
 
+def formation_energy_ref_hydr_and_metals(atoms, energy):
+    """
+    Pure PdH111: -5.22219 eV/atom
+    Pure Pd111: -1.59002 eV
+    
+    Mixing energy = Pd64Hx(111) - xPdH(111) - (64-x)Pd(111)
+    """
+    try:
+        Pds = len(atoms[[atom.index for atom in atoms if atom.symbol=='Pd']])
+    except:
+        Pds = 0
+    try:
+        Hs = len(atoms[[atom.index for atom in atoms if atom.symbol=='H']])
+    except:
+        Hs = 0
+    form_e = (energy - Hs*(-5.22219) - (64-Hs)*(-1.59002))/(Pds+Hs)
+    # print(Pds, Tis, Hs, form_e)
+    return form_e
+
 def formation_energy_ref_hydrides(atoms, energy):
     """
     reference PdH and TiH (vasp) for PdxTi(64-x)H64
@@ -227,7 +246,7 @@ def plot_2d_contour(pts, vertices=True):
 
 def plot_basical_convex_hull(vertices, ax=None):
     # ax.plot(hull.points[:,0], hull.points[:,1], 'x')
-    vertices = vertices[vertices[:,0].argsort()] 
+    vertices = vertices[vertices[:,0].argsort()]
     ax.plot(vertices[:,0], vertices[:,1], 'x')
     ax.plot(vertices[:,0], vertices[:,1])
 
@@ -517,7 +536,8 @@ def db2xls_dft(db_name):
         con_H = cons_Hy(atoms)
         cons_H.append(con_H)
         dft_e = row.energy
-        form_energy = formation_energy_ref_metals(atoms, dft_e)
+        # form_energy = formation_energy_ref_metals(atoms, dft_e)
+        form_energy = formation_energy_ref_hydr_and_metals(atoms, dft_e)
         form_energies.append(form_energy)
         uni_id = str(row.id) + '_' + row.name
         ids.append(uni_id)
@@ -548,7 +568,7 @@ def plot_convex_hull_PdHx_dft(db_name, cand=False):
     plot_basical_convex_hull(vertices, ax=ax)
     plt.xlabel('Concentration of H')
     plt.ylabel('Mixing energies (eV/atom)')
-    plt.ylim([0., 0.5])
+    # plt.ylim([0., 0.5])
     plt.title(f'Convex hull {i} of PdHx ({len(ids)} DFT data points)')
     fig.savefig(f'./{fig_dir}/convex_hull.png', dpi=300, bbox_inches='tight')
 
@@ -602,8 +622,8 @@ def plot_chem_pot_H_PdHx_discrete():
 
 if __name__ == '__main__':
     
-    # for i in [1, 2, 3, 4, 5, 6]:
-    for i in [7]:
+    # for i in [1, 2, 3, 4, 5, 6, 7]:
+    for i in [6]:
         system = f'PdHx_train_r{i}' # round 1, ce and dft
         # system = 'PdHx_train_r1' # round 1, ce and dft
         # system = 'PdHx_train_r5' # round 5, ce and dft
