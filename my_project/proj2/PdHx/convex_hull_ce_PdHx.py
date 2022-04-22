@@ -661,7 +661,7 @@ if __name__ == '__main__':
         sheet_name_convex_hull = 'convex_hull'
         # plot_simulated_annealing()
         # get_db_and_excel()
-        
-        db2xls(db_name)
+        if False:
+            db2xls(db_name)
         plot_convex_hull_PdHx(db_name, cand=True)
         # plot_chem_pot_H_PdHx_discrete()
