@@ -577,7 +577,7 @@ if __name__ == '__main__':
     # system_name = 'collect_vasp_candidates_PdHx_r2_sort'
     # system_name = 'collect_vasp_candidates_PdHx_r3'
     # system_name = 'collect_vasp_candidates_PdHx_r4'
-    system_name = 'collect_vasp_candidates_PdHx_r7' 
+    system_name = 'collect_vasp_candidates_PdHx_r7'
     
     
     # system_name = 'candidates_PdHx_sort' # candidates surface of CE
