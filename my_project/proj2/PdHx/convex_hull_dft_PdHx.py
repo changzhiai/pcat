@@ -202,9 +202,9 @@ def convex_hull_ref_metals_3d_poly(pts):
     fig = plt.figure()
     ax = fig.add_subplot(111, projection="3d")
     # ax.plot(pts.T[0], pts.T[1], pts.T[2], "bx")
-    X = []
-    Y = []
-    Z = []
+    # X = []
+    # Y = []
+    # Z = []
     for simplex in hull.simplices:
         x = pts[simplex[0]]
         y = pts[simplex[1]]
@@ -300,7 +300,7 @@ def dct_to_array(pts_dict):
     pts = pts[:,0:3].astype(np.float32)
     return pts
 
-def views(num_Pd, num_H, save=False, db_target='target.db'):
+def views(pts_rev, num_Pd, num_H, save=False, db_target='target.db'):
     """Views one structure in specific 2d concentration
     
     pts: dict
@@ -480,14 +480,14 @@ def plot_simulated_annealing():
     m2 = 0
     fig = plt.figure(figsize=(16,16))
     for num_H in range(0, 64):
-        cons_H = []
+        # cons_H = []
         form_energies = []
         ids = []
         ax = plt.subplot(N, M, m1*M + m2 + 1)
         with cd('H{0}'.format(str(num_H))):
             db = connect('result.db')
             for row in db.select():
-               atoms = row.toatoms()
+               # atoms = row.toatoms()
                uni_id = 'H_' + str(num_H) + '_' +str(row.id)
                ids.append(uni_id)
                clease_e = row.energy
@@ -623,11 +623,12 @@ def plot_chem_pot_H_PdHx_discrete():
 
 if __name__ == '__main__':
     
-    for i in [1, 2, 3, 4, 5, 6, 7, 8]:
-    # for i in [8]:
-        system = f'PdHx_train_r{i}' # round 1, ce and dft
+    # for i in [1, 2, 3, 4, 5, 6, 7, 8, 9]:
+    for i in [9]:
+        # system = f'PdHx_train_r{i}' # round 1, ce and dft
         # system = 'PdHx_train_r1' # round 1, ce and dft
         # system = 'PdHx_train_r5' # round 5, ce and dft
+        system = 'PdHx_train_r9_insert_p20_50'
         
     
         fig_dir = './figures/'
@@ -638,7 +639,7 @@ if __name__ == '__main__':
         sheet_name_convex_hull = 'convex_hull'
         # plot_simulated_annealing()
         # get_db_and_excel()
-        if False:
+        if True:
             db2xls_dft(db_name)
         plot_convex_hull_PdHx_dft(db_name, cand=True)
         # plot_chem_pot_H_PdHx_discrete()
