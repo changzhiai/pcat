@@ -73,12 +73,10 @@ def P_H2(mu_H, T):
     pH2 = np.exp((2*mu_H + 0.0012*T - 0.3547)/(kB*T))
     return pH2
 
-
 def T_H2(mu_H, P):
     """Get Temperature of H2"""
     temp_H2 = (2*mu_H - 0.3547) / (kB*np.log(P) - 0.0012)
     return temp_H2
-
 
 
 def mu_H2(T, pH2):
@@ -93,9 +91,11 @@ def P_H2_s(mu_H, T):
     P_H2_ref = 101325 Pa = 1.01325 bar, approximate 1 Bar
     
     Therefore, the unit is bar
-    
     """
-    pH2 = np.exp((2*mu_H + 0.00135*T + 7.096)/(kB*T))
+    # pH2 = np.exp((2*mu_H + 0.00135*T + 7.096)/(kB*T))   # -7.096 eV for H2 free energy at 300 K
+    # pH2 = np.exp((2*mu_H + 0.00135*T + 6.694)/(kB*T))   # -7.096 eV for H2 free energy at 300 K
+    pH2 = np.exp(((2*mu_H - (-7.096)) + 0.00135*T)/(kB*T))   # -7.096 eV for H2 free energy at 300 K
+    # pH2 = np.exp(((2*mu_H - (-7.158)) + 0.00135*T)/(kB*T))   # -7.096 eV for H2 free energy at 300 K
     # pH2 = np.exp((2*mu_H + 7.096 + 0.0012*T - 0.3547)/(kB*T))
     return pH2
 
@@ -108,10 +108,10 @@ def get_real_quan(df):
     row_E_Pd = df[df['cons_H'] == 0]
     E_Pd = (row_E_Pd['Energies'].values)[0]
 
-    nums_Hs = []
+    # nums_Hs = []
     mu_Hs = []
     pH2s = []
-    temp_H2s = []
+    # temp_H2s = []
     for i, row in df.iterrows():
         dft_energy = row['Energies']
         nums_H = row['nums_H']
@@ -155,6 +155,8 @@ def plot_chem_vs_cons(xls_name, sheet, T):
     cons_Hs = df['cons_H']
     # plt.figure()
     plt.plot(cons_Hs, mu_Hs, '-o', label=str(T)+' K')
+    plt.axhline(y=-3.579, color='r', linestyle='--')
+    # plt.axhline(y=-3.347, color='r', linestyle='--')
     # plt.plot(cons_Hs[:-1], mu_Hs[:-1], '-o', label=str(T)+'K')
     # plt.plot(cons_Hs, mu_Hs, 'o')
     # plt.plot(cons_Hs, mu_Hs, )
@@ -234,7 +236,8 @@ def plot_pressure_vs_revT(xls_name, sheet, mu):
     """Plot H2 pressure vs. 1/T"""
     df = get_quantities_mu(xls_name, sheet, mu=mu)
 
-    pH2s = 10**-3 * df['pH2']
+    pH2s =  df['pH2']
+    # pH2s = 10**-3 * df['pH2']
     temp_H2 = 10**3 * 1./df['temp_H2']
     # plt.figure()
     # plt.plot(cons_Hs[:-1], np.log(pH2s[:-1]))
@@ -287,7 +290,7 @@ if __name__ == '__main__':
                 plt.xlabel('Concentration of H')
                 plt.ylabel('Pressure (bar)')
                 # plt.ylim(10**(-15), 10**15)
-                plt.ylim(10**(-6), 10**5)
+                plt.ylim(10**(-5), 10**5)
                 plt.legend()
                 plt.show()
             
@@ -314,6 +317,8 @@ if __name__ == '__main__':
             
             if True:
                 H_mus = np.linspace(-4.5,-3,200).tolist()
+                # H_mus = H_mus[110:120]
+                # H_mus = H_mus[122:123]
                 H_mus = H_mus[110:120]
                 for mu in H_mus:
                     plot_pressure_vs_revT(xls_name, sheet=sheet_name_convex_hull, mu=mu) 
@@ -322,7 +327,8 @@ if __name__ == '__main__':
                 plt.xlim(-0.001, 5)
                 # plt.xlim(-0.001, 0.005)
                 # plt.xlim(10**0, 10**15)
-                plt.ylim(10**-3, 10**5)
+                # plt.ylim(10**-3, 10**5)
+                plt.ylim(10**2, 10**5)
                 plt.legend()
                 # plt.show()
            
