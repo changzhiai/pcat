@@ -197,9 +197,9 @@ def convex_hull_ref_metals_3d_poly(pts):
     fig = plt.figure()
     ax = fig.add_subplot(111, projection="3d")
     # ax.plot(pts.T[0], pts.T[1], pts.T[2], "bx")
-    X = []
-    Y = []
-    Z = []
+    # X = []
+    # Y = []
+    # Z = []
     for simplex in hull.simplices:
         x = pts[simplex[0]]
         y = pts[simplex[1]]
@@ -475,14 +475,14 @@ def plot_simulated_annealing():
     m2 = 0
     fig = plt.figure(figsize=(16,16))
     for num_H in range(0, 64):
-        cons_H = []
+        # cons_H = []
         form_energies = []
         ids = []
         ax = plt.subplot(N, M, m1*M + m2 + 1)
         with cd('H{0}'.format(str(num_H))):
             db = connect('result.db')
             for row in db.select():
-               atoms = row.toatoms()
+               # atoms = row.toatoms()
                uni_id = 'H_' + str(num_H) + '_' +str(row.id)
                ids.append(uni_id)
                clease_e = row.energy
@@ -585,7 +585,7 @@ def plot_convex_hull_PdHx(db_name, cand=False):
 
 def get_PdHx_candidates(cand_ids, db_name):
     """Get and save candidates"""
-    db_cand_name='candidates_PdHx_r8.db'
+    db_cand_name='candidates_PdHx_r9.db'
     db = connect(db_name)
     if os.path.exists(db_cand_name):
         os.remove(db_cand_name)
@@ -637,8 +637,8 @@ def plot_chem_pot_H_PdHx_discrete():
 
 if __name__ == '__main__':
     
-    # for i in [2, 3, 4, 5, 6, 7]:
-    for i in [8]:
+    # for i in [2, 3, 4, 5, 6, 7, 8]:
+    for i in [9]:
         # system = 'candidates_PdHx'
         # system = 'results_last1'
         # system = 'results_last1_r2'
