@@ -165,13 +165,13 @@ def get_each_layer_cons(db_name, atoms, obj):
             if atom.symbol == obj and atom.z > min_z and atom.z < max_z:
                 obj_cons[i] += 1
     # if adsorbate is H for vasp calculation, remove one
-    if db_name == './data/H_vasp.db' and obj == 'H':
-        obj_cons[3] -= 1
+    # if db_name == './data/H_vasp.db' and obj == 'H':
+    #     obj_cons[3] -= 1
     obj_cons= obj_cons/16
     # print(obj_cons)
     return obj_cons
 
-def plot_cons_as_layers(db='', obj='H', removeX=False):
+def plot_cons_as_layers(db='', obj='H', removeX=False, minusH=True):
     """Plot concentrations as a function of layers
     for CE bare surface without adsorbate (initial structures of DFT)
     
@@ -185,13 +185,15 @@ def plot_cons_as_layers(db='', obj='H', removeX=False):
     N = 8
     m1 = 0
     m2 = 0
-    fig = plt.figure(figsize=(16,16))
+    # fig = plt.figure(figsize=(16,16))
     for row in db.select():
         # atoms_all.append(row.toatoms())
         ax = plt.subplot(N, M, m1*M + m2 + 1)
         atoms = row.toatoms()
         atoms =  atoms[[atom.index for atom in atoms if atom.z < 8.5]] # remove adsorbate
         obj_cons = get_each_layer_cons(db_name, atoms, obj=obj)
+        if minusH == True:
+            obj_cons[3] -= 1/16.
         con_tot = sum(obj_cons)/4
         formula = row.formula
         if removeX == True:
@@ -199,7 +201,6 @@ def plot_cons_as_layers(db='', obj='H', removeX=False):
             formula = formula[:i_X] + formula[i_X+4:] # remove Xxxx
         xs = ['ly1', 'ly2', 'ly3', 'ly4']
         # xs = ['layer 1', 'layer 2', 'layer 3', 'layer 4']
-        # plt.figure()
         plt.bar(xs, obj_cons, color='blue')
         plt.ylim(0, 1.18)
         if obj == 'H':
@@ -218,6 +219,64 @@ def plot_cons_as_layers(db='', obj='H', removeX=False):
             m1 += 1
         # name_fig_cons_as_lys=f'{fig_dir}/{system_name}_cons_as_lys.jpg'
         # fig.savefig(name_fig_cons_as_lys, dpi=300, bbox_inches='tight')
+        
+def plot_layers_as_strutures(db='', obj='H', removeX=False, minusH=False):
+    """Plot concentrations as a function of layers
+    for CE bare surface without adsorbate (initial structures of DFT)
+    
+    obj = 'H' or 'Pd'
+    """
+    if db == '':
+        db = connect(db_name)
+    else:
+        db = db
+    # fig = plt.figure(figsize=(16,16))
+    ly1s = []
+    ly2s = []
+    ly3s = []
+    ly4s = []
+    con_tots = []
+    for row in db.select():
+        # atoms_all.append(row.toatoms())
+        atoms = row.toatoms()
+        atoms =  atoms[[atom.index for atom in atoms if atom.z < 8.5]] # remove adsorbate
+        obj_cons = get_each_layer_cons(db_name, atoms, obj=obj)
+        if minusH == True:
+            obj_cons[3] -= 1/16.
+        con_tot = sum(obj_cons)/4
+        formula = row.formula
+        if removeX == True:
+            i_X = formula.find('X')
+            formula = formula[:i_X] + formula[i_X+4:] # remove Xxxx
+        # xs = ['ly1', 'ly2', 'ly3', 'ly4']
+        # xs = ['layer 1', 'layer 2', 'layer 3', 'layer 4']
+        ly1s.append(obj_cons[0]/4.)
+        ly2s.append(obj_cons[1]/4.)
+        ly3s.append(obj_cons[2]/4.)
+        ly4s.append(obj_cons[3]/4.)
+        con_tots.append(con_tot)
+    
+    tuples = {'ly1s': ly1s,
+              'ly2s': ly2s,
+              'ly3s': ly3s,
+              'ly4s': ly4s,
+              'con_tots': con_tots,
+             }
+    df = pd.DataFrame(tuples)
+    df = df.sort_values(by=['con_tots'])
+    # print(df)
+    with pd.ExcelWriter(xls_name, engine='openpyxl', mode='a', if_sheet_exists='replace') as writer:
+        df.to_excel(writer, sheet_name='layers_as_structures', index=False, float_format='%.8f')
+    plt.plot(df['con_tots'], df['ly1s'], '-o', label='1st layer') # bottom layer
+    plt.plot(df['con_tots'], df['ly2s'], '-o', label='2nd layer')
+    plt.plot(df['con_tots'], df['ly3s'], '-o', label='3rd layer')
+    plt.plot(df['con_tots'], df['ly4s'], '-o', label='4th layer')
+    plt.xlabel('Concentration of H', fontsize=10)
+    plt.ylabel('H concentration of each layer', fontsize=10)
+    plt.legend()
+    # plt.show()
+    # name_fig_cons_as_lys=f'{fig_dir}/{system_name}_cons_as_lys.jpg'
+    # fig.savefig(name_fig_cons_as_lys, dpi=300, bbox_inches='tight')
         
 def plot_cons_as_layers_with_ads(obj='H'):
     """Plot concentrations as a function of layers
@@ -251,7 +310,7 @@ def plot_cons_as_layers_with_ads(obj='H'):
         custom_dict = {'surface':0, 'HOCO': 1, 'CO': 2, 'H': 3, 'OH':4} 
         df_sub = df_sub.sort_values(by=['Adsorbate'], key=lambda x: x.map(custom_dict))
         
-        atoms_list = []
+        # atoms_list = []
         for i,row in df_sub.iterrows():
             origin_id = row['Origin_id']
             site = row['Site']
@@ -319,10 +378,10 @@ def plot_BE_as_Hcons(xls_name, sheet_cons):
     E_H = df['E(*H)'].values
     E_OH = df['E(*OH)'].values
     plt.figure()
-    plt.plot(cons_H, E_HOCO, c='blue', label='*HOCO')
-    plt.plot(cons_H, E_CO, c='orange', label='*CO')
-    plt.plot(cons_H, E_H, c='green', label='*H')
-    plt.plot(cons_H, E_OH, c='brown', label='*OH')
+    plt.plot(cons_H, E_HOCO, '-o', c='blue', label='*HOCO')
+    plt.plot(cons_H, E_CO, '-o', c='orange', label='*CO')
+    plt.plot(cons_H, E_H, '-o', c='green', label='*H')
+    plt.plot(cons_H, E_OH, '-o', c='brown', label='*OH')
     plt.xlabel('Concentration of H', fontsize=12)
     plt.ylabel('Binding energy (eV)', fontsize=12)
     plt.legend()
@@ -544,15 +603,18 @@ def plot_ce_H_distribution():
             plot_cons_as_layers(db=connect(db_name), obj='H', removeX=False)
             plt.show()
 
-def plot_H_distribution(save=False):
-    """Plot all H distributions"""
+def plot_bar_H_distribution(save=False):
+    """Plot all H distributions in bar chart"""
     # db_surf, _ = get_ads_db(ads='surface')
     # plot_cons_as_layers(db=db_surf, obj='H', removeX=True) # plot slab for CE
-    
+
     for system in ['surface', 'HOCO', 'CO', 'OH', 'H']: # plot for vasp
         db_ads, _ = get_ads_db(ads=system)
         fig = plt.figure()
-        plot_cons_as_layers(db=db_ads, obj='H', removeX=False)
+        if system != 'H':
+            plot_cons_as_layers(db=db_ads, obj='H', removeX=False)
+        else:
+            plot_cons_as_layers(db=db_ads, obj='H', removeX=False, minusH=True)
         # fig.add_subplot(111, frameon=False) # hide frame
         # plt.tick_params(labelcolor='none', which='both', top=False, bottom=False, left=False, right=False) # hide 
         st = plt.suptitle(str(system))
@@ -561,7 +623,22 @@ def plot_H_distribution(save=False):
         plt.show()
         if save==True:
             fig.savefig(fig_dir+'/{}.png'.format(system))
-    
+
+def plot_line_H_distribution(save=False):
+    """Plot all H distributions in line plot"""
+    for system in ['surface', 'HOCO', 'CO', 'OH', 'H']: # plot for vasp
+        db_ads, _ = get_ads_db(ads=system)
+        fig = plt.figure()
+        if system != 'H':
+            plot_layers_as_strutures(db=db_ads, obj='H', removeX=False)
+        else:
+            plot_layers_as_strutures(db=db_ads, obj='H', removeX=False, minusH=True)
+        st = plt.suptitle(str(system))
+        st.set_y(0.92)
+        # fig.subplots_adjust(top=0.85)
+        plt.show()
+        if save==True:
+            fig.savefig(fig_dir+'/{}.png'.format(system))
     
 
 if __name__ == '__main__':
@@ -577,7 +654,8 @@ if __name__ == '__main__':
     # system_name = 'collect_vasp_candidates_PdHx_r2_sort'
     # system_name = 'collect_vasp_candidates_PdHx_r3'
     # system_name = 'collect_vasp_candidates_PdHx_r4'
-    system_name = 'collect_vasp_candidates_PdHx_r7'
+    # system_name = 'collect_vasp_candidates_PdHx_r7'
+    system_name = 'collect_vasp_candidates_PdHx_r8'
     
     
     # system_name = 'candidates_PdHx_sort' # candidates surface of CE
@@ -586,8 +664,8 @@ if __name__ == '__main__':
     # system_name = 'HOCO_vasp' # vasp HOCO
     # system_name = 'CO_vasp' # vasp CO
     # system_name = 'collect_ce_init_PdHx_r2'
-    
     # system_name = 'collect_vasp_candidates_PdHx' # 9 times
+    # system_name = 'collect_vasp_coverage_H'
 
 
     ref_eles=['Pd', 'Ti']
@@ -605,27 +683,32 @@ if __name__ == '__main__':
     sheet_name_dGs = 'dGs'
     
     db = connect(db_name)
-    if False: # database to excel
+    if True: # database to excel
         # db = del_partial_db(db)
         db2xls(system_name, xls_name, db, ref_eles, sheet_name_origin, sheet_name_stable, sheet_free_energy, sheet_binding_energy, sheet_cons, sheet_name_allFE, sheet_selectivity, sheet_name_dGs)
     
-    if True: # plot
+    if False: # plot
         plot_free_enegy(xls_name, sheet_free_energy, fig_dir)
         plot_scaling_relations(xls_name, sheet_binding_energy, fig_dir)
         plot_selectivity(xls_name, sheet_selectivity, fig_dir)
         plot_activity(xls_name, sheet_binding_energy, fig_dir)
     
-    if True:
+    if False:
         plot_BE_as_Hcons(xls_name, sheet_cons)
         plot_cons_as_layers_with_ads(obj='H')
-        plot_H_distribution(save=False)
-        
+        plot_bar_H_distribution(save=False)
+        plot_line_H_distribution(save=False)
+    
+    # plot_line_H_distribution(save=False)
+    # db_ads, _ = get_ads_db(ads='surface')
+    # plot_layers_as_strutures(db=db_ads, obj='H', removeX=False)
+    
     # plot_free_enegy(xls_name, sheet_free_energy, fig_dir)
     # plot_scaling_relations(xls_name, sheet_binding_energy, fig_dir)
     # plot_activity(xls_name, sheet_binding_energy, fig_dir)
     # views(formula='Pd51Ti13H59', all_sites=True)
     # view(db_name)
-    # plot_BE_as_Hcons(xls_name, sheet_cons)
+    plot_BE_as_Hcons(xls_name, sheet_cons)
     # plot_pourbaix_diagram(xls_name, sheet_name_dGs)
     # plot_chemical_potential(xls_name, sheet_name_origin)
     

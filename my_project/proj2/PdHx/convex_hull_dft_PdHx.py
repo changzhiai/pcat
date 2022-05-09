@@ -574,7 +574,7 @@ def plot_convex_hull_PdHx_dft(db_name, cand=False):
 
 def get_PdHx_candidates_dft(cand_ids, db_name):
     """Get and save candidates"""
-    db_cand_name='dft_candidates_PdHx_r8.db'
+    db_cand_name='dft_candidates_PdHx_r9.db'
     db = connect(db_name)
     if os.path.exists(db_cand_name):
         os.remove(db_cand_name)
@@ -625,7 +625,7 @@ if __name__ == '__main__':
     
     # for i in [1, 2, 3, 4, 5, 6, 7, 8, 9]:
     for i in [9]:
-        # system = f'PdHx_train_r{i}' # round 1, ce and dft
+        system = f'PdHx_train_r{i}' # round 1, ce and dft
         # system = 'PdHx_train_r1' # round 1, ce and dft
         # system = 'PdHx_train_r5' # round 5, ce and dft
         system = 'PdHx_train_r9_insert_p20_50'
@@ -639,7 +639,7 @@ if __name__ == '__main__':
         sheet_name_convex_hull = 'convex_hull'
         # plot_simulated_annealing()
         # get_db_and_excel()
-        if True:
+        if False:
             db2xls_dft(db_name)
         plot_convex_hull_PdHx_dft(db_name, cand=True)
         # plot_chem_pot_H_PdHx_discrete()
