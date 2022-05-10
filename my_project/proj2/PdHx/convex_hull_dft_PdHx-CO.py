@@ -111,24 +111,24 @@ def formation_energy_ref_hydr_and_metals(atoms, energy):
     # print(Pds, Tis, Hs, form_e)
     return form_e
 
-# def formation_energy_ref_hydr_and_metals(atoms, energy):
-#     """
-#     Pure PdH111: -5.22219 eV/atom
-#     Pure Pd111: -1.59002 eV
+def formation_energy_CO_ref_hydr_and_metals(atoms, energy):
+    """
+    Pure PdH111-CO: -5.41717 eV/atom
+    Pure Pd111-CO: -1.79977 eV
     
-#     Mixing energy = Pd64Hx(111)_CO - xPdH(111)_CO - (64-x)Pd(111)_CO
-#     """
-#     try:
-#         Pds = len(atoms[[atom.index for atom in atoms if atom.symbol=='Pd']])
-#     except:
-#         Pds = 0
-#     try:
-#         Hs = len(atoms[[atom.index for atom in atoms if atom.symbol=='H']])
-#     except:
-#         Hs = 0
-#     form_e = (energy - Hs*(-5.22219) - (64-Hs)*(-1.59002))/(Pds+Hs)
-#     # print(Pds, Tis, Hs, form_e)
-#     return form_e
+    Mixing energy = Pd64Hx(111)_CO - xPdH(111)_CO - (64-x)Pd(111)_CO
+    """
+    try:
+        Pds = len(atoms[[atom.index for atom in atoms if atom.symbol=='Pd']])
+    except:
+        Pds = 0
+    try:
+        Hs = len(atoms[[atom.index for atom in atoms if atom.symbol=='H']])
+    except:
+        Hs = 0
+    form_e = (energy - Hs*(-5.41717) - (64-Hs)*(-1.79977))/(Pds+Hs)
+    # print(Pds, Tis, Hs, form_e)
+    return form_e
 
 def formation_energy_ref_hydrides(atoms, energy):
     """
@@ -556,7 +556,7 @@ def db2xls_dft(db_name):
         cons_H.append(con_H)
         dft_e = row.energy
         # form_energy = formation_energy_ref_metals(atoms, dft_e)
-        form_energy = formation_energy_ref_hydr_and_metals(atoms, dft_e)
+        form_energy = formation_energy_CO_ref_hydr_and_metals(atoms, dft_e)
         form_energies.append(form_energy)
         uni_id = str(row.id) + '_' + row.name
         ids.append(uni_id)
@@ -588,7 +588,7 @@ def plot_convex_hull_PdHx_dft(db_name, cand=False):
     plt.xlabel('Concentration of H')
     plt.ylabel('Mixing energies (eV/atom)')
     # plt.ylim([0., 0.5])
-    plt.title(f'Convex hull {i} of PdHx ({len(ids)} DFT data points)')
+    plt.title(f'Convex hull {i} of PdHx-CO ({len(ids)} DFT data points)')
     fig.savefig(f'./{fig_dir}/convex_hull.png', dpi=300, bbox_inches='tight')
 
 def get_PdHx_candidates_dft(cand_ids, db_name):
@@ -642,9 +642,9 @@ def plot_chem_pot_H_PdHx_discrete():
 
 if __name__ == '__main__':
     
-    for i in [1,]:
-    # for i in [x]:
-        system = f'PdHx_train_r{i}' # round 1, ce and dft
+    # for i in [1, 2]:
+    for i in [2]:
+        system = f'PdHx_top1_CO_r{i}' # round 1, ce and dft
         # system = 'PdHx_train_r1' # round 1, ce and dft
         # system = 'PdHx_train_r5' # round 5, ce and dft
         
@@ -657,7 +657,8 @@ if __name__ == '__main__':
         sheet_name_convex_hull = 'convex_hull'
         # plot_simulated_annealing()
         # get_db_and_excel()
-        if False:
+        if True:
             db2xls_dft(db_name)
+            
         plot_convex_hull_PdHx_dft(db_name, cand=True)
         # plot_chem_pot_H_PdHx_discrete()
