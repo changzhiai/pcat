@@ -348,10 +348,11 @@ def convex_hull_stacking_subplots(pts, fix_ele='H', metal_obj='Ti'):
     m2 = 0
     y_min, y_max = get_y_range(pts)
     for k, v in pts.items():
+        # print(k, v)
         ax = plt.subplot(N, M, m1*M + m2 + 1)
         basical_convex_hull(v, ax, fix_ele, metal_obj)
         if fix_ele == 'H':
-            plt.title('$Pd_x{}_{}$'.format(metal_obj, '64-x') + '$H_{}$'.format({64-int(k)}), x=0.5, y=0.7)
+            plt.title('$Pd_x{}_{}$'.format(metal_obj, '{64-x}') + '$H_{}$'.format({64-int(k)}), x=0.5, y=0.7)
         if fix_ele == metal_obj:
             plt.title('$Pd_{}{}_{}Hy$'.format({64-int(k)}, metal_obj, {k}), x=0.5, y=0.7)
         plt.xlim(0,1)
@@ -742,9 +743,9 @@ def collec_dict_last_data(energy_ref_eles,
         H as keys of pts dict
     """
     if 1:
-        # if os.path.exists('results_last1_dic.db'): # get the last one (the lowest energies in each concentration)
-            # os.remove('results_last1.db')
-        # db_last1 = connect('results_last1.db')
+        if os.path.exists(db_name): # get the last one (the lowest energies in each concentration)
+            os.remove(db_name)
+        db_last1 = connect(db_name)
         metal_obj = eles[1]
         pts = dict()
         for num_H in range(0, 65):
@@ -770,7 +771,7 @@ def collec_dict_last_data(energy_ref_eles,
                        form_energy = formation_energy_ref_metals(atoms, clease_e, energy_ref_eles)
                        form_energies.append(form_energy)
                        clease_es.append(clease_e)
-                       # db_last1.write(atoms, con_Pd=con_Pd, con_H=con_H, form_energy=form_energy, uni_id=uni_id,)
+                       db_last1.write(atoms, con_Pd=con_Pd, con_H=con_H, form_energy=form_energy, uni_id=uni_id,)
             zipped = zip(cons_Pd, cons_H, form_energies, ids, clease_es)
             pts[num_H] = np.array(list(zipped))
         with open(data_name, 'wb') as outfile:
@@ -832,10 +833,10 @@ def collec_dict_last_data_reverse(energy_ref_eles,
                        # db_last1.write(atoms, con_Pd=con_Pd, con_H=con_H, form_energy=form_energy, uni_id=uni_id,)
             zipped = zip(cons_Pd, cons_H, form_energies, ids, clease_es)
             pts[num_metal_obj] = np.array(list(zipped))
-        with open(data_name, 'wb') as outfile:
+        with open(data_name_rev, 'wb') as outfile:
             pickle.dump(pts, outfile, protocol=pickle.HIGHEST_PROTOCOL)
     else:
-        with open(data_name, 'rb') as f:
+        with open(data_name_rev, 'rb') as f:
             pts = pickle.load(f)
     
     # plot_convex_hull_ref_metals_3d_line(pts=dct_to_array(pts)) # input: dict to array
@@ -852,7 +853,6 @@ def plot_convex_hull_stacking_subplots(data_name, data_name_rev, fix_ele='H', me
     
     Parameters
         
-    pts: np arrary or dict
         points to plot 
     fix_ele: str
         element to fix, the x axis would be another element
@@ -873,37 +873,40 @@ if __name__ == '__main__':
     db_name='results_last.db'
     data_name='data_last_dict.pkl'
     data_name_rev='data_last_dict_reverse.pkl'
+    # metal_obj = 'Ti'
     metal_obj = 'Sc'
+    # metal_obj = 'Ni'
     
-    Ti_energy_ref_eles={'Pd':-1.951, metal_obj:-5.858, 'H': -7.158*0.5}
-    Sc_energy_ref_eles={'Pd':-1.951, metal_obj:-3.626, 'H': -7.158*0.5}
-    energy_ref_eles={'Pd':-1.951, metal_obj:-3.626, 'H': -7.158*0.5} 
+    # Ti_energy_ref_eles={'Pd':-1.951, metal_obj:-5.858, 'H': -7.158*0.5}
+    # Sc_energy_ref_eles={'Pd':-1.951, metal_obj:-3.626, 'H': -7.158*0.5}
+    energy_ref_eles={'Pd':-1.951, metal_obj:-2.534, 'H': -7.158*0.5} # for Ni
     
-    # eles=['Pd', metal_obj, 'H']
-    # collec_dict_last_data(Sc_energy_ref_eles,
-    #                       db_name=db_name, 
-    #                       data_name=data_name, 
-    #                       eles=eles)
-    # collec_dict_last_data_reverse(Sc_energy_ref_eles,
-    #                               db_name=db_name, 
-    #                               data_name=data_name_rev, 
-    #                               eles=eles)
+    eles=['Pd', metal_obj, 'H']
+    if False: # collect
+        collec_dict_last_data(energy_ref_eles,
+                              db_name=db_name, 
+                              data_name=data_name, 
+                              eles=eles)  # output: results_last1.db and data_last_dict.pkl
+        # collec_dict_last_data_reverse(energy_ref_eles,
+                                      # db_name=db_name, 
+                                      # data_name_rev=data_name_rev, 
+                                      # eles=eles) # output: data_last_dict_reverse.pkl
     
-    if True:
+    if True: # plot convex hull
         with open(data_name, 'rb') as f:
             pts = pickle.load(f)
         # plot_convex_hull_ref_metals_3d_line(pts=dct_to_array(pts))
         # plot_convex_hull_ref_metals_3d_plane(pts=dct_to_array(pts))
         # plot_convex_hull_ref_metals_3d_poly(pts=dct_to_array(pts))
-        plot_2d_contour(pts=dct_to_array(pts))
         # plot_2d_contour_Pd(pts=dct_to_array(pts,all_cols=True))
-        get_candidates(pts=dct_to_array(pts,all_cols=True), db_name='results_last.db', db_cand_name='candidates.db') # candidates on vertices of convex hull
-        plot_convex_hull_stacking_subplots(data_name, data_name_rev, fix_ele='H', metal_obj=metal_obj)
-        plot_convex_hull_stacking_subplots(data_name, data_name_rev, fix_ele=metal_obj, metal_obj=metal_obj)
+        
+        plot_2d_contour(pts=dct_to_array(pts))
+        get_candidates(pts=dct_to_array(pts,all_cols=True), db_name=db_name, db_cand_name='candidates.db') # candidates on vertices of convex hull
+        # plot_convex_hull_stacking_subplots(data_name, data_name_rev, fix_ele='H', metal_obj=metal_obj)
+        # plot_convex_hull_stacking_subplots(data_name, data_name_rev, fix_ele=metal_obj, metal_obj=metal_obj)
     
     
-    
-    if True:
+    if False: # chemical potential
         with open(data_name_rev, 'rb') as f:
             pts_rev = pickle.load(f)
         get_chem_pot_H_vertices(pts_rev, # use reverse data, such as data_last_dict_reverse.pkl

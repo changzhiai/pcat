@@ -17,8 +17,10 @@ from ase.visualize import view
 import matplotlib.pyplot as plt
 from pcat.pourbaix import PourbaixDiagram
 import numpy as np
-from pcat.convex_hull import con_ele
+# from pcat.convex_hull import con_ele
 from scipy.spatial import ConvexHull, convex_hull_plot_2d
+import pandas as pd
+from pcat.lib.io import pd_read_excel
 
 def concatenate_db(db_name1, db_name2, db_tot):
     """Contatenate two database into the total one"""
@@ -235,7 +237,7 @@ def plot_cons_as_layers_with_ads(obj='H'):
         custom_dict = {'surface':0, 'HOCO': 1, 'CO': 2, 'H': 3, 'OH':4} 
         df_sub = df_sub.sort_values(by=['Adsorbate'], key=lambda x: x.map(custom_dict))
         
-        atoms_list = []
+        # atoms_list = []
         for i,row in df_sub.iterrows():
             origin_id = row['Origin_id']
             site = row['Site']
@@ -380,7 +382,7 @@ def plot_stability():
     """Plot convex hull by formation energy"""
     ''
 
-def plot_dft_convex_hull():
+# def plot_dft_convex_hull():
     """Plot convex hull using dft data"""
     
 def plot_chemical_potential(xls_name, sheet_name_origin):
@@ -464,15 +466,155 @@ def plot_2d_contour(pts, vertices=True):
     plt.show()
     ax.savefig('2d_contour.png')
 
-def db2xls_dft(system_name, xls_name, sheet_convex_hull):
+def num_ele(atoms, ele):
+    """Numbers calculation of object element"""
+    try:
+        num_ele = len(atoms[[atom.index for atom in atoms if atom.symbol==ele]])
+    except:
+        num_ele = 0
+    return num_ele
+
+def con_ele(atoms, ele, ref_eles=['Pd', 'Ti']):
+    """Concentration calculation of element
+    totally have three elements, such as, ele=='H', ref_eles=['Pd', 'Ti']
+    
+    con = num_ele / num_ref_eles
+    
+    """
+    num_obj_ele = num_ele(atoms, ele)
+    num_ref_eles = 0
+    for ref_ele in set(ref_eles):
+        try:
+            num_ref_ele = num_ele(atoms, ref_ele)
+        except:
+            num_ref_ele = 0
+        num_ref_eles += num_ref_ele
+    con_ele = num_obj_ele / num_ref_eles
+    return con_ele, num_obj_ele
+
+def formation_energy_ref_metals(atoms, energy_tot, energy_ref_eles):
+    """Formation energy calculation references pure metal and H2 gas
+    
+    For exmaple: energy_ref_eles={'Pd':-1.951, 'Ti':-5.858, 'H': -7.158*0.5}
+    Pure Pd: -1.951 eV/atom
+    Pure Ti: -5.858 eV/atom
+    H2 gas: -7.158 eV
+    """
+    energies_ref_eles = 0
+    num_eles_tot = 0
+    for ele, energy_ref_ele in energy_ref_eles.items():
+        num_ref_ele = num_ele(atoms, ele)
+        energies_ref_eles += num_ref_ele * energy_ref_ele
+        num_eles_tot += num_ref_ele
+        
+    form_e_ref_metals = energy_tot - energies_ref_eles
+    form_e_ref_metals_per_atom = form_e_ref_metals / num_eles_tot
+    return form_e_ref_metals_per_atom
+
+def formation_energy_ref_hyd_and_metals(atoms, energy_tot, energy_ref_eles):
+    """Formation energy calculation references pure metal and H2 gas
+    
+    E_form_e = PdxTi(64-x)Hy - y*PdH + (y-x)*Pd - (64-x)*Ti
+    Pure PdH: -5.22219 eV/atom
+    Pure Pd: -1.59002 ev/atom
+    Pure Ti: -5.32613 eV/atom
+    """
+    # energies_ref_eles = 0
+    # num_eles_tot = 0
+    # for ele, energy_ref_ele in energy_ref_eles.items():
+    #     num_ref_ele = num_ele(atoms, ele)
+    #     energies_ref_eles += num_ref_ele * energy_ref_ele
+    #     num_eles_tot += num_ref_ele
+    num_H = num_ele(atoms, 'H')
+    num_Pd = num_ele(atoms, 'Pd')
+    num_eles_tot = 64 + num_H
+    
+    form_e_ref_metals = energy_tot - num_H*(-5.22219) + (num_H-num_Pd)*(-1.59002) - (64-num_H)*(-5.32613)
+    form_e_ref_metals_per_atom = form_e_ref_metals / num_eles_tot
+    return form_e_ref_metals_per_atom
+
+def db2xls_dft(system_name, xls_name, sheet_convex_hull, energy_ref_eles):
     """Convert database to excel using dft data for PdTiH"""
+    row_ids = []
+    uniqueids = []
+    formulas = []
+    con_Pds = []
+    con_Hs = []
+    num_Pds = []
+    num_Hs = []
+    energy_tots = []
+    form_es = []
     for row in db.select(struct_type='final'):
+        row_id = row.id
         uniqueid = row.name
-        con_Pd = con_ele(row.toatoms(), ele='Pd', ref_eles=ref_eles) 
-        con_H = con_ele(row.toatoms(), ele='H', ref_eles=ref_eles)
+        formula = row.formula
+        con_Pd, num_Pd = con_ele(row.toatoms(), ele='Pd', ref_eles=ref_eles) 
+        con_H, num_H = con_ele(row.toatoms(), ele='H', ref_eles=ref_eles)
         atoms = row.toatoms()
         energy_tot = row.energy
-        formation_energy_ref_metals(atoms, energy_tot, energy_ref_eles)
+        form_e = formation_energy_ref_metals(atoms, energy_tot, energy_ref_eles)
+        # form_e = formation_energy_ref_hyd_and_metals(atoms, energy_tot, energy_ref_eles)
+        
+        row_ids.append(row_id)
+        uniqueids.append(uniqueid)
+        formulas.append(formula)
+        con_Pds.append(con_Pd)
+        con_Hs.append(con_H)
+        num_Pds.append(num_Pd)
+        num_Hs.append(num_H)
+        energy_tots.append(energy_tot)
+        form_es.append(form_e)
+        
+    tuples = {'Id': row_ids,
+              'Unique_id': uniqueids,
+              'Surface': formulas,
+              'Cons_Pd': con_Pds,
+              'Cons_H': con_Hs,
+              'Num_Pd': num_Pds,
+              'Num_H': num_Hs,
+              'Energy': energy_tots,
+              'Form_e': form_es,
+             }
+    df = pd.DataFrame(tuples)
+    df.to_excel(xls_name, sheet_convex_hull, float_format='%.3f')
+
+def plot_dft_convex_hull(xls_name, sheet_convex_hull):
+    df = pd_read_excel(filename=xls_name, sheet=sheet_convex_hull)
+    x = df['Cons_Pd']
+    y = df['Cons_H']
+    z = df['Form_e']
+    
+    ax = plt.figure()
+    scat = plt.scatter(x, y, c=z, marker='o', cmap=plt.cm.jet, s=5)
+    bar = plt.colorbar(scat)
+    
+    pts = np.column_stack((x, y, z))
+    hull = ConvexHull(pts)
+    vertices = pts[hull.vertices]
+    plt.scatter(vertices[:,0], vertices[:,1], c='r', marker='.', zorder=2)
+    for s in hull.simplices:
+        s = np.append(s, s[0])  # Here we cycle back to the first coordinate
+        plt.plot(pts[s, 0], pts[s, 1], "r--", alpha=0.3, zorder=1)
+    bar.set_label(r'Formation energy (eV/atom)', fontsize=12,)
+    plt.title(str(pts.shape[0]) + ' dft data points')
+    
+    plt.xlim([0, 1])
+    # ticks = []
+    # set ticks
+    # for each in range(65):
+    #     a = round(each/64, 2)
+    #     b = each
+    #     if each%2 == 0:
+    #         ticks.append(format(a,'.2f')+' ('+str(b)+')')
+    # plt.xticks(np.arange(0, 65, 2)/64, ticks, rotation ='vertical')
+    # plt.yticks(np.arange(0, 65, 2)/64, ticks)
+    plt.ylim([0, 1])
+    plt.xlabel('Concentration of Pd', fontsize=12,)
+    plt.ylabel('Concentration of H', fontsize=12,)
+    # ax.tight_layout()
+    plt.show()
+    # ax.savefig('2d_contour.png')
+    
     
 
 if __name__ == '__main__':
@@ -480,35 +622,44 @@ if __name__ == '__main__':
         db_tot = '../data/collect_vasp_PdHy_and_insert.db'
         concatenate_db('../data/collect_vasp_PdHy_v3.db', '../data/collect_vasp_insert_PdHy.db', db_tot)
     
-    system_name = 'PdTiH_150' # only CE and DFT surface data
-    
-    ref_eles=['Pd', 'Ti']
-    db_name = f'../data/{system_name}.db' # the only one needed
-    xls_name = f'../data/{system_name}.xlsx'
-    fig_dir = '../figures'
-    
-    sheet_name_origin='Origin'
-    sheet_name_stable='Ori_Stable'
-    sheet_free_energy = 'CO2RR_FE'
-    sheet_binding_energy = 'CO2RR_BE'
-    sheet_cons = 'Cons_BE'
-    sheet_name_allFE ='All_FE'
-    sheet_selectivity = 'Selectivity'
-    sheet_name_dGs = 'dGs'
-    sheet_convex_hull = 'Convex_hull'
-    
-    db = connect(db_name)
-    if True: # database to excel
-        # db = del_partial_db(db)
-        # db2xls(system_name, xls_name, db, ref_eles, sheet_name_origin, sheet_name_stable, sheet_free_energy, sheet_binding_energy, sheet_cons, sheet_name_allFE, sheet_selectivity, sheet_name_dGs)
-        Ti_energy_ref_eles={'Pd':-1.951, metal_obj:-5.858, 'H': -7.158*0.5}
-        db2xls_dft(system_name, xls_name, sheet_convex_hull)
-    
-    if False: # plot
-        plot_free_enegy(xls_name, sheet_free_energy, fig_dir)
-        plot_scaling_relations(xls_name, sheet_binding_energy, fig_dir)
-        plot_selectivity(xls_name, sheet_selectivity, fig_dir)
-        plot_activity(xls_name, sheet_binding_energy, fig_dir)
+    # for i in [1, 2, 3, 4, 5, ]:
+    for i in [6]:
+    # for i in [150, 200, 250, 450]:
+        # system_name = 'PdTiH_{}'.format(i) # only CE and DFT surface data
+        # system_name = 'PdTiH_150' # only CE and DFT surface data
+        # system_name = 'PdTiH_surf_r5'
+        system_name = 'PdTiH_surf_r{}'.format(i)
+        
+        metal_obj = 'Ti'
+        ref_eles=['Pd', 'Ti']
+        db_name = f'../data/{system_name}.db' # the only one needed
+        xls_name = f'../data/{system_name}.xlsx'
+        fig_dir = '../figures'
+        
+        sheet_name_origin='Origin'
+        sheet_name_stable='Ori_Stable'
+        sheet_free_energy = 'CO2RR_FE'
+        sheet_binding_energy = 'CO2RR_BE'
+        sheet_cons = 'Cons_BE'
+        sheet_name_allFE ='All_FE'
+        sheet_selectivity = 'Selectivity'
+        sheet_name_dGs = 'dGs'
+        sheet_convex_hull = 'Convex_hull'
+        
+        db = connect(db_name)
+        if True: # database to excel
+            # db = del_partial_db(db)
+            Ti_energy_ref_eles={'Pd':-1.951, metal_obj:-5.858, 'H': -7.158*0.5}
+            db2xls_dft(system_name, xls_name, sheet_convex_hull, Ti_energy_ref_eles)
+        
+        if True:
+            plot_dft_convex_hull(xls_name, sheet_convex_hull)
+        
+        if False: # plot
+            plot_free_enegy(xls_name, sheet_free_energy, fig_dir)
+            plot_scaling_relations(xls_name, sheet_binding_energy, fig_dir)
+            plot_selectivity(xls_name, sheet_selectivity, fig_dir)
+            plot_activity(xls_name, sheet_binding_energy, fig_dir)
         
     # plot_free_enegy(xls_name, sheet_free_energy, fig_dir)
     # plot_scaling_relations(xls_name, sheet_binding_energy, fig_dir)

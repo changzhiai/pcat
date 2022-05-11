@@ -165,7 +165,7 @@ def pourbaix_diagram(U, pH, system):
     G_rm_one_M_OH_4s = []
     G_rm_one_M2_Hs = []
     G_rm_one_M3_Hs = []
-    bare_PdHs = [] 
+    bare_PdHs = []
     colors = []
     Us_acc = np.zeros(20) # accumulate U in order to calculate average U
     pHs_acc = np.zeros(20)
