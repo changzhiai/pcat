@@ -185,13 +185,13 @@ def db2xls(system_name,
         E_Surface = Surface.Energy.values[0]
         # print(df_sub)
         HOCOs = df_sub.loc[df_sub['Adsorbate'] == 'HOCO']
-        HOCO = HOCOs[HOCOs.Energy == HOCOs.Energy.min()]
+        HOCO = HOCOs[HOCOs.Energy == HOCOs.Energy.min()].head(1)
         E_HOCO = HOCO.Energy.values[0]
         Eb_HOCO = E_HOCO - E_Surface - E_CO2g - 0.5 * E_H2g
         G_HOCO = E_HOCO + Gcor_HOCO - E_Surface - G_CO2g - 0.5 * G_H2g
         
         COs = df_sub.loc[df_sub['Adsorbate'] == 'CO']
-        CO = COs[COs.Energy == COs.Energy.min()]
+        CO = COs[COs.Energy == COs.Energy.min()].head(1)
         E_CO = CO.Energy.values[0]
         Eb_CO = E_CO - E_Surface - E_COg
         G_CO = E_CO + Gcor_CO + G_H2Og - E_Surface - G_H2g - G_CO2g
@@ -201,13 +201,13 @@ def db2xls(system_name,
         # import pdb; pdb.set_trace()
         
         Hs = df_sub.loc[df_sub['Adsorbate'] == 'H']
-        H = Hs[Hs.Energy == Hs.Energy.min()]
+        H = Hs[Hs.Energy == Hs.Energy.min()].head(1)
         E_H = H.Energy.values[0]
         Eb_H = E_H - E_Surface - 0.5 * E_H2g
         G_H = E_H + Gcor_H - E_Surface - 0.5 * G_H2g
         
         OHs = df_sub.loc[df_sub['Adsorbate'] == 'OH']
-        OH = OHs[OHs.Energy == OHs.Energy.min()]
+        OH = OHs[OHs.Energy == OHs.Energy.min()].head(1)
         E_OH = OH.Energy.values[0]
         Eb_OH = E_OH - E_Surface - E_H2Og + 0.5 * E_H2g
         G_OH = E_OH + Gcor_OH - E_Surface - G_H2Og + 0.5 * G_H2g
@@ -215,6 +215,8 @@ def db2xls(system_name,
         Binding_energy = [Eb_HOCO, Eb_CO, Eb_H, Eb_OH]
         Free_energy = [G_HOCO, G_CO, G_H, G_OH] # free energy according to reaction equations
         df_stack = pd.concat([HOCO, CO, H, OH], axis=0)
+        print(HOCO)
+        print(Free_energy)
         df_stack['BE'] = Binding_energy
         df_stack['FE'] = Free_energy
         df_new = df_new.append(df_stack, ignore_index=True)
