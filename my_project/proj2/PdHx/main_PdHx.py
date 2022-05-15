@@ -265,8 +265,9 @@ def plot_layers_as_strutures(db='', obj='H', removeX=False, minusH=False):
     df = pd.DataFrame(tuples)
     df = df.sort_values(by=['con_tots'])
     # print(df)
-    with pd.ExcelWriter(xls_name, engine='openpyxl', mode='a', if_sheet_exists='replace') as writer:
-        df.to_excel(writer, sheet_name='layers_as_structures', index=False, float_format='%.8f')
+    if False:
+        with pd.ExcelWriter(xls_name, engine='openpyxl', mode='a', if_sheet_exists='replace') as writer:
+            df.to_excel(writer, sheet_name='layers_as_structures', index=False, float_format='%.8f')
     plt.plot(df['con_tots'], df['ly1s'], '-o', label='1st layer') # bottom layer
     plt.plot(df['con_tots'], df['ly2s'], '-o', label='2nd layer')
     plt.plot(df['con_tots'], df['ly3s'], '-o', label='3rd layer')
@@ -666,6 +667,7 @@ if __name__ == '__main__':
     # system_name = 'collect_ce_init_PdHx_r2'
     # system_name = 'collect_vasp_candidates_PdHx' # 9 times
     # system_name = 'collect_vasp_coverage_H'
+    # system_name = 'dft_PdHx_lowest'
 
 
     ref_eles=['Pd', 'Ti']
@@ -687,7 +689,7 @@ if __name__ == '__main__':
         # db = del_partial_db(db)
         db2xls(system_name, xls_name, db, ref_eles, sheet_name_origin, sheet_name_stable, sheet_free_energy, sheet_binding_energy, sheet_cons, sheet_name_allFE, sheet_selectivity, sheet_name_dGs)
     
-    if False: # plot
+    if True: # plot
         plot_free_enegy(xls_name, sheet_free_energy, fig_dir)
         plot_scaling_relations(xls_name, sheet_binding_energy, fig_dir)
         plot_selectivity(xls_name, sheet_selectivity, fig_dir)
@@ -702,13 +704,14 @@ if __name__ == '__main__':
     # plot_line_H_distribution(save=False)
     # db_ads, _ = get_ads_db(ads='surface')
     # plot_layers_as_strutures(db=db_ads, obj='H', removeX=False)
+    # plot_layers_as_strutures(db=db, obj='H', removeX=False)
     
     # plot_free_enegy(xls_name, sheet_free_energy, fig_dir)
     # plot_scaling_relations(xls_name, sheet_binding_energy, fig_dir)
     # plot_activity(xls_name, sheet_binding_energy, fig_dir)
     # views(formula='Pd51Ti13H59', all_sites=True)
     # view(db_name)
-    plot_BE_as_Hcons(xls_name, sheet_cons)
+    # plot_BE_as_Hcons(xls_name, sheet_cons)
     # plot_pourbaix_diagram(xls_name, sheet_name_dGs)
     # plot_chemical_potential(xls_name, sheet_name_origin)
     
