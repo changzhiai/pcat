@@ -574,7 +574,7 @@ def plot_convex_hull_PdHx_dft(db_name, cand=False):
 
 def get_PdHx_candidates_dft(cand_ids, db_name):
     """Get and save candidates"""
-    db_cand_name='dft_candidates_PdHx_r9.db'
+    db_cand_name='dft_candidates_PdHx_p20_50.db'
     db = connect(db_name)
     if os.path.exists(db_cand_name):
         os.remove(db_cand_name)
@@ -588,7 +588,35 @@ def get_PdHx_candidates_dft(cand_ids, db_name):
         
         row_ce = db.get(final_struct_id=id)
         db_cand.write(row_ce, ori_vasp_id=int(id), calc='clease')
-                
+
+def get_PdHx_lowest_dft(db_name):
+    """Get and save the lowest structures in each concentration"""
+    
+    df = pd_read_excel(filename=xls_name, sheet=sheet_name_convex_hull)
+    df = df.sort_values(by=['cons_H'], ascending=False)
+    unique_cons_H = df['cons_H'].unique()
+    
+    db_cand_name='dft_PdHx_lowest.db'
+    db = connect(db_name)
+    if os.path.exists(db_cand_name):
+        os.remove(db_cand_name)
+    db_cand = connect(db_cand_name)
+    
+    df_min = pd.DataFrame()
+    for con_H in unique_cons_H:
+        df_sub = df[df['cons_H']==con_H]
+        df_sub = df_sub[df_sub.form_energies == df_sub.form_energies.min()].head(1)
+        df_min = df_min.append(df_sub, ignore_index=True)
+        
+        uni_id = df_sub.ids.values[0]
+        splits = uni_id.split('_')
+        id = splits[0]
+        row_vasp = db.get(id=id)
+        db_cand.write(row_vasp, ori_vasp_id=int(id), calc='vasp', ads='surface')
+        print(row_vasp.formula, ' ',)
+        # row_ce = db.get(final_struct_id=id)
+        # db_cand.write(row_ce, ori_vasp_id=int(id), calc='clease')
+
 
 def plot_chem_pot_H_PdHx_discrete():
     """
@@ -628,7 +656,7 @@ if __name__ == '__main__':
         system = f'PdHx_train_r{i}' # round 1, ce and dft
         # system = 'PdHx_train_r1' # round 1, ce and dft
         # system = 'PdHx_train_r5' # round 5, ce and dft
-        system = 'PdHx_train_r9_insert_p20_50'
+        # system = 'PdHx_train_r9_insert_p20_50'
         
     
         fig_dir = './figures/'
@@ -641,5 +669,7 @@ if __name__ == '__main__':
         # get_db_and_excel()
         if False:
             db2xls_dft(db_name)
-        plot_convex_hull_PdHx_dft(db_name, cand=True)
+        # plot_convex_hull_PdHx_dft(db_name, cand=True)
         # plot_chem_pot_H_PdHx_discrete()
+        
+        get_PdHx_lowest_dft(db_name)
