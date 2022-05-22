@@ -23,6 +23,8 @@ import pandas as pd
 from matplotlib.patches import Ellipse
 #from matplotlib.patches import Ellipsoid
 from scipy.stats import norm, chi2
+import matplotlib as mpl
+from cycler import cycler
 
 def concatenate_db(db_name1, db_name2, db_tot):
     """Contatenate two database into the total one"""
@@ -535,27 +537,57 @@ def plot_energies(x):
 def plot_ens_E_HOCO_E_H(xls_name, sheet_selectivity, fig_dir):
     """Plot ensemble selectivity of CO2RR and HER"""
     df = pd_read_excel(filename=xls_name, sheet=sheet_selectivity)
-    
     fig = plt.figure(figsize=(7,7))
+    
+    nums_row = len(df.index)
+    NUM_COLORS = nums_row # 12
+    cm = plt.get_cmap(plt.cm.jet)
+    cs = [cm(1.*i/NUM_COLORS) for i in range(NUM_COLORS)]
+    mpl.rcParams['axes.prop_cycle'] = cycler(color=cs)
+    from matplotlib.axes._axes import _log as matplotlib_axes_logger
+    formulas_set = df.index.unique()
+    colors = {}
+    hexs = []
+    for i, formu in enumerate(formulas_set):
+        hex_temp = mpl.colors.to_hex(cs[i])
+        colors[formu] = hex_temp
+        hexs.append(hex_temp)
+        # colors[formu] = cs[i]
+    tuples = {'formulas': formulas_set,
+              'colors': hexs,
+              }
+    df_color = pd.DataFrame(tuples) # color list
+    
+    size1=14; size2=14; fig = plt.figure(figsize=(7,7));
+    plt.xticks(fontsize = size2); plt.yticks(fontsize = size2); ax=fig.gca()
+    
+    plt.rcParams['grid.linewidth'] = 0.5
     for i,row in df.iterrows():
-        Exval = row['E(*H)_ens']
-        # Exval = row['E_HOCO-E_H']
-        Eyval = row['E(*HOCO)_ens']
-        Exval = str_to_array(Exval)
-        Eyval = str_to_array(Eyval)
+        Exval = row['E(*HOCO)_ens']
+        Eyval = row['E(*H)_ens']
+        Exval = str_to_array(Exval)+row['E(*HOCO)']
+        Eyval = str_to_array(Eyval)+row['E(*H)']
         # plot_energies(Exval)
         # print(Exval)
         # print(Eyval)
         # print(Exval.mean(), Exval.std(), row['E(*H)'])
         print(Eyval.mean(), Eyval.std(), row['E(*HOCO)'])
-        
+        color = df_color[df_color['formulas']==i].colors.values[0]
         cov1, pos1=plot_point_cov(np.transpose([Exval,Eyval]))
         hej2=cov_ellipse(cov1, nsig=1)
-        ellip=Ellipse(xy=pos1, width=hej2[0], height=hej2[1], angle=hej2[2], color='b', alpha=0.2)
-        plt.errorbar(np.asarray(Exval).mean(), np.asarray(Eyval).mean(), np.asarray(Eyval).std(), np.asarray(Exval).std(), c='b',lw=3,fmt='o') 
-        ax=fig.gca()
+        ellip=Ellipse(xy=pos1, width=hej2[0], height=hej2[1], angle=hej2[2], color=color, alpha=0.2)
+        plt.errorbar(np.asarray(Exval).mean(), np.asarray(Eyval).mean(), np.asarray(Eyval).std(), np.asarray(Exval).std(), c=color,lw=3,fmt='o') 
+        # ax=fig.gca()
         ax.add_patch(ellip)
-        ax.text(np.asarray(Exval).mean(), np.asarray(Eyval).mean(), 'label',color='black', fontsize=14)
+        ax.text(np.asarray(Exval).mean(), np.asarray(Eyval).mean(), i,color='black', fontsize=size1)
+        plt.xlabel('$\Delta$E$_{*H}$  [eV]',fontsize=size2)
+        plt.ylabel('$\Delta$E$_{*HOCO}$  [eV]',fontsize=size2)
+        plt.xlim([-0.75,1.25])
+        plt.xticks(np.arange(-0.75,1.25, step=0.25))
+        plt.ylim([-0.75,1.25])
+        plt.plot([-1,1.5],[-1,1.5],'k--',lw=2)
+        # plt.locator_params(axis='x',nbins=5);
+        plt.grid(True)
     
 def plot_activity(xls_name, sheet_binding_energy, fig_dir):
     """Plot activity of CO2RR"""
@@ -747,9 +779,12 @@ if __name__ == '__main__':
     sheet_name_dGs = 'dGs'
     
     db = connect(db_name)
+    db_molecule = connect('./data/beef_molecule.db')
     if False: # database to excel
         # db = del_partial_db(db)
-        db2xls(system_name, xls_name, db, ref_eles, sheet_name_origin, sheet_name_stable, sheet_free_energy, sheet_binding_energy, sheet_cons, sheet_name_allFE, sheet_selectivity, sheet_name_dGs)
+        db2xls(system_name, xls_name, db, db_molecule, ref_eles, 
+               sheet_name_origin, sheet_name_stable, sheet_free_energy, sheet_binding_energy, 
+               sheet_cons, sheet_name_allFE, sheet_selectivity, sheet_name_dGs)
     
     if False: # plot
         plot_free_enegy(xls_name, sheet_free_energy, fig_dir)
