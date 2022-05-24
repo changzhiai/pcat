@@ -8,6 +8,57 @@ Created on Sat Jan 15 17:26:19 2022
 import pandas as pd
 import pcat.utils.constants as const
 from pcat.convex_hull import con_ele
+from ase import Atoms
+from ase.visualize import view
+
+def count_atoms(atoms, ref_eles, ads='CO', cutoff=4.5,):
+    """Count how many different atoms in structures
+    ref_eles: e.g. ['Pd', 'Ti'], and another one is 'H'
+    
+    Output: 
+        counts: {'Pd': 1, 'Ti': 9, 'H': 15}
+    """
+    if ads == 'HOCO':
+        ele_core='C'
+    elif ads == 'CO':
+        ele_core='C'
+    elif ads == 'H':
+        ele_core='H' # need to update
+    elif ads == 'OH':
+        ele_core='O'
+    atom_core_index = [atom.index for atom in atoms if atom.symbol==ele_core]
+    if ads == 'H':
+        atom_core_index = [max(atom_core_index)]
+    num_ele_core = len(atom_core_index)
+    assert num_ele_core == 1 # exit if the number of core atom is not equal to 1
+    
+    atoms_new = Atoms()
+    for atom in atoms:
+        distance = atoms.get_distance(atom_core_index, atom.index)
+        if distance <= cutoff:
+            atoms_new.append(atom)
+            # print(distance)
+    # print(atoms_new)
+    # view(atoms_new)
+    counts = {}
+    eles = ref_eles + ['H']
+    for ele in eles:
+        try:
+            atom_ele = atoms_new[[atom.index for atom in atoms_new if atom.symbol==ele]]
+            counts[ele] = len(atom_ele)
+        except:
+            counts[ele] = 0
+    if ads == 'HOCO':
+        counts['H'] -= 1
+    # elif ads == 'CO':
+    #     counts['C'] -= 1
+    #     counts['O'] -= 1
+    elif ads == 'H':
+        counts['H'] -= 1
+    elif ads == 'OH':
+        counts['H'] -= 1
+    return counts
+
 
 def db2xls(system_name, 
            xls_name, 
@@ -72,6 +123,10 @@ def db2xls(system_name,
     ori_ids = []
     cons_Pd = []
     cons_H = []
+    num_Pd_nn = []
+    num_M_nn = []
+    num_H_nn = []
+    cutoff = 4.5
     for row in db.select():
         uniqueid = row.uniqueid
         items = uniqueid.split('_')
@@ -89,7 +144,17 @@ def db2xls(system_name,
         else:
             con_Pd = None
             con_H = None
-        
+            
+        if adsor != 'surface':
+            atoms = row.toatoms()
+            counts = count_atoms(atoms, ref_eles, ads=adsor, cutoff=cutoff,)
+            print(counts)
+        else:
+            counts = {}
+            counts[ref_eles[0]] = 0
+            counts[ref_eles[1]] = 0
+            counts['H'] = 0
+            
         ids.append(id)
         formulas.append(formula)
         sites.append(site)
@@ -98,7 +163,12 @@ def db2xls(system_name,
         ori_ids.append(ori_id)
         cons_Pd.append(con_Pd)
         cons_H.append(con_H)
+        num_Pd_nn.append(counts['Pd'])
+        num_M_nn.append(counts[ref_eles[1]])
+        num_H_nn.append(counts['H'])
     
+    print(ref_eles + ['H'])
+    print('Cutoff:', cutoff)
     tuples = {'Id': ids,
               'Origin_id': ori_ids,
               'Surface': formulas,
@@ -107,17 +177,23 @@ def db2xls(system_name,
               'Site': sites,
               'Adsorbate': adsors,
               'Energy': energies,
+              
+              'num_Pd_nn': num_Pd_nn,
+              f'num_{ref_eles[1]}_nn': num_M_nn,
+              'num_H_nn': num_H_nn,
              }
     df = pd.DataFrame(tuples)
     
     """
     Save the original data and sorted by adsorbate
     """
-    uniqueids = df['Origin_id'].astype(int).unique()
+    # uniqueids = df['Origin_id'].astype(int).unique()
+    uniqueids = df['Origin_id'].unique()
     df_sort  = pd.DataFrame()
     custom_dict = {'surface':0, 'HOCO': 1, 'CO': 2, 'H': 3, 'OH':4} 
     for id in uniqueids:
-        df_sub = df.loc[df['Origin_id'].astype(int) == id]
+        # df_sub = df.loc[df['Origin_id'].astype(int) == id]
+        df_sub = df.loc[df['Origin_id'] == id]
         df_sub = df_sub.sort_values(by=['Adsorbate'], key=lambda x: x.map(custom_dict))
         
         Surface = df_sub.loc[df_sub['Adsorbate'] == 'surface']
@@ -179,7 +255,8 @@ def db2xls(system_name,
     df_new  = pd.DataFrame()
     for id in uniqueids:
         # print(id)
-        df_sub = df_sort.loc[df_sort['Origin_id'].astype(int) == id]
+        # df_sub = df_sort.loc[df_sort['Origin_id'].astype(int) == id]
+        df_sub = df_sort.loc[df_sort['Origin_id'] == id]
         del df_sub['BE']
         Surface = df_sub.loc[df_sub['Adsorbate'] == 'surface']
         E_Surface = Surface.Energy.values[0]
@@ -215,8 +292,6 @@ def db2xls(system_name,
         Binding_energy = [Eb_HOCO, Eb_CO, Eb_H, Eb_OH]
         Free_energy = [G_HOCO, G_CO, G_H, G_OH] # free energy according to reaction equations
         df_stack = pd.concat([HOCO, CO, H, OH], axis=0)
-        print(HOCO)
-        print(Free_energy)
         df_stack['BE'] = Binding_energy
         df_stack['FE'] = Free_energy
         df_new = df_new.append(df_stack, ignore_index=True)
