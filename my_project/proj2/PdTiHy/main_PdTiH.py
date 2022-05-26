@@ -19,6 +19,15 @@ from ase.visualize import view
 import matplotlib.pyplot as plt
 from pcat.pourbaix import PourbaixDiagram
 import numpy as np
+import seaborn as sns
+from matplotlib.patches import Rectangle
+# rc = {'figure.figsize':(10,5),
+#   'axes.facecolor':'white',
+#   'axes.grid' : True,
+#   'grid.color': '.8',
+#   'font.family':'Times New Roman',
+#   'font.size' : 15}
+# plt.rcParams.update(rc)
 
 def concatenate_db(db_name1, db_name2, db_tot):
     """Contatenate two database into the total one"""
@@ -426,7 +435,8 @@ def plot_activity(xls_name, sheet_binding_energy, fig_dir):
     # activity.verify_BE2FE()
     # activity.plot(save=True)
     # activity.plot(save=True, xlim=[-2.5, 2.5], ylim=[-2.5, 2.5])
-    activity.plot(save=True, xlim=[-1., 0], ylim=[-0.2, 1])
+    # activity.plot(save=True, xlim=[-1., 0], ylim=[-0.2, 1])
+    activity.plot(save=True, xlim=[-2.5, 0], ylim=[-2.5, 1])
 
 def del_partial_db(db):
     """Delet uncomplete database"""
@@ -442,16 +452,161 @@ def del_partial_db(db):
     print(del_rows)
     return db
 
+def add_generation_to_db(db):
+    """Add nth generation to database in order to identify Origin_id"""
+    for row in db.select():
+        path = row.get('path')
+        if '/mc/' in path:
+            new_uniqueid = row.uniqueid + 'r1'
+            db.update(row.id, uniqueid=new_uniqueid)
+        elif '/mc_second_round/' in path:
+            new_uniqueid = row.uniqueid + 'r2'
+            db.update(row.id, uniqueid=new_uniqueid)
+        elif '/mc_round3/' in path:
+            new_uniqueid = row.uniqueid + 'r3'
+            db.update(row.id, uniqueid=new_uniqueid)
+
+def binding_energy_distribution(ads='CO'):
+    """Analysis binding energy distribution"""
+    df = pd_read_excel(xls_name, sheet_name_origin)
+    df_sub = df.loc[df['Adsorbate'] == ads]
+    # df_sub = df_sub.set_index('Origin_id')
+    BE = df_sub['BE']
+    # print(BE)
+    sns.set_context("paper"); fontsize = 14
+    sns.displot(data=BE, kde=True, facet_kws=dict(despine=False))   
+    plt.xlabel('$\Delta E({})$'.format(str('*'+ads)), fontsize=fontsize)
+    plt.ylabel('Frequency', fontsize=fontsize)
+    plt.xticks(fontsize=fontsize)
+    plt.yticks(fontsize=fontsize)
+    plt.title(f'{len(df_sub.index)} datapoints', fontsize=fontsize)
+    plt.gcf().set_size_inches(8, 6)
+
+def plot_count_nn(ads='CO'):
+    """Count how many different types of atoms neibour near adsorbate"""
+    df = pd_read_excel(xls_name, sheet_name_origin)
+    df_sub = df.loc[df['Adsorbate'] == ads]
+    num_Pd_nn = df_sub['num_Pd_nn']
+    num_Ti_nn = df_sub[f'num_{ref_eles[1]}_nn']
+    num_H_nn = df_sub['num_H_nn']
+    BE = df_sub['BE']
+    colors = ('green', 'blue', 'orange', 'red', 'magenta'); fontsize = 14
+    alpha = 0.5; width = 0.05
+    plt.figure()
+    plt.bar(BE, num_Pd_nn, alpha=alpha, color=colors[0], width=width, label='Pd')
+    plt.bar(BE, num_Ti_nn, alpha=alpha, color=colors[1], width=width, label='Ti')
+    plt.bar(BE, num_H_nn, alpha=alpha, color=colors[2], width=width, label='H')
+    plt.xlabel('$\Delta E({})$'.format(str('*'+ads)), fontsize=fontsize)
+    plt.ylabel('Counts', fontsize=fontsize)
+    plt.xticks(fontsize=fontsize)
+    plt.yticks(fontsize=fontsize)
+    plt.legend(fontsize=fontsize)
+    plt.title(f'{len(df_sub.index)} datapoints', fontsize=fontsize)
+    # plt.gcf().set_size_inches(8, 6)
+    ax = plt.gca()
+    ymin, ymax = ax.get_ylim()
+    if ads == 'CO':
+        bestx1 = -0.8
+        bestx2 = 0.
+        x = np.arange(bestx1, bestx2, 0.01)
+        # ax.add_patch(Rectangle((bestx1, ymax-0.2), bestx2, ymax, facecolor = 'red', fill=True, lw=0))
+        plt.fill_between(x, ymin, ymax, 
+                color='black', alpha=0.2, transform=ax.get_xaxis_transform(), zorder=-1)
+    elif ads == 'HOCO':
+        bestx1 = -0.8
+        bestx2 = 0.4
+        x = np.arange(bestx1, bestx2, 0.01)
+        # ax.add_patch(Rectangle((bestx1, ymax-0.2), bestx2, ymax, facecolor = 'red', fill=True, lw=0))
+        plt.fill_between(x, ymin, ymax, 
+                color='black', alpha=0.2, transform=ax.get_xaxis_transform(), zorder=-1)
+    plt.show()
+    
+def plot_count_nn_stack(ads='CO'):
+    """Count how many different types of atoms neibour near adsorbate"""
+    df = pd_read_excel(xls_name, sheet_name_origin)
+    df_sub = df.loc[df['Adsorbate'] == ads]
+    num_Pd_nn = df_sub['num_Pd_nn']
+    num_Ti_nn = df_sub[f'num_{ref_eles[1]}_nn']
+    num_H_nn = df_sub['num_H_nn']
+    BE = df_sub['BE']
+    colors = ('green', 'blue', 'orange', 'red', 'magenta'); fontsize = 14
+    alpha = 1; width = 0.01
+    plt.bar(BE, num_Pd_nn, alpha=alpha, color=colors[0], width=width, label='Pd')
+    plt.bar(BE, num_Ti_nn, bottom=num_Pd_nn, alpha=alpha, color=colors[1], width=width, label='Ti')
+    plt.bar(BE, num_H_nn, bottom=num_Pd_nn+num_Ti_nn, alpha=alpha, color=colors[2], width=width, label='H')
+    plt.xlabel('$\Delta E({})$'.format(str('*'+ads)), fontsize=fontsize)
+    plt.ylabel('Counts', fontsize=fontsize)
+    plt.xticks(fontsize=fontsize)
+    plt.yticks(fontsize=fontsize)
+    plt.legend(fontsize=fontsize)
+    plt.title(f'{len(df_sub.index)} datapoints', fontsize=fontsize)
+    plt.gcf().set_size_inches(8, 6)
+    ax = plt.gca()
+    ymin, ymax = ax.get_ylim()
+    if ads == 'CO':
+        bestx1 = -0.8
+        bestx2 = 0.
+        x = np.arange(bestx1, bestx2, 0.01)
+        plt.fill_between(x, ymin, ymax, 
+                color='black', alpha=0.2, transform=ax.get_xaxis_transform(), zorder=-1)
+    elif ads == 'HOCO':
+        bestx1 = -0.8
+        bestx2 = 0.4
+        x = np.arange(bestx1, bestx2, 0.01)
+        plt.fill_between(x, ymin, ymax, 
+                color='black', alpha=0.2, transform=ax.get_xaxis_transform(), zorder=-1)
+
+def plot_count_nn_hist(ads='CO'):
+    """Plot histogram of statistics of atoms"""
+    df = pd_read_excel(xls_name, sheet_name_origin)
+    df_sub = df.loc[df['Adsorbate'] == ads]
+    hist_Pd_nn = []
+    hist_Ti_nn = []
+    hist_H_nn = []
+    fig, ax = plt.subplots()
+    for i, row in df_sub.iterrows():
+        num_Pd_nn = row['num_Pd_nn']
+        num_Ti_nn = row[f'num_{ref_eles[1]}_nn']
+        num_H_nn = row['num_H_nn']
+        BE = row['BE']
+        if int(num_Pd_nn) != 0:
+            for _ in range(int(num_Pd_nn)):
+                hist_Pd_nn.append(BE)
+        if int(num_Ti_nn) != 0:
+            for _ in range(int(num_Ti_nn)):
+                hist_Ti_nn.append(BE)
+        if int(num_H_nn) != 0:
+            for _ in range(int(num_H_nn)):
+                hist_H_nn.append(BE)
+    start, stop, spacing = -3.5, 0.5, 0.075
+    bins = np.arange(start, stop, spacing)
+    colors = ('green', 'blue', 'orange', 'red', 'magenta'); fontsize = 14
+    zorders=[3, 2, 1]
+    plt.hist(hist_Pd_nn, bins, facecolor=colors[0], ec='black', alpha=0.75, histtype='stepfilled', zorder=zorders[0], label='Pd')
+    plt.hist(hist_Ti_nn, bins, facecolor=colors[1], ec='black', alpha=0.75, histtype='stepfilled', zorder=zorders[1], label='Ti')
+    plt.hist(hist_H_nn, bins, facecolor=colors[2], ec='black', alpha=0.75, histtype='stepfilled', zorder=zorders[2], label='H')
+    plt.hist(hist_Pd_nn + hist_Ti_nn + hist_H_nn, bins, facecolor='grey', ec='black', alpha=0.75, histtype='stepfilled', zorder=0, label='total')
+    plt.xlim([-2.0, 0])
+    plt.xlabel('$\Delta E({})$'.format(str('*'+ads)), fontsize=fontsize)
+    plt.ylabel('Frequency', fontsize=fontsize)
+    plt.xticks(fontsize=fontsize)
+    plt.yticks(fontsize=fontsize)
+    plt.title(f'{len(df_sub.index)} datapoints', fontsize=fontsize)
+    plt.legend()
+    plt.gcf().set_size_inches(8, 6)
+    plt.show()
+
+
 if __name__ == '__main__':
-    if False:
-        db_tot = '../data/collect_vasp_PdHy_and_insert.db'
-        concatenate_db('../data/collect_vasp_PdHy_v3.db', '../data/collect_vasp_insert_PdHy.db', db_tot)
+    # if False:
+    #     db_tot = './data/collect_vasp_PdHy_and_insert.db'
+    #     concatenate_db('./data/collect_vasp_PdHy_v3.db', './data/collect_vasp_insert_PdHy.db', db_tot)
     
     # system_name = 'collect_vasp_test_m'
     # system_name = 'collect_vasp_Pd0Hy'
     # system_name = 'collect_vasp_layers_H' # important
     # system_name = 'collect_vasp_PdHy_and_insert'
-    system_name = 'collect_vasp_coverage_H' # important coverage Pd64H64, H63....H48
+    # system_name = 'collect_vasp_coverage_H' # important coverage Pd64H64, H63....H48
     # system_name = 'collect_ce_candidates_v0'
     # system_name = 'collect_ce_candidates'
     # system_name = 'collect_ce_candidates_single_ads'
@@ -462,6 +617,7 @@ if __name__ == '__main__':
     # system_name = 'collect_ce_candidates_vasp_for_surface'
     # system_name = 'collect_vasp_layers_H_fix_bot'
     # system_name = 'vasp_122'
+    system_name = 'PdTiH_vasp_200_r3' # 9 rows for each surface including top and hollow sites of HOCO, CO, OH, H
     
     # system_name = 'collect_vasp_PdHy_v3'
     # system_name = 'collect_vasp_Pd32Hy'
@@ -474,9 +630,9 @@ if __name__ == '__main__':
     # system_name = 'collect_vasp_PdHy_and_Pd16Hy_and_Pd32Hy_and_Pd48Hy'
     # system_name = 'collect_vasp_PdHy_and_Pd16Hy_and_Pd32Hy_and_Pd48Hy_and_Pd51Hy'
     ref_eles=['Pd', 'Ti']
-    db_name = f'../data/{system_name}.db' # the only one needed
-    xls_name = f'../data/{system_name}.xlsx'
-    fig_dir = '../figures'
+    db_name = f'./data/{system_name}.db' # the only one needed
+    xls_name = f'./data/{system_name}.xlsx'
+    fig_dir = './figures'
     
     sheet_name_origin='Origin'
     sheet_name_stable='Ori_Stable'
@@ -486,11 +642,15 @@ if __name__ == '__main__':
     sheet_name_allFE ='All_FE'
     sheet_selectivity = 'Selectivity'
     sheet_name_dGs = 'dGs'
+    # cutoff = 4.5
     
     db = connect(db_name)
     if False: # database to excel
         # db = del_partial_db(db)
-        db2xls(system_name, xls_name, db, ref_eles, sheet_name_origin, sheet_name_stable, sheet_free_energy, sheet_binding_energy, sheet_cons, sheet_name_allFE, sheet_selectivity, sheet_name_dGs)
+        db2xls(system_name, xls_name, db, ref_eles, 
+               sheet_name_origin, sheet_name_stable, sheet_free_energy, sheet_binding_energy, sheet_cons,
+               sheet_name_allFE, sheet_selectivity, sheet_name_dGs,
+               cutoff=2.5)
     
     if False: # plot
         plot_free_enegy(xls_name, sheet_free_energy, fig_dir)
@@ -498,11 +658,30 @@ if __name__ == '__main__':
         plot_selectivity(xls_name, sheet_selectivity, fig_dir)
         plot_activity(xls_name, sheet_binding_energy, fig_dir)
     
+    if False: # cutoff=4.5
+        binding_energy_distribution(ads='HOCO')
+        binding_energy_distribution(ads='CO')
+        binding_energy_distribution(ads='OH')
+        binding_energy_distribution(ads='H')
+    
+    if False:
+        for ads in ['HOCO', 'CO', 'OH', 'H']:
+            plot_count_nn(ads=ads)
+            plot_count_nn_stack(ads=ads)
+        # plot_count_nn(ads='CO')
+        # plot_count_nn_stack(ads='CO')
+    
+    if True:
+        for ads in ['HOCO', 'CO', 'OH', 'H']:
+            plot_count_nn_hist(ads=ads)
+            # plot_count_nn_hist(ads='CO')
+            
+    # add_generation_to_db(db)
     # plot_BE_as_Hcons(xls_name, sheet_cons)
     
     # plot_free_enegy(xls_name, sheet_free_energy, fig_dir)
     # plot_scaling_relations(xls_name, sheet_binding_energy, fig_dir)
-    plot_activity(xls_name, sheet_binding_energy, fig_dir)
+    # plot_activity(xls_name, sheet_binding_energy, fig_dir)
     # views(formula='Pd51Ti13H59', all_sites=True)
     # view(db_name)
     
