@@ -20,9 +20,11 @@ import matplotlib.pyplot as plt
 import matplotlib as mpl
 import pandas as pd
 from pcat.lib.io import pd_read_excel
+import imageio
 from mpl_toolkits.mplot3d.art3d import Poly3DCollection
 mpl.rcParams['savefig.dpi'] = 100
 mpl.rcParams['font.size'] = 8
+
 # mpl.use('TkAgg')
 
 @contextmanager
@@ -550,14 +552,14 @@ def db2xls_dft(db_name):
     df = pd.DataFrame(tuples)
     df.to_excel(xls_name, sheet_name_convex_hull, float_format='%.3f')
 
-def plot_convex_hull_PdHx_dft(db_name, cand=False):
+def plot_convex_hull_PdHx_dft(db_name, cand=False, round=1):
     """Plot convex hull"""
     df = pd_read_excel(filename=xls_name, sheet=sheet_name_convex_hull)
     cons_H = df['cons_H']
     form_energies = df['form_energies']
     ids = df['ids']
-    fig = plt.figure(dpi=300)
-    ax = plt.axes()
+    # fig = plt.figure(dpi=300)
+    fig, ax = plt.subplots(dpi=300)
     plt.plot(cons_H, form_energies, 'x')
     points = np.column_stack((cons_H, form_energies, ids))
     hull = ConvexHull(points=points[:, 0:2])
@@ -566,11 +568,14 @@ def plot_convex_hull_PdHx_dft(db_name, cand=False):
     if cand==True:
         get_PdHx_candidates_dft(cand_ids, db_name=db_name)
     plot_basical_convex_hull(vertices, ax=ax)
+    # ax = plt.axes()
+    plt.xticks(np.arange(-0.00, 1.01, step=0.2))
+    plt.yticks(np.arange(-0.06, 0.01, step=0.01))
     plt.xlabel('Concentration of H')
     plt.ylabel('Mixing energies (eV/atom)')
-    # plt.ylim([0., 0.5])
-    plt.title(f'Convex hull {i} of PdHx ({len(ids)} DFT data points)')
-    fig.savefig(f'./{fig_dir}/convex_hull.png', dpi=300, bbox_inches='tight')
+    plt.title(f'Convex hull {round} of PdHx ({len(ids)} DFT data points)')
+    # fig.savefig(f'./{fig_dir}/convex_hull.png', dpi=300, bbox_inches='tight')
+    return fig, ax
 
 def get_PdHx_candidates_dft(cand_ids, db_name):
     """Get and save candidates"""
@@ -648,9 +653,26 @@ def plot_chem_pot_H_PdHx_discrete():
     plt.plot(Hcons, dyf)
     plt.show()
 
+def plot_animate(i):
+    global system, fig_dir, data_dir, db_name, xls_name, sheet_name_convex_hull
+    system = f'PdHx_train_r{i}'
+    fig_dir = './figures/'
+    data_dir = './data'
+    db_name = f'./{data_dir}/{system}.db'
+    xls_name = f'./{data_dir}/{system}.xlsx'
+    sheet_name_convex_hull = 'convex_hull'
+    # fig, ax = plt.subplots(figsize=(8, 6))
+    fig, ax = plot_convex_hull_PdHx_dft(db_name, cand=False, round=i)
+    # ax.set_xticks(np.arange(-0.00, 1.01, step=0.2))
+    # ax.set_yticks(np.arange(-0.06, 0.01, step=0.01))
+    # Used to return the plot as an image rray
+    fig.canvas.draw()       # draw the canvas, cache the renderer
+    image = np.frombuffer(fig.canvas.tostring_rgb(), dtype='uint8')
+    image  = image.reshape(fig.canvas.get_width_height()[::-1] + (3,))
+    return image
 
 if __name__ == '__main__':
-    
+
     # for i in [1, 2, 3, 4, 5, 6, 7, 8, 9]:
     for i in [9]:
         system = f'PdHx_train_r{i}' # round 1, ce and dft
@@ -669,7 +691,11 @@ if __name__ == '__main__':
         # get_db_and_excel()
         if False:
             db2xls_dft(db_name)
-        # plot_convex_hull_PdHx_dft(db_name, cand=True)
+        plot_convex_hull_PdHx_dft(db_name, cand=True)
         # plot_chem_pot_H_PdHx_discrete()
         
-        get_PdHx_lowest_dft(db_name)
+        # get_PdHx_lowest_dft(db_name)
+
+
+    # kwargs_write = {'fps':1.0, 'quantizer':'nq'}
+    # imageio.mimsave('./convex_hull.gif', [plot_animate(i) for i in [1, 2, 3, 4, 5, 6, 7, 8, 9]], fps=1)
