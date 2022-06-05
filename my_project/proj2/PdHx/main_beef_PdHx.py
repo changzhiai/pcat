@@ -544,7 +544,7 @@ def plot_ens_E_HOCO_E_H(xls_name, sheet_selectivity, fig_dir):
     cm = plt.get_cmap(plt.cm.jet)
     cs = [cm(1.*i/NUM_COLORS) for i in range(NUM_COLORS)]
     mpl.rcParams['axes.prop_cycle'] = cycler(color=cs)
-    from matplotlib.axes._axes import _log as matplotlib_axes_logger
+    # from matplotlib.axes._axes import _log as matplotlib_axes_logger
     formulas_set = df.index.unique()
     colors = {}
     hexs = []
@@ -563,10 +563,14 @@ def plot_ens_E_HOCO_E_H(xls_name, sheet_selectivity, fig_dir):
     
     plt.rcParams['grid.linewidth'] = 0.5
     for i,row in df.iterrows():
-        Exval = row['E(*HOCO)_ens']
-        Eyval = row['E(*H)_ens']
-        Exval = str_to_array(Exval)+row['E(*HOCO)']
-        Eyval = str_to_array(Eyval)+row['E(*H)']
+        x = 'E(*HOCO)'
+        y = 'E(*H)'
+        # x = 'E(*CO)'
+        # y = 'E(*HOCO)'
+        Exval = row[x+'_ens']
+        Eyval = row[y+'_ens']
+        Exval = str_to_array(Exval)+row[x]
+        Eyval = str_to_array(Eyval)+row[y]
         # plot_energies(Exval)
         # print(Exval)
         # print(Eyval)
@@ -580,14 +584,72 @@ def plot_ens_E_HOCO_E_H(xls_name, sheet_selectivity, fig_dir):
         # ax=fig.gca()
         ax.add_patch(ellip)
         ax.text(np.asarray(Exval).mean(), np.asarray(Eyval).mean(), i,color='black', fontsize=size1)
-        plt.xlabel('$\Delta$E$_{*H}$  [eV]',fontsize=size2)
-        plt.ylabel('$\Delta$E$_{*HOCO}$  [eV]',fontsize=size2)
+        plt.xlabel('$\Delta${}'.format(x),fontsize=size2)
+        plt.ylabel('$\Delta${}'.format(y),fontsize=size2)
         plt.xlim([-0.75,1.25])
         plt.xticks(np.arange(-0.75,1.25, step=0.25))
         plt.ylim([-0.75,1.25])
         plt.plot([-1,1.5],[-1,1.5],'k--',lw=2)
-        # plt.locator_params(axis='x',nbins=5);
         plt.grid(True)
+        
+def plot_ens_scaling_relation(x, y, xls_name, sheet_selectivity, fig_dir):
+    """Plot ensemble selectivity of CO2RR and HER"""
+    df = pd_read_excel(filename=xls_name, sheet=sheet_selectivity)
+    fig = plt.figure(figsize=(7,7))
+    
+    nums_row = len(df.index)
+    NUM_COLORS = nums_row # 12
+    cm = plt.get_cmap(plt.cm.jet)
+    cs = [cm(1.*i/NUM_COLORS) for i in range(NUM_COLORS)]
+    mpl.rcParams['axes.prop_cycle'] = cycler(color=cs)
+    # from matplotlib.axes._axes import _log as matplotlib_axes_logger
+    formulas_set = df.index.unique()
+    colors = {}
+    hexs = []
+    for i, formu in enumerate(formulas_set):
+        hex_temp = mpl.colors.to_hex(cs[i])
+        colors[formu] = hex_temp
+        hexs.append(hex_temp)
+        # colors[formu] = cs[i]
+    tuples = {'formulas': formulas_set,
+              'colors': hexs,
+              }
+    df_color = pd.DataFrame(tuples) # color list
+    
+    size1=14; size2=14; fig = plt.figure(figsize=(7,7));
+    plt.xticks(fontsize = size2); plt.yticks(fontsize = size2); ax=fig.gca()
+    
+    plt.rcParams['grid.linewidth'] = 0.5
+    for i,row in df.iterrows():
+        # x = 'E(*HOCO)'
+        # y = 'E(*H)'
+        # x = 'E(*CO)'
+        # y = 'E(*HOCO)'
+        Exval = row[x+'_ens']
+        Eyval = row[y+'_ens']
+        Exval = str_to_array(Exval)+row[x]
+        Eyval = str_to_array(Eyval)+row[y]
+        # plot_energies(Exval)
+        # print(Exval)
+        # print(Eyval)
+        # print(Exval.mean(), Exval.std(), row['E(*H)'])
+        print(Eyval.mean(), Eyval.std(), row['E(*HOCO)'])
+        color = df_color[df_color['formulas']==i].colors.values[0]
+        cov1, pos1=plot_point_cov(np.transpose([Exval,Eyval]))
+        hej2=cov_ellipse(cov1, nsig=1)
+        ellip=Ellipse(xy=pos1, width=hej2[0], height=hej2[1], angle=hej2[2], color=color, alpha=0.2)
+        plt.errorbar(np.asarray(Exval).mean(), np.asarray(Eyval).mean(), np.asarray(Eyval).std(), np.asarray(Exval).std(), c=color,lw=3,fmt='o') 
+        # ax=fig.gca()
+        ax.add_patch(ellip)
+        ax.text(np.asarray(Exval).mean(), np.asarray(Eyval).mean(), i,color='black', fontsize=size1)
+        plt.xlabel('$\Delta${}'.format(x),fontsize=size2)
+        plt.ylabel('$\Delta${}'.format(y),fontsize=size2)
+        # plt.xlim([-0.75,1.25])
+        # plt.xticks(np.arange(-0.75,1.25, step=0.25))
+        # plt.ylim([-0.75,1.25])
+        # plt.plot([-1,1.5],[-1,1.5],'k--',lw=2)
+        plt.grid(True)
+    
     
 def plot_activity(xls_name, sheet_binding_energy, fig_dir):
     """Plot activity of CO2RR"""
@@ -799,7 +861,17 @@ if __name__ == '__main__':
         plot_line_H_distribution(save=False)
         
     if True:    
-        plot_ens_E_HOCO_E_H(xls_name, sheet_selectivity, fig_dir)
+        # plot_ens_E_HOCO_E_H(xls_name, sheet_selectivity, fig_dir)
+        plot_ens_scaling_relation('E(*HOCO)', 'E(*H)', xls_name, sheet_selectivity, fig_dir)
+        plot_ens_scaling_relation('E(*HOCO)', 'E(*CO)', xls_name, sheet_selectivity, fig_dir)
+        plot_ens_scaling_relation('E(*HOCO)', 'E(*OH)', xls_name, sheet_selectivity, fig_dir)
+        plot_ens_scaling_relation('E(*CO)', 'E(*OH)', xls_name, sheet_selectivity, fig_dir)
+        plot_ens_scaling_relation('E(*CO)', 'E(*H)', xls_name, sheet_selectivity, fig_dir)
+        plot_ens_scaling_relation('E(*OH)', 'E(*H)', xls_name, sheet_selectivity, fig_dir)
+        
+    # x = 'E(*HOCO)'
+    # y = 'E(*H)'
+    
     # plot_line_H_distribution(save=False)
     # db_ads, _ = get_ads_db(ads='surface')
     # plot_layers_as_strutures(db=db_ads, obj='H', removeX=False)

@@ -20,6 +20,8 @@ import matplotlib.pyplot as plt
 from pcat.pourbaix import PourbaixDiagram
 import numpy as np
 import pandas as pd
+import seaborn as sns
+from matplotlib.patches import Rectangle
 
 def concatenate_db(db_name1, db_name2, db_tot):
     """Contatenate two database into the total one"""
@@ -640,7 +642,152 @@ def plot_line_H_distribution(save=False):
         plt.show()
         if save==True:
             fig.savefig(fig_dir+'/{}.png'.format(system))
+
+def binding_energy_distribution(ads='CO'):
+    """Analysis binding energy distribution"""
+    df = pd_read_excel(xls_name, sheet_name_origin)
+    df_sub = df.loc[df['Adsorbate'] == ads]
+    # df_sub = df_sub.set_index('Origin_id')
+    BE = df_sub['BE']
+    # print(BE)
+    sns.set_context("paper"); fontsize = 14
+    sns.displot(data=BE, kde=True, facet_kws=dict(despine=False))   
+    plt.xlabel('$\Delta E({})$'.format(str('*'+ads)), fontsize=fontsize)
+    plt.ylabel('Frequency', fontsize=fontsize)
+    plt.xticks(fontsize=fontsize)
+    plt.yticks(fontsize=fontsize)
+    plt.title(f'{len(df_sub.index)} datapoints', fontsize=fontsize)
+    plt.gcf().set_size_inches(8, 6)
+    plt.show()
+
+def plot_count_nn(ads='CO'):
+    """Count how many different types of atoms neibour near adsorbate"""
+    df = pd_read_excel(xls_name, sheet_name_origin)
+    df_sub = df.loc[df['Adsorbate'] == ads]
+    num_Pd_nn = df_sub['num_Pd_nn']
+    # num_Ti_nn = df_sub[f'num_{ref_eles[1]}_nn']
+    num_H_nn = df_sub['num_H_nn']
+    BE = df_sub['BE']
+    colors = ('green', 'blue', 'orange', 'red', 'magenta'); fontsize = 14
+    alpha = 0.5; width = 0.05
+    plt.figure()
+    plt.bar(BE, num_Pd_nn, alpha=alpha, color=colors[0], width=width, label='Pd')
+    # plt.bar(BE, num_Ti_nn, alpha=alpha, color=colors[1], width=width, label='Ti')
+    plt.bar(BE, num_H_nn, alpha=alpha, color=colors[2], width=width, label='H')
+    plt.xlabel('$\Delta E({})$'.format(str('*'+ads)), fontsize=fontsize)
+    plt.ylabel('Counts', fontsize=fontsize)
+    plt.xticks(fontsize=fontsize)
+    plt.yticks(fontsize=fontsize)
+    plt.legend(fontsize=fontsize)
+    plt.title(f'{len(df_sub.index)} datapoints', fontsize=fontsize)
+    # plt.gcf().set_size_inches(8, 6)
+    ax = plt.gca()
+    ymin, ymax = ax.get_ylim()
+    if ads == 'CO':
+        bestx1 = -0.8
+        bestx2 = 0.
+        x = np.arange(bestx1, bestx2, 0.01)
+        # ax.add_patch(Rectangle((bestx1, ymax-0.2), bestx2, ymax, facecolor = 'red', fill=True, lw=0))
+        plt.fill_between(x, ymin, ymax, 
+                color='black', alpha=0.2, transform=ax.get_xaxis_transform(), zorder=-1)
+    elif ads == 'HOCO':
+        bestx1 = -0.8
+        bestx2 = 0.4
+        x = np.arange(bestx1, bestx2, 0.01)
+        # ax.add_patch(Rectangle((bestx1, ymax-0.2), bestx2, ymax, facecolor = 'red', fill=True, lw=0))
+        plt.fill_between(x, ymin, ymax, 
+                color='black', alpha=0.2, transform=ax.get_xaxis_transform(), zorder=-1)
+    plt.show()
     
+def plot_count_nn_stack(ads='CO'):
+    """Count how many different types of atoms neibour near adsorbate"""
+    df = pd_read_excel(xls_name, sheet_name_origin)
+    df_sub = df.loc[df['Adsorbate'] == ads]
+    num_Pd_nn = df_sub['num_Pd_nn']
+    num_Ti_nn = df_sub[f'num_{ref_eles[1]}_nn']
+    num_H_nn = df_sub['num_H_nn']
+    BE = df_sub['BE']
+    colors = ('green', 'blue', 'orange', 'red', 'magenta'); fontsize = 14
+    alpha = 1; width = 0.01
+    plt.bar(BE, num_Pd_nn, alpha=alpha, color=colors[0], width=width, label='Pd')
+    # plt.bar(BE, num_Ti_nn, bottom=num_Pd_nn, alpha=alpha, color=colors[1], width=width, label='Ti')
+    plt.bar(BE, num_H_nn, bottom=num_Pd_nn+num_Ti_nn, alpha=alpha, color=colors[2], width=width, label='H')
+    plt.xlabel('$\Delta E({})$'.format(str('*'+ads)), fontsize=fontsize)
+    plt.ylabel('Counts', fontsize=fontsize)
+    plt.xticks(fontsize=fontsize)
+    plt.yticks(fontsize=fontsize)
+    plt.legend(fontsize=fontsize)
+    plt.title(f'{len(df_sub.index)} datapoints', fontsize=fontsize)
+    plt.gcf().set_size_inches(8, 6)
+    ax = plt.gca()
+    ymin, ymax = ax.get_ylim()
+    if ads == 'CO':
+        bestx1 = -0.8
+        bestx2 = 0.
+        x = np.arange(bestx1, bestx2, 0.01)
+        plt.fill_between(x, ymin, ymax, 
+                color='black', alpha=0.2, transform=ax.get_xaxis_transform(), zorder=-1)
+    elif ads == 'HOCO':
+        bestx1 = -0.8
+        bestx2 = 0.4
+        x = np.arange(bestx1, bestx2, 0.01)
+        plt.fill_between(x, ymin, ymax, 
+                color='black', alpha=0.2, transform=ax.get_xaxis_transform(), zorder=-1)
+    plt.show()
+
+def plot_count_nn_hist(ads='CO'):
+    """Plot histogram of statistics of atoms"""
+    df = pd_read_excel(xls_name, sheet_name_origin)
+    df_sub = df.loc[df['Adsorbate'] == ads]
+    hist_Pd_nn = []
+    hist_Ti_nn = []
+    hist_H_nn = []
+    plt.figure()
+    fig, ax = plt.subplots()
+    for i, row in df_sub.iterrows():
+        num_Pd_nn = row['num_Pd_nn']
+        num_Ti_nn = row[f'num_{ref_eles[1]}_nn']
+        num_H_nn = row['num_H_nn']
+        BE = row['BE']
+        if int(num_Pd_nn) != 0:
+            for _ in range(int(num_Pd_nn)):
+                hist_Pd_nn.append(BE)
+        if int(num_Ti_nn) != 0:
+            for _ in range(int(num_Ti_nn)):
+                hist_Ti_nn.append(BE)
+        if int(num_H_nn) != 0:
+            for _ in range(int(num_H_nn)):
+                hist_H_nn.append(BE)
+    start, stop, spacing = -2, 2.5, 0.075
+    bins = np.arange(start, stop, spacing)
+    colors = ('green', 'blue', 'orange', 'red', 'magenta'); fontsize = 14
+    zorders=[1, 2, 3]
+    plt.hist(hist_Pd_nn, bins, facecolor=colors[0], ec='black', alpha=0.75, histtype='stepfilled', zorder=zorders[0], label='Pd')
+    # plt.hist(hist_Ti_nn, bins, facecolor=colors[1], ec='black', alpha=0.75, histtype='stepfilled', zorder=zorders[1], label='Ti')
+    plt.hist(hist_H_nn, bins, facecolor=colors[2], ec='black', alpha=0.75, histtype='stepfilled', zorder=zorders[2], label='H')
+    plt.hist(hist_Pd_nn + hist_Ti_nn + hist_H_nn, bins, facecolor='grey', ec='black', alpha=0.75, histtype='stepfilled', zorder=0, label='total')
+    plt.xlim([start, stop])
+    plt.xlabel('$\Delta E({})$'.format(str('*'+ads)), fontsize=fontsize)
+    plt.ylabel('Frequency', fontsize=fontsize)
+    plt.xticks(fontsize=fontsize)
+    plt.yticks(fontsize=fontsize)
+    plt.title(f'{len(df_sub.index)} datapoints', fontsize=fontsize)
+    plt.legend()
+    plt.gcf().set_size_inches(8, 6)
+    ymin, ymax = ax.get_ylim()
+    if ads == 'CO':
+        bestx1 = -0.8
+        bestx2 = 0.
+        x = np.arange(bestx1, bestx2, 0.01)
+        plt.fill_between(x, ymin, ymax, 
+                color='black', alpha=0.2, transform=ax.get_xaxis_transform(), zorder=-1)
+    elif ads == 'HOCO':
+        bestx1 = -0.8
+        bestx2 = 0.4
+        x = np.arange(bestx1, bestx2, 0.01)
+        plt.fill_between(x, ymin, ymax, 
+                color='black', alpha=0.2, transform=ax.get_xaxis_transform(), zorder=-1)
+    plt.show()
 
 if __name__ == '__main__':
     if False:
@@ -652,6 +799,7 @@ if __name__ == '__main__':
     # system_name = 'collect_ce_init_PdHx_r4'
     # system_name = 'collect_ce_init_PdHx_r7'
     
+    # system_name = 'collect_vasp_candidates_PdHx'
     # system_name = 'collect_vasp_candidates_PdHx_r2_sort'
     # system_name = 'collect_vasp_candidates_PdHx_r3'
     # system_name = 'collect_vasp_candidates_PdHx_r4'
@@ -685,11 +833,13 @@ if __name__ == '__main__':
     sheet_name_dGs = 'dGs'
     
     db = connect(db_name)
-    if True: # database to excel
+    if False: # database to excel
         # db = del_partial_db(db)
-        db2xls(system_name, xls_name, db, ref_eles, sheet_name_origin, sheet_name_stable, sheet_free_energy, sheet_binding_energy, sheet_cons, sheet_name_allFE, sheet_selectivity, sheet_name_dGs)
+        db2xls(system_name, xls_name, db, ref_eles, sheet_name_origin, sheet_name_stable, 
+               sheet_free_energy, sheet_binding_energy, sheet_cons, sheet_name_allFE, sheet_selectivity, sheet_name_dGs,
+               cutoff=2.8)
     
-    if True: # plot
+    if False: # plot
         plot_free_enegy(xls_name, sheet_free_energy, fig_dir)
         plot_scaling_relations(xls_name, sheet_binding_energy, fig_dir)
         plot_selectivity(xls_name, sheet_selectivity, fig_dir)
@@ -701,6 +851,20 @@ if __name__ == '__main__':
         plot_bar_H_distribution(save=False)
         plot_line_H_distribution(save=False)
     
+    if False:
+        binding_energy_distribution(ads='CO')
+        plot_count_nn(ads='CO')
+        plot_count_nn_stack(ads='CO')
+        plot_count_nn_hist(ads='CO')
+    
+    if True:
+        for adsorbate in ['HOCO', 'CO', 'H', 'OH']:
+        # for adsorbate in ['OH']:
+            binding_energy_distribution(ads=adsorbate)
+            plot_count_nn(ads=adsorbate)
+            plot_count_nn_stack(ads=adsorbate)
+            plot_count_nn_hist(ads=adsorbate)
+        
     # plot_line_H_distribution(save=False)
     # db_ads, _ = get_ads_db(ads='surface')
     # plot_layers_as_strutures(db=db_ads, obj='H', removeX=False)
