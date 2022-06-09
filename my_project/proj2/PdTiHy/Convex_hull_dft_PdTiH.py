@@ -716,5 +716,5 @@ if __name__ == '__main__':
     
     # plot_cons_as_layers_with_ads(obj='H')
     
-    kwargs_write = {'fps':1.0, 'quantizer':'nq'}
-    imageio.mimsave('./convex_hull.gif', [plot_animate(i) for i in [1, 2, 3, 4, 5, 6, 7, 8, ]], fps=1)
+    # kwargs_write = {'fps':1.0, 'quantizer':'nq'}
+    # imageio.mimsave('./convex_hull_PdTiH.gif', [plot_animate(i) for i in [1, 2, 3, 4, 5, 6, 7, 8, ]], fps=1)
