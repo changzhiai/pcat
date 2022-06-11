@@ -578,7 +578,7 @@ def plot_count_nn_hist(ads='CO'):
         if int(num_H_nn) != 0:
             for _ in range(int(num_H_nn)):
                 hist_H_nn.append(BE)
-    start, stop, spacing = -3.5, 0.5, 0.075
+    start, stop, spacing = -3.5, 2, 0.075
     bins = np.arange(start, stop, spacing)
     colors = ('green', 'blue', 'orange', 'red', 'magenta'); fontsize = 14
     zorders=[3, 2, 1]
@@ -586,7 +586,7 @@ def plot_count_nn_hist(ads='CO'):
     plt.hist(hist_Ti_nn, bins, facecolor=colors[1], ec='black', alpha=0.75, histtype='stepfilled', zorder=zorders[1], label='Ti')
     plt.hist(hist_H_nn, bins, facecolor=colors[2], ec='black', alpha=0.75, histtype='stepfilled', zorder=zorders[2], label='H')
     plt.hist(hist_Pd_nn + hist_Ti_nn + hist_H_nn, bins, facecolor='grey', ec='black', alpha=0.75, histtype='stepfilled', zorder=0, label='total')
-    plt.xlim([-2.0, 0])
+    plt.xlim([start, stop])
     plt.xlabel('$\Delta E({})$'.format(str('*'+ads)), fontsize=fontsize)
     plt.ylabel('Frequency', fontsize=fontsize)
     plt.xticks(fontsize=fontsize)
@@ -594,6 +594,20 @@ def plot_count_nn_hist(ads='CO'):
     plt.title(f'{len(df_sub.index)} datapoints', fontsize=fontsize)
     plt.legend()
     plt.gcf().set_size_inches(8, 6)
+    ax = plt.gca()
+    ymin, ymax = ax.get_ylim()
+    if ads == 'CO':
+        bestx1 = -0.8
+        bestx2 = 0.
+        x = np.arange(bestx1, bestx2, 0.01)
+        plt.fill_between(x, ymin, ymax, 
+                color='black', alpha=0.2, transform=ax.get_xaxis_transform(), zorder=-1)
+    elif ads == 'HOCO':
+        bestx1 = -0.8
+        bestx2 = 0.4
+        x = np.arange(bestx1, bestx2, 0.01)
+        plt.fill_between(x, ymin, ymax, 
+                color='black', alpha=0.2, transform=ax.get_xaxis_transform(), zorder=-1)
     plt.show()
 
 
@@ -650,7 +664,7 @@ if __name__ == '__main__':
         db2xls(system_name, xls_name, db, ref_eles, 
                sheet_name_origin, sheet_name_stable, sheet_free_energy, sheet_binding_energy, sheet_cons,
                sheet_name_allFE, sheet_selectivity, sheet_name_dGs,
-               cutoff=2.5)
+               cutoff=2.8)
     
     if False: # plot
         plot_free_enegy(xls_name, sheet_free_energy, fig_dir)
@@ -674,7 +688,6 @@ if __name__ == '__main__':
     if True:
         for ads in ['HOCO', 'CO', 'OH', 'H']:
             plot_count_nn_hist(ads=ads)
-            # plot_count_nn_hist(ads='CO')
             
     # add_generation_to_db(db)
     # plot_BE_as_Hcons(xls_name, sheet_cons)
