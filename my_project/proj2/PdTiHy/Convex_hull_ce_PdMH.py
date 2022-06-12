@@ -873,8 +873,8 @@ if __name__ == '__main__':
     db_name='results_last.db'
     data_name='data_last_dict.pkl'
     data_name_rev='data_last_dict_reverse.pkl'
-    # metal_obj = 'Ti'
-    metal_obj = 'Sc'
+    metal_obj = 'Ti'
+    # metal_obj = 'Sc'
     # metal_obj = 'Ni'
     
     # Ti_energy_ref_eles={'Pd':-1.951, metal_obj:-5.858, 'H': -7.158*0.5}
