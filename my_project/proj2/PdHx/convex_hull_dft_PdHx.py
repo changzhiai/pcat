@@ -679,7 +679,7 @@ if __name__ == '__main__':
         # system = 'PdHx_train_r1' # round 1, ce and dft
         # system = 'PdHx_train_r5' # round 5, ce and dft
         # system = 'PdHx_train_r9_insert_p20_50'
-        
+        # system = 'PdHx_train_r9plussymmetry'
     
         fig_dir = './figures/'
         data_dir = './data'
@@ -691,11 +691,11 @@ if __name__ == '__main__':
         # get_db_and_excel()
         if False:
             db2xls_dft(db_name)
-        plot_convex_hull_PdHx_dft(db_name, cand=True)
-        # plot_chem_pot_H_PdHx_discrete()
-        
-        # get_PdHx_lowest_dft(db_name)
+        if False:
+            plot_convex_hull_PdHx_dft(db_name, cand=False)
+            # plot_chem_pot_H_PdHx_discrete()
+            # get_PdHx_lowest_dft(db_name)
 
 
     # kwargs_write = {'fps':1.0, 'quantizer':'nq'}
-    # imageio.mimsave('./convex_hull.gif', [plot_animate(i) for i in [1, 2, 3, 4, 5, 6, 7, 8, 9]], fps=1)
+    # imageio.mimsave('./convex_hull_PdHx.gif', [plot_animate(i) for i in [1, 2, 3, 4, 5, 6, 7, 8, 9]], fps=1)
