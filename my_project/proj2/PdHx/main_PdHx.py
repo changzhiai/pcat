@@ -48,6 +48,15 @@ def concatenate_all_db(db_tot: str, db_names: list ):
             db = connect(db_name)
             for row in db.select():
                 db_tot.write(row)
+                
+def remove_specific_rows(db_name, condition):
+    """Remove some rows according to specific condition"""
+    db = connect(db_name)
+    del_rows = []
+    for row in db.select(condition):
+        del_rows.append(row)
+    db.delete(del_rows)
+    return db
 
 def views(formula, all_sites=False):
     """View specific structures
@@ -207,7 +216,8 @@ def plot_cons_as_layers(db='', obj='H', removeX=False, minusH=True):
         plt.ylim(0, 1.18)
         if obj == 'H':
             title = formula + ', H:' + str(round(con_tot, 3))
-            plt.text(0.05, 0.92, title, fontsize=8, horizontalalignment='left', verticalalignment='center', transform=ax.transAxes, color='black', fontweight='bold')
+            plt.text(0.05, 0.92, title, fontsize=8, horizontalalignment='left', 
+                     verticalalignment='center', transform=ax.transAxes, color='black', fontweight='bold')
             # plt.title(formula + ', H:' + str(round(con_tot, 3)), fontsize=8)
             if m2==0:
                 plt.ylabel('Concentration of H', fontsize=10)
@@ -270,10 +280,10 @@ def plot_layers_as_strutures(db='', obj='H', removeX=False, minusH=False):
     if False:
         with pd.ExcelWriter(xls_name, engine='openpyxl', mode='a', if_sheet_exists='replace') as writer:
             df.to_excel(writer, sheet_name='layers_as_structures', index=False, float_format='%.8f')
-    plt.plot(df['con_tots'], df['ly1s'], '-o', label='1st layer') # bottom layer
-    plt.plot(df['con_tots'], df['ly2s'], '-o', label='2nd layer')
-    plt.plot(df['con_tots'], df['ly3s'], '-o', label='3rd layer')
-    plt.plot(df['con_tots'], df['ly4s'], '-o', label='4th layer')
+    plt.plot(df['con_tots'], df['ly4s'], '-o', label='1st layer (top)') # top layer
+    plt.plot(df['con_tots'], df['ly3s'], '-o', label='2nd layer')
+    plt.plot(df['con_tots'], df['ly2s'], '-o', label='3rd layer')
+    plt.plot(df['con_tots'], df['ly1s'], '-o', label='4th layer') # bottom layer
     plt.xlabel('Concentration of H', fontsize=10)
     plt.ylabel('H concentration of each layer', fontsize=10)
     plt.legend()
@@ -519,7 +529,8 @@ def plot_activity(xls_name, sheet_binding_energy, fig_dir):
 def del_partial_db(db):
     """Delet uncomplete database"""
     # db = connect(db_name)
-    del_ids = [142, 141, 140, 139, 138]
+    # del_ids = [142, 141, 140, 139, 138]
+    del_ids = [16]
     # del_ids = np.arange(311)
     del_rows = []
     for row in db.select():
@@ -790,10 +801,10 @@ def plot_count_nn_hist(ads='CO'):
     plt.show()
 
 if __name__ == '__main__':
-    if False:
-        db_tot = '../data/collect_vasp_PdHy_and_insert.db'
-        concatenate_db('../data/collect_vasp_PdHy_v3.db', '../data/collect_vasp_insert_PdHy.db', db_tot)
-    
+    # if False:
+    #     db_tot = '../data/collect_vasp_PdHy_and_insert.db'
+    #     concatenate_db('../data/collect_vasp_PdHy_v3.db', '../data/collect_vasp_insert_PdHy.db', db_tot)
+        
     # system_name = 'collect_ce_init_PdHx_r2_sort'
     # system_name = 'collect_ce_init_PdHx_r3'
     # system_name = 'collect_ce_init_PdHx_r4'
@@ -804,8 +815,8 @@ if __name__ == '__main__':
     # system_name = 'collect_vasp_candidates_PdHx_r3'
     # system_name = 'collect_vasp_candidates_PdHx_r4'
     # system_name = 'collect_vasp_candidates_PdHx_r7'
-    system_name = 'collect_vasp_candidates_PdHx_r8'
-    
+    # system_name = 'collect_vasp_candidates_PdHx_r8'
+    system_name = 'collect_vasp_extra_H'
     
     # system_name = 'candidates_PdHx_sort' # candidates surface of CE
     # system_name = 'surface_vasp' # vasp 
@@ -839,17 +850,18 @@ if __name__ == '__main__':
                sheet_free_energy, sheet_binding_energy, sheet_cons, sheet_name_allFE, sheet_selectivity, sheet_name_dGs,
                cutoff=2.8)
     
-    if False: # plot
+    if True: # plot
         plot_free_enegy(xls_name, sheet_free_energy, fig_dir)
         plot_scaling_relations(xls_name, sheet_binding_energy, fig_dir)
         plot_selectivity(xls_name, sheet_selectivity, fig_dir)
         plot_activity(xls_name, sheet_binding_energy, fig_dir)
     
     if False:
-        plot_BE_as_Hcons(xls_name, sheet_cons)
-        plot_cons_as_layers_with_ads(obj='H')
-        plot_bar_H_distribution(save=False)
+        # plot_BE_as_Hcons(xls_name, sheet_cons)
+        # plot_cons_as_layers_with_ads(obj='H')
+        # plot_bar_H_distribution(save=False)
         plot_line_H_distribution(save=False)
+        # plot_layers_as_strutures(db=db, obj='H', removeX=False) # dft_PdHx_lowest
     
     if False:
         binding_energy_distribution(ads='CO')
@@ -868,17 +880,18 @@ if __name__ == '__main__':
     # plot_line_H_distribution(save=False)
     # db_ads, _ = get_ads_db(ads='surface')
     # plot_layers_as_strutures(db=db_ads, obj='H', removeX=False)
-    # plot_layers_as_strutures(db=db, obj='H', removeX=False)
+    # plot_layers_as_strutures(db=db, obj='H', removeX=False) # dft_PdHx_lowest
     
     # plot_free_enegy(xls_name, sheet_free_energy, fig_dir)
     # plot_scaling_relations(xls_name, sheet_binding_energy, fig_dir)
     # plot_activity(xls_name, sheet_binding_energy, fig_dir)
-    # views(formula='Pd51Ti13H59', all_sites=True)
-    # view(db_name)
     # plot_BE_as_Hcons(xls_name, sheet_cons)
     # plot_pourbaix_diagram(xls_name, sheet_name_dGs)
     # plot_chemical_potential(xls_name, sheet_name_origin)
     
+    
+    # views(formula='Pd51Ti13H59', all_sites=True)
+    # view(db_name)
     # view_ads('H', all_sites=False, save=True)
     # view_db(db_name)
     # view_ads('surface', all_sites=True)
