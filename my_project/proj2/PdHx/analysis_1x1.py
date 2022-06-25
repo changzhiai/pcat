@@ -8,8 +8,9 @@ Created on Wed Jun 22 10:15:03 2022
 from ase.db import connect
 import matplotlib.pyplot as plt
 import numpy as np
-
+# 
 system_name = 'collect_vasp_1x1_PdHx'
+# system_name = 'collect_vasp_1x1_PdHx_fix2b'
 db_name = f'./data/{system_name}.db'
 xls_name = f'./data/{system_name}.xlsx'
 fig_dir = './figures'
@@ -21,7 +22,7 @@ for row in db.select():
     energies.append(energy)
 
 fig = plt.figure(dpi=300)
-plt.plot(np.arange(1, 10, 1), energies[1:], '-o')
+plt.plot(np.arange(1, len(energies), 1), energies[1:], '-o')
 plt.xticks(np.arange(1, 10, 1))
 plt.xlabel('Remove ith layer from bottom to top')
 plt.ylabel('DFT energy (eV)')
