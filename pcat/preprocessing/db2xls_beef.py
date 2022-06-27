@@ -8,61 +8,14 @@ Created on Sat Jan 15 17:26:19 2022
 import pandas as pd
 import pcat.utils.constants as const
 from pcat.convex_hull import con_ele
-from ase import Atoms
-from ase.visualize import view
-
-def count_atoms(atoms, ref_eles, ads='CO', cutoff=4.5,):
-    """Count how many different atoms in structures
-    ref_eles: e.g. ['Pd', 'Ti'], and another one is 'H'
-    
-    Output: 
-        counts: {'Pd': 1, 'Ti': 9, 'H': 15}
-    """
-    if ads == 'HOCO':
-        ele_core='C'
-    elif ads == 'CO':
-        ele_core='C'
-    elif ads == 'H':
-        ele_core='H' # need to update
-    elif ads == 'OH':
-        ele_core='O'
-    atom_core_index = [atom.index for atom in atoms if atom.symbol==ele_core]
-    if ads == 'H':
-        atom_core_index = [max(atom_core_index)]
-    num_ele_core = len(atom_core_index)
-    assert num_ele_core == 1 # exit if the number of core atom is not equal to 1
-    
-    atoms_new = Atoms()
-    for atom in atoms:
-        distance = atoms.get_distance(atom_core_index, atom.index)
-        if distance <= cutoff:
-            atoms_new.append(atom)
-            # print(distance)
-    # print(atoms_new)
-    # view(atoms_new)
-    counts = {}
-    eles = ref_eles + ['H']
-    for ele in eles:
-        try:
-            atom_ele = atoms_new[[atom.index for atom in atoms_new if atom.symbol==ele]]
-            counts[ele] = len(atom_ele)
-        except:
-            counts[ele] = 0
-    if ads == 'HOCO':
-        counts['H'] -= 1
-    # elif ads == 'CO':
-    #     counts['C'] -= 1
-    #     counts['O'] -= 1
-    elif ads == 'H':
-        counts['H'] -= 1
-    elif ads == 'OH':
-        counts['H'] -= 1
-    return counts
-
+import numpy as np
+import sys
+np.set_printoptions(threshold=sys.maxsize)
 
 def db2xls(system_name, 
            xls_name, 
-           db, 
+           db,
+           beef_molecule,
            ref_eles, # such as, ref_eles=['Pd', 'Ti']
            sheet_name_origin, 
            sheet_name_stable, 
@@ -71,9 +24,7 @@ def db2xls(system_name,
            sheet_cons,
            sheet_name_allFE, 
            sheet_selectivity,
-           sheet_name_dGs,
-           cutoff = 4.5,
-           **kwargs):
+           sheet_name_dGs):
     """
     convert database into excel
     
@@ -106,6 +57,11 @@ def db2xls(system_name,
     E_H2Og = const.E_H2Og
     E_COg = const.E_COg
     
+    E_H2g_ens = (beef_molecule.get(formula='H2')).data.contributions
+    E_CO2g_ens = (beef_molecule.get(formula='CO2')).data.contributions
+    E_H2Og_ens = (beef_molecule.get(formula='H2O')).data.contributions
+    E_COg_ens = (beef_molecule.get(formula='CO')).data.contributions
+    
     G_H2g = const.G_H2g
     G_CO2g = const.G_CO2g
     G_H2Og = const.G_H2Og
@@ -125,19 +81,15 @@ def db2xls(system_name,
     ori_ids = []
     cons_Pd = []
     cons_H = []
-    num_Pd_nn = []
-    num_M_nn = []
-    num_H_nn = []
-    
-    # cutoff = 4.5
+    ensEs = []
     for row in db.select():
+        ensE = row.data.contributions
         uniqueid = row.uniqueid
         items = uniqueid.split('_')
         id = items[0]
-        # formula = items[1]
-        # i_X = formula.find('X')
-        # formula = formula[:i_X] + formula[i_X+4:] # remove Xxxx
-        formula = row.formula
+        formula = items[1]
+        i_X = formula.find('X')
+        formula = formula[:i_X] + formula[i_X+4:] # remove Xxxx
         site = items[2]
         adsor = items[3]
         ori_id = items[4]
@@ -148,17 +100,7 @@ def db2xls(system_name,
         else:
             con_Pd = None
             con_H = None
-            
-        if adsor != 'surface':
-            atoms = row.toatoms()
-            counts = count_atoms(atoms, ref_eles, ads=adsor, cutoff=cutoff,)
-            print(counts)
-        else:
-            counts = {}
-            counts[ref_eles[0]] = 0
-            counts[ref_eles[1]] = 0
-            counts['H'] = 0
-            
+        
         ids.append(id)
         formulas.append(formula)
         sites.append(site)
@@ -167,12 +109,8 @@ def db2xls(system_name,
         ori_ids.append(ori_id)
         cons_Pd.append(con_Pd)
         cons_H.append(con_H)
-        num_Pd_nn.append(counts['Pd'])
-        num_M_nn.append(counts[ref_eles[1]])
-        num_H_nn.append(counts['H'])
+        ensEs.append(ensE)
     
-    print(ref_eles + ['H'])
-    print('Cutoff:', cutoff)
     tuples = {'Id': ids,
               'Origin_id': ori_ids,
               'Surface': formulas,
@@ -181,27 +119,22 @@ def db2xls(system_name,
               'Site': sites,
               'Adsorbate': adsors,
               'Energy': energies,
-              
-              'num_Pd_nn': num_Pd_nn,
-              f'num_{ref_eles[1]}_nn': num_M_nn,
-              'num_H_nn': num_H_nn,
+              'Ens_e': ensEs,
              }
     df = pd.DataFrame(tuples)
     
     """
     Save the original data and sorted by adsorbate
     """
-    # uniqueids = df['Origin_id'].astype(int).unique()
-    uniqueids = df['Origin_id'].unique()
+    uniqueids = df['Origin_id'].astype(int).unique()
     df_sort  = pd.DataFrame()
     custom_dict = {'surface':0, 'HOCO': 1, 'CO': 2, 'H': 3, 'OH':4} 
     for id in uniqueids:
-        # df_sub = df.loc[df['Origin_id'].astype(int) == id]
-        df_sub = df.loc[df['Origin_id'] == id]
+        df_sub = df.loc[df['Origin_id'].astype(int) == id]
         df_sub = df_sub.sort_values(by=['Adsorbate'], key=lambda x: x.map(custom_dict))
         
         Surface = df_sub.loc[df_sub['Adsorbate'] == 'surface']
-        E_Surface = Surface.Energy.values[0]
+        E_Surface = Surface.Ens_e.values[0]
         
         con_Pd = Surface.Cons_Pd.values[0]
         con_H = Surface.Cons_H.values[0]
@@ -214,19 +147,19 @@ def db2xls(system_name,
             if ads == 'surface':
                 Binding_energy.append(0)
             elif ads == 'HOCO':
-                E_HOCO = row.Energy
+                E_HOCO = row.Ens_e
                 Eb_HOCO = E_HOCO - E_Surface - E_CO2g - 0.5 * E_H2g
                 Binding_energy.append(Eb_HOCO)
             elif ads == 'CO':
-                E_CO = row.Energy
+                E_CO = row.Ens_e
                 Eb_CO = E_CO - E_Surface - E_COg
                 Binding_energy.append(Eb_CO)
             elif ads == 'H':
-                E_H = row.Energy
+                E_H = row.Ens_e
                 Eb_H = E_H - E_Surface - 0.5 * E_H2g
                 Binding_energy.append(Eb_H)
             elif ads == 'OH':
-                E_OH = row.Energy
+                E_OH = row.Ens_e
                 Eb_OH = E_OH - E_Surface - E_H2Og + 0.5 * E_H2g
                 Binding_energy.append(Eb_OH)
                 
@@ -243,7 +176,12 @@ def db2xls(system_name,
     Eb_COs = []
     Eb_Hs = []
     Eb_OHs = []
+    Eb_HOCOs_ens = []
+    Eb_COs_ens = []
+    Eb_Hs_ens = []
+    Eb_OHs_ens = []
     selectivities = []
+    selectivities_ens = []
     G_HOCOs = []
     G_COs = []
     G_Hs = []
@@ -259,22 +197,26 @@ def db2xls(system_name,
     df_new  = pd.DataFrame()
     for id in uniqueids:
         # print(id)
-        # df_sub = df_sort.loc[df_sort['Origin_id'].astype(int) == id]
-        df_sub = df_sort.loc[df_sort['Origin_id'] == id]
+        df_sub = df_sort.loc[df_sort['Origin_id'].astype(int) == id]
         del df_sub['BE']
         Surface = df_sub.loc[df_sub['Adsorbate'] == 'surface']
         E_Surface = Surface.Energy.values[0]
+        E_Surface_ens = Surface.Ens_e.values[0]
         # print(df_sub)
         HOCOs = df_sub.loc[df_sub['Adsorbate'] == 'HOCO']
         HOCO = HOCOs[HOCOs.Energy == HOCOs.Energy.min()].head(1)
         E_HOCO = HOCO.Energy.values[0]
+        E_HOCO_ens = HOCO.Ens_e.values[0]
         Eb_HOCO = E_HOCO - E_Surface - E_CO2g - 0.5 * E_H2g
+        Eb_HOCO_ens = E_HOCO_ens - E_Surface_ens - E_CO2g_ens - 0.5 * E_H2g_ens
         G_HOCO = E_HOCO + Gcor_HOCO - E_Surface - G_CO2g - 0.5 * G_H2g
         
         COs = df_sub.loc[df_sub['Adsorbate'] == 'CO']
         CO = COs[COs.Energy == COs.Energy.min()].head(1)
         E_CO = CO.Energy.values[0]
+        E_CO_ens = CO.Ens_e.values[0]
         Eb_CO = E_CO - E_Surface - E_COg
+        Eb_CO_ens = E_CO_ens - E_Surface_ens - E_COg_ens
         G_CO = E_CO + Gcor_CO + G_H2Og - E_Surface - G_H2g - G_CO2g
         
         # print(G_CO-Eb_CO)
@@ -284,19 +226,27 @@ def db2xls(system_name,
         Hs = df_sub.loc[df_sub['Adsorbate'] == 'H']
         H = Hs[Hs.Energy == Hs.Energy.min()].head(1)
         E_H = H.Energy.values[0]
+        E_H_ens = H.Ens_e.values[0]
         Eb_H = E_H - E_Surface - 0.5 * E_H2g
+        Eb_H_ens = E_H_ens - E_Surface_ens - 0.5 * E_H2g_ens
         G_H = E_H + Gcor_H - E_Surface - 0.5 * G_H2g
         
         OHs = df_sub.loc[df_sub['Adsorbate'] == 'OH']
         OH = OHs[OHs.Energy == OHs.Energy.min()].head(1)
         E_OH = OH.Energy.values[0]
+        E_OH_ens = OH.Ens_e.values[0]
         Eb_OH = E_OH - E_Surface - E_H2Og + 0.5 * E_H2g
+        Eb_OH_ens = E_OH_ens - E_Surface_ens - E_H2Og_ens + 0.5 * E_H2g_ens
         G_OH = E_OH + Gcor_OH - E_Surface - G_H2Og + 0.5 * G_H2g
         
         Binding_energy = [Eb_HOCO, Eb_CO, Eb_H, Eb_OH]
+        Binding_energy_ens = [Eb_HOCO_ens, Eb_CO_ens, Eb_H_ens, Eb_OH_ens]
         Free_energy = [G_HOCO, G_CO, G_H, G_OH] # free energy according to reaction equations
         df_stack = pd.concat([HOCO, CO, H, OH], axis=0)
+        # print(HOCO)
+        # print(Free_energy)
         df_stack['BE'] = Binding_energy
+        df_stack['BE_ens'] = Binding_energy_ens
         df_stack['FE'] = Free_energy
         df_new = df_new.append(df_stack, ignore_index=True)
         
@@ -311,12 +261,18 @@ def db2xls(system_name,
         Eb_Hs.append(Eb_H)
         Eb_OHs.append(Eb_OH)
         
+        Eb_HOCOs_ens.append(Eb_HOCO_ens)
+        Eb_COs_ens.append(Eb_CO_ens)
+        Eb_Hs_ens.append(Eb_H_ens)
+        Eb_OHs_ens.append(Eb_OH_ens)
+        
         G_HOCOs.append(G_HOCO)
         G_COs.append(G_CO)
         G_Hs.append(G_H)
         G_OHs.append(G_OH)
         
         selectivities.append(G_HOCO - G_H)
+        selectivities_ens.append(Eb_HOCO_ens - Eb_H_ens)
         
         cons_Pd.append(Surface.Cons_Pd.values[0])
         cons_H.append(Surface.Cons_H.values[0])
@@ -361,6 +317,10 @@ def db2xls(system_name,
               'E(*CO)': Eb_COs,
               'E(*H)': Eb_Hs,
               'E(*OH)': Eb_OHs,
+              'E(*HOCO)_ens': Eb_HOCOs_ens,
+              'E(*CO)_ens': Eb_COs_ens,
+              'E(*H)_ens': Eb_Hs_ens,
+              'E(*OH)_ens': Eb_OHs_ens,
               }
     df_BE = pd.DataFrame(tuples)
     with pd.ExcelWriter(xls_name, engine='openpyxl', mode='a') as writer:
@@ -377,6 +337,10 @@ def db2xls(system_name,
               'E(*CO)': Eb_COs,
               'E(*H)': Eb_Hs,
               'E(*OH)': Eb_OHs,
+              'E(*HOCO)_ens': Eb_HOCOs_ens,
+              'E(*CO)_ens': Eb_COs_ens,
+              'E(*H)_ens': Eb_Hs_ens,
+              'E(*OH)_ens': Eb_OHs_ens,
               }
     df_cons = pd.DataFrame(tuples)
     with pd.ExcelWriter(xls_name, engine='openpyxl', mode='a') as writer:
@@ -402,6 +366,15 @@ def db2xls(system_name,
     """
     tuples = {'Surface': surfaces,
               'G_HOCO-G_H': selectivities,
+              'E_HOCO-E_H': selectivities_ens,
+              'E(*HOCO)_ens': Eb_HOCOs_ens,
+              'E(*CO)_ens': Eb_COs_ens,
+              'E(*H)_ens': Eb_Hs_ens,
+              'E(*OH)_ens': Eb_OHs_ens,
+              'E(*HOCO)': Eb_HOCOs,
+              'E(*CO)': Eb_COs,
+              'E(*H)': Eb_Hs,
+              'E(*OH)': Eb_OHs,
               }
     df_select = pd.DataFrame(tuples)
     with pd.ExcelWriter(xls_name, engine='openpyxl', mode='a') as writer:
