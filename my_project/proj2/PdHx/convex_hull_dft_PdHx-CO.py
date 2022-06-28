@@ -661,8 +661,8 @@ def plot_animate(i):
 
 if __name__ == '__main__':
     
-    for i in [1, 2, 3, 4, 5, 6, 7]:
-    # for i in [7]:
+    # for i in [1, 2, 3, 4, 5, 6, 7]:
+    for i in [7]:
         system = f'PdHx_top1_CO_r{i}' # round 1, ce and dft
         # system = 'PdHx_train_r1' # round 1, ce and dft
         # system = 'PdHx_train_r5' # round 5, ce and dft
@@ -681,5 +681,5 @@ if __name__ == '__main__':
             plot_convex_hull_PdHx_dft(db_name, cand=True, round=i)
             # plot_chem_pot_H_PdHx_discrete()
         
-    kwargs_write = {'fps':1.0, 'quantizer':'nq'}
-    imageio.mimsave('./convex_hull_PdHx_CO.gif', [plot_animate(i) for i in [1, 2, 3, 4, 5, 6,]], fps=1)
+    # kwargs_write = {'fps':1.0, 'quantizer':'nq'}
+    # imageio.mimsave('./convex_hull_PdHx_CO.gif', [plot_animate(i) for i in [1, 2, 3, 4, 5, 6,]], fps=1)

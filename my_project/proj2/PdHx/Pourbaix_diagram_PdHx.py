@@ -34,7 +34,7 @@ import matplotlib.pyplot as plt
 import pandas as pd
 import matplotlib as mpl
 from cycler import cycler
-plt.rcParams.update({'mathtext.default':  'regular', 'figure.dpi': 150})
+plt.rcParams.update({'mathtext.default':  'regular', 'figure.dpi': 300})
 
 def to_xls(xls_name_Pourbaix):
     """Write data to excel"""
@@ -169,6 +169,7 @@ def plot_1d(xls_name_Pourbaix):
     plt.legend()
     plt.tight_layout()
     plt.xlim(U)
+    plt.axvline(x = -0.5, color = 'w', label = 'axvline - full height')
     plt.show()
     print(df_min['formulas'].unique())
 
@@ -251,16 +252,21 @@ def plot_2d_scatter(xls_name_Pourbaix):
     plt.show()
 
 def pourbaix_diagram(U, pH, gen=True):
-    """Get pourbaix diagram as a function of applied potential and pH value"""
+    """Get pourbaix diagram as a function of applied potential and pH value
+    
+    gen: Bool
+        True means generating excel files
+        False means no generating excel files and only read it
+    """
     if type(pH) == int or type(pH) == float:
-        xls_name_Pourbaix_1d = f'./data/{system_name}_Pourbaix_diagram_1d.xlsx' # write
+        xls_name_Pourbaix_1d = f'./data/{system_name}_read_Pourbaix_diagram_1d.xlsx' # write
         if gen:
             print('\nGenerate 1d data')
             to_xls(xls_name_Pourbaix_1d)
         print('\nPlotting 1d')
         plot_1d(xls_name_Pourbaix_1d)
     else:
-        xls_name_Pourbaix_2d = f'./data/{system_name}_Pourbaix_diagram_2d.xlsx' # write
+        xls_name_Pourbaix_2d = f'./data/{system_name}_read_Pourbaix_diagram_2d.xlsx' # write
         if gen:
             print('\nGenerate 2d data')
             to_xls(xls_name_Pourbaix_2d)
@@ -277,7 +283,7 @@ if __name__ == '__main__':
     # system_name = 'collect_vasp_coverage_H'
     system_name = 'collect_vasp_candidates_PdHx_r8'
     
-    xls_name = f'./data/{system_name}.xlsx' # read
+    xls_name = f'./data/{system_name}_read_pourbaix.xlsx' # read
     fig_dir = './figures'
     
     sheet_name_origin = 'Origin'
@@ -291,5 +297,7 @@ if __name__ == '__main__':
     pH = 0
     pourbaix_diagram(U, pH, gen=True)
     
-    pH = [0, 14]
-    pourbaix_diagram(U, pH, gen=False)
+    # pH = [0, 14]
+    # pourbaix_diagram(U, pH, gen=False)
+    
+    

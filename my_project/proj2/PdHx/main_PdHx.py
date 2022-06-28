@@ -513,7 +513,7 @@ def plot_activity(xls_name, sheet_binding_energy, fig_dir):
     # df.drop(['Pd16Ti48H8', 'Pd16Ti48H24'], inplace=True)
     name_fig_act = f'{fig_dir}/{system_name}_activity.jpg'
     activity = Activity(df, descriper1 = 'E(*CO)', descriper2 = 'E(*HOCO)', fig_name=name_fig_act,
-                        U0=-0.3, 
+                        U0=-0.5, 
                         T0=297.15, 
                         pCO2g = 1., 
                         pCOg=0.005562, 
@@ -816,7 +816,8 @@ if __name__ == '__main__':
     # system_name = 'collect_vasp_candidates_PdHx_r4'
     # system_name = 'collect_vasp_candidates_PdHx_r7'
     # system_name = 'collect_vasp_candidates_PdHx_r8'
-    system_name = 'collect_vasp_extra_H'
+    # system_name = 'collect_vasp_extra_H'
+    system_name = 'collect_vasp_candidates_PdHx_CO_r7'
     
     # system_name = 'candidates_PdHx_sort' # candidates surface of CE
     # system_name = 'surface_vasp' # vasp 
@@ -869,14 +870,20 @@ if __name__ == '__main__':
         plot_count_nn_stack(ads='CO')
         plot_count_nn_hist(ads='CO')
     
-    if True:
+    if False:
         for adsorbate in ['HOCO', 'CO', 'H', 'OH']:
         # for adsorbate in ['OH']:
             binding_energy_distribution(ads=adsorbate)
             plot_count_nn(ads=adsorbate)
             plot_count_nn_stack(ads=adsorbate)
             plot_count_nn_hist(ads=adsorbate)
-        
+    
+    if False:
+        # view(db_name)
+        # view_ads('H', all_sites=False, save=True)
+        view_db(db_name)
+        # view_ads('surface', all_sites=True)
+        # views(formula='Pd51Ti13H59', all_sites=True)
     # plot_line_H_distribution(save=False)
     # db_ads, _ = get_ads_db(ads='surface')
     # plot_layers_as_strutures(db=db_ads, obj='H', removeX=False)
@@ -890,11 +897,7 @@ if __name__ == '__main__':
     # plot_chemical_potential(xls_name, sheet_name_origin)
     
     
-    # views(formula='Pd51Ti13H59', all_sites=True)
-    # view(db_name)
-    # view_ads('H', all_sites=False, save=True)
-    # view_db(db_name)
-    # view_ads('surface', all_sites=True)
+    
     
     # plot_cons_as_layers(obj='Pd')
     
