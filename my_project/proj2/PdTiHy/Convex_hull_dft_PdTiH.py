@@ -683,7 +683,6 @@ if __name__ == '__main__':
         sheet_name_dGs = 'dGs'
         sheet_convex_hull = 'Convex_hull'
         
-        
         db = connect(db_name)
         if False: # database to excel
             # db = del_partial_db(db)
