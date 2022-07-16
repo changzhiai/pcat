@@ -690,7 +690,7 @@ if __name__ == '__main__':
             db2xls_dft(system_name, xls_name, sheet_convex_hull, Ti_energy_ref_eles)
         
         if True:
-            plot_dft_convex_hull(xls_name, sheet_convex_hull, candidates=True, round=i)
+            plot_dft_convex_hull(xls_name, sheet_convex_hull, candidates=False, round=i)
         
         if False: # plot
             plot_free_enegy(xls_name, sheet_free_energy, fig_dir)
