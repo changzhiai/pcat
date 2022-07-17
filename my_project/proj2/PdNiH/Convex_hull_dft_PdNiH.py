@@ -622,8 +622,8 @@ if __name__ == '__main__':
     #     db_tot = '../data/collect_vasp_PdHy_and_insert.db'
     #     concatenate_db('../data/collect_vasp_PdHy_v3.db', '../data/collect_vasp_insert_PdHy.db', db_tot)
     
-    for i in [1, 2, 3, 4]:
-    # for i in [4]:
+    # for i in [1, 2, 3, 4, 5]:
+    for i in [5]:
     # for i in [150, 200, 250, 450]:
         # system_name = 'PdTiH_{}'.format(i) # only CE and DFT surface data
         # system_name = 'PdTiH_150' # only CE and DFT surface data
