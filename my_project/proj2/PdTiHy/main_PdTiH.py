@@ -666,7 +666,7 @@ if __name__ == '__main__':
                sheet_name_allFE, sheet_selectivity, sheet_name_dGs,
                cutoff=2.8)
     
-    if True: # plot
+    if False: # plot
         plot_free_enegy(xls_name, sheet_free_energy, fig_dir)
         plot_scaling_relations(xls_name, sheet_binding_energy, fig_dir)
         plot_selectivity(xls_name, sheet_selectivity, fig_dir)
@@ -685,7 +685,7 @@ if __name__ == '__main__':
         # plot_count_nn(ads='CO')
         # plot_count_nn_stack(ads='CO')
     
-    if True:
+    if False:
         for ads in ['HOCO', 'CO', 'OH', 'H']:
             plot_count_nn_hist(ads=ads)
             
