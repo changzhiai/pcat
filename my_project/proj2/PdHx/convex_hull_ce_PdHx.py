@@ -542,9 +542,36 @@ def db2xls(db_name):
     }
     df = pd.DataFrame(tuples)
     df.to_excel(xls_name, sheet_name_convex_hull, float_format='%.3f')
+    
+def db2xls_ce(db_name, xls_name, sheet_name_convex_hull):
+    """Convert database to excel"""
+    db = connect(db_name)
+    cons_H = []
+    form_energies = []
+    ids = []
+    energies = []
+    for row in db.select(struct_type='initial'):
+        atoms= row.toatoms()
+        con_H = cons_Hy(atoms)
+        cons_H.append(con_H)
+        dft_e = row.energy
+        # form_energy = formation_energy_ref_metals(atoms, dft_e)
+        form_energy = formation_energy_ref_hydr_and_metals(atoms, dft_e)
+        form_energies.append(form_energy)
+        uni_id = str(row.id) + '_' + row.name
+        ids.append(uni_id)
+        energies.append(row.energy)
+    tuples = {'cons_H': cons_H,
+      'form_energies': form_energies,
+      'ids': ids,
+      'Energies': energies,
+    }
+    df = pd.DataFrame(tuples)
+    df.to_excel(xls_name, sheet_name_convex_hull, float_format='%.3f')
 
-def plot_convex_hull_PdHx(db_name, cand=False):
+def plot_convex_hull_PdHx(db_name, cand=False, round=1, ax=None, **kwargs):
     """Plot convex hull"""
+    plot_convex_hull_PdHx.__globals__.update(kwargs)
     df = pd_read_excel(filename=xls_name, sheet=sheet_name_convex_hull)
     # delete row when form energy is more than 0
     # drop = True
@@ -554,9 +581,11 @@ def plot_convex_hull_PdHx(db_name, cand=False):
     form_energies = df['form_energies']
     ids = df['ids']
     
-    fig = plt.figure(dpi=300)
-    ax = plt.axes()
-    plt.plot(cons_H, form_energies, 'x')
+    # fig = plt.figure(dpi=300)
+    # if 'ax' not in locals()['kwargs'].keys():
+    if not ax:
+        ax = plt.axes()
+    ax.plot(cons_H, form_energies, 'x')
     
     df_convex = pd.DataFrame()
     for con_H in set(cons_H):
@@ -580,8 +609,9 @@ def plot_convex_hull_PdHx(db_name, cand=False):
     plt.xlabel('Concentration of H')
     plt.ylabel('Formation energies (eV/atom)')
     # plt.ylim([0., 0.5])
-    plt.title('Convex hull of PdHx')
-    fig.savefig(f'./{fig_dir}/convex_hull.png', dpi=300, bbox_inches='tight')
+    # plt.title('Convex hull of PdHx')
+    plt.title(f'Convex hull {round} of PdHx ({len(ids)} CE data points)')
+    # fig.savefig(f'./{fig_dir}/convex_hull.png', dpi=300, bbox_inches='tight')
 
 def get_PdHx_candidates(cand_ids, db_name):
     """Get and save candidates"""
@@ -661,7 +691,7 @@ if __name__ == '__main__':
         sheet_name_convex_hull = 'convex_hull'
         # plot_simulated_annealing()
         # get_db_and_excel()
-        if True:
+        if False:
             db2xls(db_name)
-        plot_convex_hull_PdHx(db_name, cand=True)
+        plot_convex_hull_PdHx(db_name, cand=True, round=i)
         # plot_chem_pot_H_PdHx_discrete()
