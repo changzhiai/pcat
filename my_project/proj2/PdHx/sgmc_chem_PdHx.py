@@ -10,6 +10,9 @@ from pcat.lib.io import pd_read_excel
 import matplotlib.pyplot as plt
 import pandas as pd
 from ase.db import connect
+import matplotlib as mpl
+mpl.rcParams['savefig.dpi'] = 300
+mpl.rcParams['figure.dpi'] = 300
 
 kB = 8.617e-5  # Boltzmann constant in eV/K
 
@@ -156,6 +159,9 @@ def plot_chem_vs_cons(xls_name, sheet, T):
     # plt.figure()
     plt.plot(cons_Hs, mu_Hs, '-o', label=str(T)+' K')
     plt.axhline(y=-3.579, color='r', linestyle='--')
+    plt.text(0.0, -3.5, r'$\frac{1}{2} H_2$')
+    # ax = plt.axes()
+    # plt.text(0.5, 0.5, 'matplotlib', transform=ax.transAxes)
     # plt.axhline(y=-3.347, color='r', linestyle='--')
     # plt.plot(cons_Hs[:-1], mu_Hs[:-1], '-o', label=str(T)+'K')
     # plt.plot(cons_Hs, mu_Hs, 'o')
@@ -275,15 +281,15 @@ if __name__ == '__main__':
             db2xls(db_name=db_name)
         if True:
             if True:
-                # for T in [300, ]:
-                for T in [100, 200, 300, 400, 500, 600, 700, 800]:
+                for T in [300]:
+                # for T in [100, 200, 300, 400, 500, 600, 700, 800]:
                     plot_chem_vs_cons(xls_name, sheet=sheet_name_convex_hull, T=T)
                 plt.xlabel('Concentration of H')
                 plt.ylabel('H chemical potential')
                 plt.legend()
                 plt.show()
                             
-            if True:
+            if False:
                 # for T in [300, 400, 500, 600, 700]:
                 for T in [1, 50, 100, 150,  200, 300, 400, 500, 600, 700, 800]:
                     plot_pressure_vs_cons(xls_name, sheet=sheet_name_convex_hull, T=T)
@@ -294,7 +300,7 @@ if __name__ == '__main__':
                 plt.legend()
                 plt.show()
             
-            if True:
+            if False:
                 for P in [10**3, 10**2, 10, 1, 0.1, 10**-2, 10**-3, 10**-4, 10**-5, 10**-6]:
                     plot_temp_vs_cons(xls_name, sheet=sheet_name_convex_hull, P=P)
                 plt.xlabel('Concentration of H')
@@ -302,7 +308,7 @@ if __name__ == '__main__':
                 plt.legend()
                 plt.show()
                 
-            if True:
+            if False:
                 # for T in [600, ]:
                 for T in [100, 200, 300, 400, 500, 600, 700, 800]:
                     plot_chem_vs_pressure(xls_name, sheet=sheet_name_convex_hull, T=T)
@@ -315,7 +321,7 @@ if __name__ == '__main__':
                 plt.legend()
                 plt.show()
             
-            if True:
+            if False:
                 H_mus = np.linspace(-4.5,-3,200).tolist()
                 # H_mus = H_mus[110:120]
                 # H_mus = H_mus[122:123]
