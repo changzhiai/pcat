@@ -249,8 +249,8 @@ def plot_2d_contour(pts, vertices=True):
 def plot_basical_convex_hull(vertices, ax=None):
     # ax.plot(hull.points[:,0], hull.points[:,1], 'x')
     vertices = vertices[vertices[:,0].argsort()]
-    ax.plot(vertices[:,0], vertices[:,1], 'x')
-    ax.plot(vertices[:,0], vertices[:,1])
+    ax.plot(vertices[:,0], vertices[:,1], 'xk')
+    ax.plot(vertices[:,0], vertices[:,1], 'r')
 
 def basical_convex_hull(arr, ax, varable):
     if varable == 'H':
@@ -526,7 +526,7 @@ def get_db_and_excel():
                form_energies.append(form_energy)
                db_tot.write(atoms, con_H=con_H, form_energy=form_energy, uni_id=uni_id,)
 
-def db2xls_dft(db_name):
+def db2xls_dft(db_name, **kwargs):
     """Convert database to excel"""
     db = connect(db_name)
     cons_H = []
@@ -552,15 +552,16 @@ def db2xls_dft(db_name):
     df = pd.DataFrame(tuples)
     df.to_excel(xls_name, sheet_name_convex_hull, float_format='%.3f')
 
-def plot_convex_hull_PdHx_dft(db_name, cand=False, round=1):
+def plot_convex_hull_PdHx_dft(db_name, cand=False, round=1, **kwargs):
     """Plot convex hull"""
+    plot_convex_hull_PdHx_dft.__globals__.update(kwargs)
     df = pd_read_excel(filename=xls_name, sheet=sheet_name_convex_hull)
     cons_H = df['cons_H']
     form_energies = df['form_energies']
     ids = df['ids']
     # fig = plt.figure(dpi=300)
     fig, ax = plt.subplots(dpi=300)
-    plt.plot(cons_H, form_energies, 'x')
+    plt.plot(cons_H, form_energies, 'xr')
     points = np.column_stack((cons_H, form_energies, ids))
     hull = ConvexHull(points=points[:, 0:2])
     vertices = points[hull.vertices] # get convex hull vertices
@@ -579,7 +580,8 @@ def plot_convex_hull_PdHx_dft(db_name, cand=False, round=1):
 
 def get_PdHx_candidates_dft(cand_ids, db_name):
     """Get and save candidates"""
-    db_cand_name='dft_candidates_PdHx_p20_50.db'
+    # db_cand_name='dft_candidates_PdHx_p20_50.db'
+    db_cand_name='candidates_dft_PdHx_r9.db'
     db = connect(db_name)
     if os.path.exists(db_cand_name):
         os.remove(db_cand_name)
@@ -674,7 +676,7 @@ def plot_animate(i):
 if __name__ == '__main__':
 
     # for i in [1, 2, 3, 4, 5, 6, 7, 8, 9]:
-    for i in [9]:
+    for i in [8]:
         system = f'PdHx_train_r{i}' # round 1, ce and dft
         # system = 'PdHx_train_r1' # round 1, ce and dft
         # system = 'PdHx_train_r5' # round 5, ce and dft
@@ -691,8 +693,8 @@ if __name__ == '__main__':
         # get_db_and_excel()
         if False:
             db2xls_dft(db_name)
-        if False:
-            plot_convex_hull_PdHx_dft(db_name, cand=False)
+        if True:
+            plot_convex_hull_PdHx_dft(db_name, cand=True, round=i)
             # plot_chem_pot_H_PdHx_discrete()
             # get_PdHx_lowest_dft(db_name)
 

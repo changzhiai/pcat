@@ -14,7 +14,8 @@ import matplotlib as mpl
 import pandas as pd
 from pcat.lib.io import pd_read_excel
 from mpl_toolkits.mplot3d.art3d import Poly3DCollection
-mpl.rcParams['savefig.dpi'] = 100
+mpl.rcParams['savefig.dpi'] = 300
+plt.rcParams['figure.dpi'] = 300
 mpl.rcParams['font.size'] = 8
 # mpl.use('TkAgg')
 
@@ -242,8 +243,8 @@ def plot_2d_contour(pts, vertices=True):
 def plot_basical_convex_hull(vertices, ax=None):
     # ax.plot(hull.points[:,0], hull.points[:,1], 'x')
     vertices = vertices[vertices[:,0].argsort()] 
-    ax.plot(vertices[:,0], vertices[:,1], 'x')
-    ax.plot(vertices[:,0], vertices[:,1])
+    ax.plot(vertices[:,0], vertices[:,1], 'xk')
+    ax.plot(vertices[:,0], vertices[:,1], 'g')
 
 def basical_convex_hull(arr, ax, varable):
     if varable == 'H':
@@ -585,7 +586,7 @@ def plot_convex_hull_PdHx(db_name, cand=False, round=1, ax=None, **kwargs):
     # if 'ax' not in locals()['kwargs'].keys():
     if not ax:
         ax = plt.axes()
-    ax.plot(cons_H, form_energies, 'x')
+    ax.plot(cons_H, form_energies, 'xg')
     
     df_convex = pd.DataFrame()
     for con_H in set(cons_H):
@@ -606,12 +607,15 @@ def plot_convex_hull_PdHx(db_name, cand=False, round=1, ax=None, **kwargs):
     if cand==True:
         get_PdHx_candidates(cand_ids, db_name=db_name)
     plot_basical_convex_hull(vertices, ax=ax)
-    plt.xlabel('Concentration of H')
-    plt.ylabel('Formation energies (eV/atom)')
-    # plt.ylim([0., 0.5])
-    # plt.title('Convex hull of PdHx')
-    plt.title(f'Convex hull {round} of PdHx ({len(ids)} CE data points)')
-    # fig.savefig(f'./{fig_dir}/convex_hull.png', dpi=300, bbox_inches='tight')
+    ax.set_xticks(np.arange(-0.00, 1.01, step=0.2))
+    ax.set_yticks(np.arange(-0.06, 0.01, step=0.01))
+    if ax is not None:
+        plt.xlabel('Concentration of H')
+        plt.ylabel('Formation energies (eV/atom)')
+        # plt.ylim([0., 0.5])
+        # plt.title('Convex hull of PdHx')
+        plt.title(f'Convex hull {round} of PdHx ({len(ids)} CE data points)')
+        # fig.savefig(f'./{fig_dir}/convex_hull.png', dpi=300, bbox_inches='tight')
 
 def get_PdHx_candidates(cand_ids, db_name):
     """Get and save candidates"""
@@ -668,7 +672,7 @@ def plot_chem_pot_H_PdHx_discrete():
 if __name__ == '__main__':
     
     # for i in [2, 3, 4, 5, 6, 7, 8]:
-    for i in [9]:
+    for i in [8]:
         # system = 'candidates_PdHx'
         # system = 'results_last1'
         # system = 'results_last1_r2'
@@ -680,18 +684,29 @@ if __name__ == '__main__':
         # system = 'results_r5' # round 5
         # system = 'results_r6' # round 6
         # system = 'results_r7' # round 7
-        system = 'results_r{}'.format(i)
-    
+        # system = 'results_r{}'.format(i)
         # system = 'results_again'
-        fig_dir = './figures/'
-        data_dir = './data'
-        db_name = f'./{data_dir}/{system}.db'
-        xls_name = f'./{data_dir}/{system}.xlsx'
-        
-        sheet_name_convex_hull = 'convex_hull'
+        # fig_dir = './figures/'
+        # data_dir = './data'
+        # db_name = f'./{data_dir}/{system}.db'
+        # xls_name = f'./{data_dir}/{system}.xlsx'
+        # if False:
+            # db2xls(db_name)
+        # if False:
+        #     plot_convex_hull_PdHx(db_name, cand=True, round=i)
+            # plot_chem_pot_H_PdHx_discrete()
         # plot_simulated_annealing()
         # get_db_and_excel()
+        
+        system_ce = f'PdHx_train_r{i}'
+        fig_dir = './figures/'
+        data_dir = './data'
+        db_name = f'./{data_dir}/{system_ce}.db'
+        xls_name = f'./{data_dir}/{system_ce}_ce.xlsx'
+        sheet_name_convex_hull = 'convex_hull'
+
         if False:
-            db2xls(db_name)
-        plot_convex_hull_PdHx(db_name, cand=True, round=i)
-        # plot_chem_pot_H_PdHx_discrete()
+            db2xls_ce(db_name, xls_name, sheet_name_convex_hull)
+            print('excel generating done!')
+       
+        plot_convex_hull_PdHx(db_name, cand=False, round=i,)
