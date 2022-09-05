@@ -812,8 +812,8 @@ if __name__ == '__main__':
     # system_name = 'collect_vasp_candidates_PdHx_r3'
     # system_name = 'collect_vasp_candidates_PdHx_r4'
     # system_name = 'collect_vasp_candidates_PdHx_r7'
-    system_name = 'collect_vasp_candidates_PdHx_beef_r8'
-    
+    # system_name = 'collect_vasp_candidates_PdHx_beef_r8'
+    system_name = 'collect_vasp_candidates_PdHx_all_sites_beef'
     
     # system_name = 'candidates_PdHx_sort' # candidates surface of CE
     # system_name = 'surface_vasp' # vasp 
@@ -851,16 +851,16 @@ if __name__ == '__main__':
     if False: # plot
         plot_free_enegy(xls_name, sheet_free_energy, fig_dir)
         plot_scaling_relations(xls_name, sheet_binding_energy, fig_dir)
-        plot_selectivity(xls_name, sheet_selectivity, fig_dir)
+        # plot_selectivity(xls_name, sheet_selectivity, fig_dir)
         plot_activity(xls_name, sheet_binding_energy, fig_dir)
     
-    if False:
-        plot_BE_as_Hcons(xls_name, sheet_cons)
+    if True:
+        # plot_BE_as_Hcons(xls_name, sheet_cons)
         plot_cons_as_layers_with_ads(obj='H')
         plot_bar_H_distribution(save=False)
-        plot_line_H_distribution(save=False)
+        # plot_line_H_distribution(save=False)
         
-    if True:    
+    if False:    
         # plot_ens_E_HOCO_E_H(xls_name, sheet_selectivity, fig_dir)
         plot_ens_scaling_relation('E(*HOCO)', 'E(*H)', xls_name, sheet_selectivity, fig_dir)
         plot_ens_scaling_relation('E(*HOCO)', 'E(*CO)', xls_name, sheet_selectivity, fig_dir)
