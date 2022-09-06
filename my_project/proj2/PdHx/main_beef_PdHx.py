@@ -99,7 +99,7 @@ def views(formula, all_sites=False):
             r_origin_id = unique_id.split('_')[4]
             r_site = unique_id.split('_')[2]
             r_adsorbate = unique_id.split('_')[3]
-            if str(origin_id)==r_origin_id and site==r_site and adsorbate==r_adsorbate:
+            if str(origin_id)==r_origin_id and str(site)==r_site and adsorbate==r_adsorbate:
                 # db_temp.write(r)
                 # view(r.toatoms())
                 atoms_list.append(r.toatoms())
@@ -149,7 +149,7 @@ def view_ads(ads, all_sites=False, save=False):
             r_origin_id = unique_id.split('_')[4]
             r_site = unique_id.split('_')[2]
             r_adsorbate = unique_id.split('_')[3]
-            if str(origin_id)==r_origin_id and site==r_site and adsorbate==r_adsorbate:
+            if str(origin_id)==r_origin_id and str(site)==r_site and adsorbate==r_adsorbate:
                 atoms_list.append(r.toatoms())
                 if save==True:
                     db_surface.write(r)
@@ -284,9 +284,12 @@ def plot_layers_as_strutures(db='', obj='H', removeX=False, minusH=False):
     # name_fig_cons_as_lys=f'{fig_dir}/{system_name}_cons_as_lys.jpg'
     # fig.savefig(name_fig_cons_as_lys, dpi=300, bbox_inches='tight')
         
+
 def plot_cons_as_layers_with_ads(obj='H'):
     """Plot concentrations as a function of layers
     for optimized DFT suface and surface with intermediates
+    
+    5 colomn bars chart with n rows
     
     obj = 'H' or 'Pd'
     """
@@ -303,7 +306,8 @@ def plot_cons_as_layers_with_ads(obj='H'):
     fig = plt.figure(figsize=(16,16*4))
     for id in uniqueids:
         df_sub = df.loc[df['Origin_id'].astype(int) == id]
-        df_hoco = df_sub[df_sub['Adsorbate']=='HOCO']
+        df_hoco = df_sub[df_sub['Adsorbate']=='HOCO'] # # make virtual surface template
+        assert len(df_hoco)==1
         df_surf = {'Id': df_hoco.Id.values[0],
                    'Origin_id': df_hoco.Origin_id.values[0],
                    'Surface': df_hoco.Surface.values[0],
@@ -312,7 +316,7 @@ def plot_cons_as_layers_with_ads(obj='H'):
                    'Site': 'top1',
                    'Adsorbate': 'surface',
                    }
-        df_sub = df_sub.append(df_surf, ignore_index = True)
+        df_sub = df_sub.append(df_surf, ignore_index = True) # add virtual surface row
         custom_dict = {'surface':0, 'HOCO': 1, 'CO': 2, 'H': 3, 'OH':4} 
         df_sub = df_sub.sort_values(by=['Adsorbate'], key=lambda x: x.map(custom_dict))
         
@@ -327,7 +331,7 @@ def plot_cons_as_layers_with_ads(obj='H'):
                 r_origin_id = unique_id.split('_')[4]
                 r_site = unique_id.split('_')[2]
                 r_adsorbate = unique_id.split('_')[3]
-                if str(origin_id)==r_origin_id and site==r_site and ads==r_adsorbate:
+                if str(origin_id)==r_origin_id and str(site)==r_site and ads==r_adsorbate:
                     ax = plt.subplot(N, M, m1*M + m2 + 1)
                     atoms = r.toatoms()
                     if ads == 'surface':
@@ -738,7 +742,7 @@ def get_ads_db(ads, save=True):
             r_origin_id = unique_id.split('_')[4]
             r_site = unique_id.split('_')[2]
             r_adsorbate = unique_id.split('_')[3]
-            if str(origin_id)==r_origin_id and site==r_site and adsorbate==r_adsorbate:
+            if str(origin_id)==r_origin_id and str(site)==r_site and adsorbate==r_adsorbate:
                 atoms_list.append(r.toatoms())
                 if save==True:
                     db_surface.write(r)
@@ -812,8 +816,8 @@ if __name__ == '__main__':
     # system_name = 'collect_vasp_candidates_PdHx_r3'
     # system_name = 'collect_vasp_candidates_PdHx_r4'
     # system_name = 'collect_vasp_candidates_PdHx_r7'
-    # system_name = 'collect_vasp_candidates_PdHx_beef_r8'
-    system_name = 'collect_vasp_candidates_PdHx_all_sites_beef'
+    system_name = 'collect_vasp_candidates_PdHx_beef_r8'
+    # system_name = 'collect_vasp_candidates_PdHx_all_sites_beef'
     
     # system_name = 'candidates_PdHx_sort' # candidates surface of CE
     # system_name = 'surface_vasp' # vasp 
@@ -856,9 +860,10 @@ if __name__ == '__main__':
     
     if True:
         # plot_BE_as_Hcons(xls_name, sheet_cons)
-        plot_cons_as_layers_with_ads(obj='H')
-        plot_bar_H_distribution(save=False)
         # plot_line_H_distribution(save=False)
+        plot_cons_as_layers_with_ads(obj='H') # 5 columns bar chart
+        # plot_bar_H_distribution(save=False) # plot bar chart for each adsorbate
+        
         
     if False:    
         # plot_ens_E_HOCO_E_H(xls_name, sheet_selectivity, fig_dir)
