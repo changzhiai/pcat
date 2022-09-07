@@ -859,9 +859,9 @@ if __name__ == '__main__':
         plot_activity(xls_name, sheet_binding_energy, fig_dir)
     
     if True:
-        # plot_BE_as_Hcons(xls_name, sheet_cons)
-        # plot_line_H_distribution(save=False)
-        plot_cons_as_layers_with_ads(obj='H') # 5 columns bar chart
+        plot_BE_as_Hcons(xls_name, sheet_cons)
+        plot_line_H_distribution(save=False)
+        # plot_cons_as_layers_with_ads(obj='H') # 5 columns bar chart
         # plot_bar_H_distribution(save=False) # plot bar chart for each adsorbate
         
         
