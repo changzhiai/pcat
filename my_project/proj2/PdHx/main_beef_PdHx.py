@@ -816,8 +816,8 @@ if __name__ == '__main__':
     # system_name = 'collect_vasp_candidates_PdHx_r3'
     # system_name = 'collect_vasp_candidates_PdHx_r4'
     # system_name = 'collect_vasp_candidates_PdHx_r7'
-    system_name = 'collect_vasp_candidates_PdHx_beef_r8'
-    # system_name = 'collect_vasp_candidates_PdHx_all_sites_beef'
+    # system_name = 'collect_vasp_candidates_PdHx_beef_r8'
+    system_name = 'collect_vasp_candidates_PdHx_all_sites_beef'
     
     # system_name = 'candidates_PdHx_sort' # candidates surface of CE
     # system_name = 'surface_vasp' # vasp 
@@ -858,15 +858,15 @@ if __name__ == '__main__':
         # plot_selectivity(xls_name, sheet_selectivity, fig_dir)
         plot_activity(xls_name, sheet_binding_energy, fig_dir)
     
-    if True:
+    if False:
         plot_BE_as_Hcons(xls_name, sheet_cons)
         plot_line_H_distribution(save=False)
         # plot_cons_as_layers_with_ads(obj='H') # 5 columns bar chart
         # plot_bar_H_distribution(save=False) # plot bar chart for each adsorbate
         
         
-    if False:    
-        # plot_ens_E_HOCO_E_H(xls_name, sheet_selectivity, fig_dir)
+    if True:    
+        plot_ens_E_HOCO_E_H(xls_name, sheet_selectivity, fig_dir)
         plot_ens_scaling_relation('E(*HOCO)', 'E(*H)', xls_name, sheet_selectivity, fig_dir)
         plot_ens_scaling_relation('E(*HOCO)', 'E(*CO)', xls_name, sheet_selectivity, fig_dir)
         plot_ens_scaling_relation('E(*HOCO)', 'E(*OH)', xls_name, sheet_selectivity, fig_dir)
