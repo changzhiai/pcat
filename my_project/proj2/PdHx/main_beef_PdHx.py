@@ -661,7 +661,7 @@ def plot_activity(xls_name, sheet_binding_energy, fig_dir):
     # df.drop(['Pd16Ti48H8', 'Pd16Ti48H24'], inplace=True)
     name_fig_act = f'{fig_dir}/{system_name}_activity.jpg'
     activity = Activity(df, descriper1 = 'E(*CO)', descriper2 = 'E(*HOCO)', fig_name=name_fig_act,
-                        U0=-0.3, 
+                        U0=-0.5, 
                         T0=297.15, 
                         pCO2g = 1., 
                         pCOg=0.005562, 
@@ -846,13 +846,13 @@ if __name__ == '__main__':
     
     db = connect(db_name)
     db_molecule = connect('./data/beef_molecule.db')
-    if False: # database to excel
+    if True: # database to excel
         # db = del_partial_db(db)
         db2xls(system_name, xls_name, db, db_molecule, ref_eles, 
                sheet_name_origin, sheet_name_stable, sheet_free_energy, sheet_binding_energy, 
                sheet_cons, sheet_name_allFE, sheet_selectivity, sheet_name_dGs)
     
-    if False: # plot
+    if True: # plot
         plot_free_enegy(xls_name, sheet_free_energy, fig_dir)
         plot_scaling_relations(xls_name, sheet_binding_energy, fig_dir)
         # plot_selectivity(xls_name, sheet_selectivity, fig_dir)
@@ -865,7 +865,7 @@ if __name__ == '__main__':
         # plot_bar_H_distribution(save=False) # plot bar chart for each adsorbate
         
         
-    if True:    
+    if False:    
         plot_ens_E_HOCO_E_H(xls_name, sheet_selectivity, fig_dir)
         plot_ens_scaling_relation('E(*HOCO)', 'E(*H)', xls_name, sheet_selectivity, fig_dir)
         plot_ens_scaling_relation('E(*HOCO)', 'E(*CO)', xls_name, sheet_selectivity, fig_dir)

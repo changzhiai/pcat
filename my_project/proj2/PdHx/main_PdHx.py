@@ -105,7 +105,7 @@ def views(formula, all_sites=False):
             r_origin_id = unique_id.split('_')[4]
             r_site = unique_id.split('_')[2]
             r_adsorbate = unique_id.split('_')[3]
-            if str(origin_id)==r_origin_id and site==r_site and adsorbate==r_adsorbate:
+            if str(origin_id)==r_origin_id and str(site)==r_site and adsorbate==r_adsorbate:
                 # db_temp.write(r)
                 # view(r.toatoms())
                 atoms_list.append(r.toatoms())
@@ -155,7 +155,7 @@ def view_ads(ads, all_sites=False, save=False):
             r_origin_id = unique_id.split('_')[4]
             r_site = unique_id.split('_')[2]
             r_adsorbate = unique_id.split('_')[3]
-            if str(origin_id)==r_origin_id and site==r_site and adsorbate==r_adsorbate:
+            if str(origin_id)==r_origin_id and str(site)==r_site and adsorbate==r_adsorbate:
                 atoms_list.append(r.toatoms())
                 if save==True:
                     db_surface.write(r)
@@ -243,6 +243,7 @@ def plot_layers_as_strutures(db='', obj='H', removeX=False, minusH=False):
     else:
         db = db
     # fig = plt.figure(figsize=(16,16))
+    # fig = plt.figure(dpi=300)
     ly1s = []
     ly2s = []
     ly3s = []
@@ -277,16 +278,22 @@ def plot_layers_as_strutures(db='', obj='H', removeX=False, minusH=False):
     df = pd.DataFrame(tuples)
     df = df.sort_values(by=['con_tots'])
     # print(df)
+    colors = ('#1f77b4', '#ff7f0e', '#2ca02c', '#d62728'); fontsize = 14
     if False:
         with pd.ExcelWriter(xls_name, engine='openpyxl', mode='a', if_sheet_exists='replace') as writer:
             df.to_excel(writer, sheet_name='layers_as_structures', index=False, float_format='%.8f')
-    plt.plot(df['con_tots'], df['ly4s'], '-o', label='1st layer (top)') # top layer
-    plt.plot(df['con_tots'], df['ly3s'], '-o', label='2nd layer')
-    plt.plot(df['con_tots'], df['ly2s'], '-o', label='3rd layer')
-    plt.plot(df['con_tots'], df['ly1s'], '-o', label='4th layer') # bottom layer
+    a,  = plt.plot(df['con_tots'], df['ly4s'], '-o', label='1st layer (top)', color=colors[0]) # top layer
+    b,  = plt.plot(df['con_tots'], df['ly3s'], '-o', label='2nd layer', color=colors[1])
+    c,  = plt.plot(df['con_tots'], df['ly2s'], '-o', label='3rd layer', color=colors[2])
+    d,  = plt.plot(df['con_tots'], df['ly1s'], '-o', label='4th layer', color=colors[3]) # bottom layer
+    # a,  = plt.plot(df['con_tots'], df['ly4s'], '-o', label='1st layer (top)') # top layer
+    # b,  = plt.plot(df['con_tots'], df['ly3s'], '-o', label='2nd layer')
+    # c,  = plt.plot(df['con_tots'], df['ly2s'], '-o', label='3rd layer')
+    # d,  = plt.plot(df['con_tots'], df['ly1s'], '-o', label='4th layer') # bottom layer
     plt.xlabel('Concentration of H', fontsize=10)
     plt.ylabel('H concentration of each layer', fontsize=10)
     plt.legend()
+    print(a.get_color(), b.get_color(), c.get_color(), d.get_color())
     # plt.show()
     # name_fig_cons_as_lys=f'{fig_dir}/{system_name}_cons_as_lys.jpg'
     # fig.savefig(name_fig_cons_as_lys, dpi=300, bbox_inches='tight')
@@ -334,7 +341,7 @@ def plot_cons_as_layers_with_ads(obj='H'):
                 r_origin_id = unique_id.split('_')[4]
                 r_site = unique_id.split('_')[2]
                 r_adsorbate = unique_id.split('_')[3]
-                if str(origin_id)==r_origin_id and site==r_site and ads==r_adsorbate:
+                if str(origin_id)==r_origin_id and str(site)==r_site and ads==r_adsorbate:
                     ax = plt.subplot(N, M, m1*M + m2 + 1)
                     atoms = r.toatoms()
                     if ads == 'surface':
@@ -390,7 +397,7 @@ def plot_BE_as_Hcons(xls_name, sheet_cons):
     E_CO = df['E(*CO)'].values
     E_H = df['E(*H)'].values
     E_OH = df['E(*OH)'].values
-    plt.figure()
+    plt.figure(dpi=300)
     plt.plot(cons_H, E_HOCO, '-o', c='blue', label='*HOCO')
     plt.plot(cons_H, E_CO, '-o', c='orange', label='*CO')
     plt.plot(cons_H, E_H, '-o', c='green', label='*H')
@@ -595,7 +602,7 @@ def get_ads_db(ads, save=True):
             r_origin_id = unique_id.split('_')[4]
             r_site = unique_id.split('_')[2]
             r_adsorbate = unique_id.split('_')[3]
-            if str(origin_id)==r_origin_id and site==r_site and adsorbate==r_adsorbate:
+            if str(origin_id)==r_origin_id and str(site)==r_site and adsorbate==r_adsorbate:
                 atoms_list.append(r.toatoms())
                 if save==True:
                     db_surface.write(r)
@@ -642,7 +649,7 @@ def plot_line_H_distribution(save=False):
     """Plot all H distributions in line plot"""
     for system in ['surface', 'HOCO', 'CO', 'OH', 'H']: # plot for vasp
         db_ads, _ = get_ads_db(ads=system)
-        fig = plt.figure()
+        fig = plt.figure(dpi=300)
         if system != 'H':
             plot_layers_as_strutures(db=db_ads, obj='H', removeX=False)
         else:
@@ -791,13 +798,13 @@ def plot_count_nn_hist(ads='CO'):
         bestx2 = 0.
         x = np.arange(bestx1, bestx2, 0.01)
         plt.fill_between(x, ymin, ymax, 
-                color='black', alpha=0.2, transform=ax.get_xaxis_transform(), zorder=-1)
+                color='blue', alpha=0.2, transform=ax.get_xaxis_transform(), zorder=-1)
     elif ads == 'HOCO':
         bestx1 = -0.8
         bestx2 = 0.4
         x = np.arange(bestx1, bestx2, 0.01)
         plt.fill_between(x, ymin, ymax, 
-                color='black', alpha=0.2, transform=ax.get_xaxis_transform(), zorder=-1)
+                color='blue', alpha=0.2, transform=ax.get_xaxis_transform(), zorder=-1)
     plt.show()
 
 if __name__ == '__main__':
@@ -817,7 +824,9 @@ if __name__ == '__main__':
     # system_name = 'collect_vasp_candidates_PdHx_r7'
     # system_name = 'collect_vasp_candidates_PdHx_r8'
     # system_name = 'collect_vasp_extra_H'
-    system_name = 'collect_vasp_candidates_PdHx_CO_r7'
+    # system_name = 'collect_vasp_candidates_PdHx_CO_r7'
+    # system_name = 'collect_vasp_candidates_PdHx_all_sites'
+    system_name = 'collect_vasp_candidates_PdHx_all_sites_stdout'
     
     # system_name = 'candidates_PdHx_sort' # candidates surface of CE
     # system_name = 'surface_vasp' # vasp 
@@ -850,32 +859,33 @@ if __name__ == '__main__':
         db2xls(system_name, xls_name, db, ref_eles, sheet_name_origin, sheet_name_stable, 
                sheet_free_energy, sheet_binding_energy, sheet_cons, sheet_name_allFE, sheet_selectivity, sheet_name_dGs,
                cutoff=2.8)
+        print('Data done')
     
-    if False: # plot
+    if True: # plot
         plot_free_enegy(xls_name, sheet_free_energy, fig_dir)
         plot_scaling_relations(xls_name, sheet_binding_energy, fig_dir)
-        plot_selectivity(xls_name, sheet_selectivity, fig_dir)
+        # plot_selectivity(xls_name, sheet_selectivity, fig_dir)
         plot_activity(xls_name, sheet_binding_energy, fig_dir)
     
     if False:
         # plot_BE_as_Hcons(xls_name, sheet_cons)
         # plot_cons_as_layers_with_ads(obj='H')
         # plot_bar_H_distribution(save=False)
-        plot_line_H_distribution(save=False)
-        # plot_layers_as_strutures(db=db, obj='H', removeX=False) # dft_PdHx_lowest
+        plot_line_H_distribution(save=False) # candidates distribution
     
     if False:
-        binding_energy_distribution(ads='CO')
-        plot_count_nn(ads='CO')
-        plot_count_nn_stack(ads='CO')
-        plot_count_nn_hist(ads='CO')
+        plot_layers_as_strutures(db=db, obj='H', removeX=False) # dft_PdHx_lowest; change db to the lowest
+        # binding_energy_distribution(ads='CO')
+        # plot_count_nn(ads='CO')
+        # plot_count_nn_stack(ads='CO')
+        # plot_count_nn_hist(ads='CO')
     
-    if True:
+    if False: # statistical distribution
         for adsorbate in ['HOCO', 'CO', 'H', 'OH']:
         # for adsorbate in ['OH']:
-            binding_energy_distribution(ads=adsorbate)
-            plot_count_nn(ads=adsorbate)
-            plot_count_nn_stack(ads=adsorbate)
+            # binding_energy_distribution(ads=adsorbate)
+            # plot_count_nn(ads=adsorbate)
+            # plot_count_nn_stack(ads=adsorbate)
             plot_count_nn_hist(ads=adsorbate)
     
     if False:
@@ -887,7 +897,7 @@ if __name__ == '__main__':
     # plot_line_H_distribution(save=False)
     # db_ads, _ = get_ads_db(ads='surface')
     # plot_layers_as_strutures(db=db_ads, obj='H', removeX=False)
-    # plot_layers_as_strutures(db=db, obj='H', removeX=False) # dft_PdHx_lowest
+    # plot_layers_as_strutures(db=db, obj='H', removeX=False) # dft_PdHx_lowest when database is the lowest db
     
     # plot_free_enegy(xls_name, sheet_free_energy, fig_dir)
     # plot_scaling_relations(xls_name, sheet_binding_energy, fig_dir)

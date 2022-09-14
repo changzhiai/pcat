@@ -11,8 +11,8 @@ import numpy as np
 # 
 # system_name = 'collect_vasp_1x1_PdHx'
 # system_name = 'collect_vasp_1x1_PdHx_fix2b'
-system_name = 'collect_vasp_1x1_PdHx_fix2b_20v'
-# system_name = 'collect_vasp_rm_1layers_H'
+# system_name = 'collect_vasp_1x1_PdHx_fix2b_20v' # 1x1
+system_name = 'collect_vasp_rm_1layers_H' # 4x4
 db_name = f'./data/{system_name}.db'
 xls_name = f'./data/{system_name}.xlsx'
 fig_dir = './figures'
@@ -28,8 +28,9 @@ fig = plt.figure(dpi=300)
 # es = energies[1:]
 # es.reverse()
 # plt.plot(es, '-o')
-plt.plot(np.arange(1, len(energies), 1), energies[1:], '-o')
+plt.plot(np.arange(1, len(energies), 1), energies[1:], '-or')
 plt.xticks(np.arange(1, len(energies), 1))
-plt.xlabel('Remove ith layer from bottom to top')
+# plt.xlabel('Remove ith layer from bottom to top')
+plt.xlabel('Remove ith layer')
 plt.ylabel('DFT energy (eV)')
 plt.show()

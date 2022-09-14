@@ -23,7 +23,7 @@ from pcat.lib.io import pd_read_excel
 import imageio
 from mpl_toolkits.mplot3d.art3d import Poly3DCollection
 mpl.rcParams['savefig.dpi'] = 100
-mpl.rcParams['font.size'] = 8
+mpl.rcParams['font.size'] = 10
 
 # mpl.use('TkAgg')
 
@@ -249,7 +249,7 @@ def plot_2d_contour(pts, vertices=True):
 def plot_basical_convex_hull(vertices, ax=None):
     # ax.plot(hull.points[:,0], hull.points[:,1], 'x')
     vertices = vertices[vertices[:,0].argsort()]
-    ax.plot(vertices[:,0], vertices[:,1], 'xk')
+    ax.plot(vertices[:,0], vertices[:,1], 'xk', zorder=3)
     ax.plot(vertices[:,0], vertices[:,1], 'r')
 
 def basical_convex_hull(arr, ax, varable):
@@ -561,7 +561,7 @@ def plot_convex_hull_PdHx_dft(db_name, cand=False, round=1, **kwargs):
     ids = df['ids']
     # fig = plt.figure(dpi=300)
     fig, ax = plt.subplots(dpi=300)
-    plt.plot(cons_H, form_energies, 'xr')
+    plt.plot(cons_H, form_energies, 'xg')
     points = np.column_stack((cons_H, form_energies, ids))
     hull = ConvexHull(points=points[:, 0:2])
     vertices = points[hull.vertices] # get convex hull vertices
@@ -675,8 +675,8 @@ def plot_animate(i):
 
 if __name__ == '__main__':
 
-    # for i in [1, 2, 3, 4, 5, 6, 7, 8, 9]:
-    for i in [8]:
+    for i in [1, 2, 3, 4, 5, 6, 7, 8, 9]:
+    # for i in [9]:
         system = f'PdHx_train_r{i}' # round 1, ce and dft
         # system = 'PdHx_train_r1' # round 1, ce and dft
         # system = 'PdHx_train_r5' # round 5, ce and dft
@@ -694,7 +694,7 @@ if __name__ == '__main__':
         if False:
             db2xls_dft(db_name)
         if True:
-            plot_convex_hull_PdHx_dft(db_name, cand=True, round=i)
+            plot_convex_hull_PdHx_dft(db_name, cand=False, round=i)
             # plot_chem_pot_H_PdHx_discrete()
             # get_PdHx_lowest_dft(db_name)
 
