@@ -289,7 +289,7 @@ if __name__ == '__main__':
                 plt.legend()
                 plt.show()
                             
-            if False:
+            if True:
                 # for T in [300, 400, 500, 600, 700]:
                 for T in [1, 50, 100, 150,  200, 300, 400, 500, 600, 700, 800]:
                     plot_pressure_vs_cons(xls_name, sheet=sheet_name_convex_hull, T=T)

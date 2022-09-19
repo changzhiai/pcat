@@ -846,7 +846,7 @@ if __name__ == '__main__':
     
     db = connect(db_name)
     db_molecule = connect('./data/beef_molecule.db')
-    if True: # database to excel
+    if False: # database to excel
         # db = del_partial_db(db)
         db2xls(system_name, xls_name, db, db_molecule, ref_eles, 
                sheet_name_origin, sheet_name_stable, sheet_free_energy, sheet_binding_energy, 
@@ -865,7 +865,7 @@ if __name__ == '__main__':
         # plot_bar_H_distribution(save=False) # plot bar chart for each adsorbate
         
         
-    if False:    
+    if True:    
         plot_ens_E_HOCO_E_H(xls_name, sheet_selectivity, fig_dir)
         plot_ens_scaling_relation('E(*HOCO)', 'E(*H)', xls_name, sheet_selectivity, fig_dir)
         plot_ens_scaling_relation('E(*HOCO)', 'E(*CO)', xls_name, sheet_selectivity, fig_dir)
