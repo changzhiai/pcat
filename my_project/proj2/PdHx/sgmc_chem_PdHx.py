@@ -193,14 +193,22 @@ def plot_pressure_vs_cons(xls_name, sheet, T):
 def get_quantities_P(xls_name, sheet, P=100):
     """Get chemical potential using energy difference"""
     df = pd_read_excel(filename=xls_name, sheet=sheet)
-    df = df.loc[np.abs(df['pH2']-P) < 0.5*P]
+    if P <= 0.1:
+        df = df.loc[np.abs(df['pH2']-P) < 0.5*P]
+    else:
+        df = df.loc[np.abs(df['pH2']-P) < 0.35*P]
+    df_new = pd.DataFrame()
+    for tep in set(df['temp_H2']): # get first one at each T
+        row = df[df.temp_H2==tep].iloc[0]
+        df_new = df_new.append(row)
+    
     # df = df.loc[(df['temp_H2']==T) | (df['cons_H']==0) | (df['cons_H']==1)]
     
-    df = df.sort_values(by=['$\mu$_H'], ascending=False)
+    df_new = df_new.sort_values(by=['$\mu$_H'], ascending=False)
     
     # df = get_real_quan(df)
-    print(df)
-    return df
+    print(df_new)
+    return df_new
 
 def plot_temp_vs_cons(xls_name, sheet, P):
     """Plot temperature vs. concentration"""
@@ -281,8 +289,9 @@ if __name__ == '__main__':
             db2xls(db_name=db_name)
         if True:
             if True:
-                for T in [300]:
+                # for T in [300]:
                 # for T in [100, 200, 300, 400, 500, 600, 700, 800]:
+                for T in [100, 200, 300, 400, 500, 600, 700, 800]:
                     plot_chem_vs_cons(xls_name, sheet=sheet_name_convex_hull, T=T)
                 plt.xlabel('Concentration of H')
                 plt.ylabel('H chemical potential')
@@ -292,23 +301,26 @@ if __name__ == '__main__':
             if True:
                 # for T in [300, 400, 500, 600, 700]:
                 for T in [1, 50, 100, 150,  200, 300, 400, 500, 600, 700, 800]:
+                # for T in [1, 100, 200, 300, 400, 500, 600, 700, 800]:
                     plot_pressure_vs_cons(xls_name, sheet=sheet_name_convex_hull, T=T)
                 plt.xlabel('Concentration of H')
                 plt.ylabel('Pressure (bar)')
                 # plt.ylim(10**(-15), 10**15)
-                plt.ylim(10**(-5), 10**5)
+                plt.ylim(10**(-6), 10**6)
                 plt.legend()
                 plt.show()
             
-            if False:
+            if True:
                 for P in [10**3, 10**2, 10, 1, 0.1, 10**-2, 10**-3, 10**-4, 10**-5, 10**-6]:
+                # for P in [10, 1, 0.1, 10**-2, 10**-3, 10**-4, 10**-5, 10**-6]:
                     plot_temp_vs_cons(xls_name, sheet=sheet_name_convex_hull, P=P)
+                plt.ylim(0., 1000)
                 plt.xlabel('Concentration of H')
                 plt.ylabel('Temperature (K)')
                 plt.legend()
                 plt.show()
                 
-            if False:
+            if True:
                 # for T in [600, ]:
                 for T in [100, 200, 300, 400, 500, 600, 700, 800]:
                     plot_chem_vs_pressure(xls_name, sheet=sheet_name_convex_hull, T=T)

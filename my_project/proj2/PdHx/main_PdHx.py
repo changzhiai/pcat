@@ -776,7 +776,15 @@ def plot_count_nn_hist(ads='CO'):
         if int(num_H_nn) != 0:
             for _ in range(int(num_H_nn)):
                 hist_H_nn.append(BE)
-    start, stop, spacing = -2, 2.5, 0.075
+    if ads == 'HOCO':
+        start, stop, spacing = -1.5, 1.5, 0.075
+    elif ads == 'CO':
+        start, stop, spacing = -2.5, 0.5, 0.075
+    elif ads == 'H':
+        start, stop, spacing = -1.0, 1.0, 0.075
+    elif ads == 'OH':
+        start, stop, spacing = -0.25, 2.75, 0.075
+    # start, stop, spacing = -2, 2.5, 0.075
     bins = np.arange(start, stop, spacing)
     colors = ('green', 'blue', 'orange', 'red', 'magenta'); fontsize = 14
     zorders=[1, 2, 3]
@@ -854,68 +862,65 @@ if __name__ == '__main__':
     sheet_name_dGs = 'dGs'
     
     db = connect(db_name)
-    if False: # database to excel
-        # db = del_partial_db(db)
-        db2xls(system_name, xls_name, db, ref_eles, sheet_name_origin, sheet_name_stable, 
-               sheet_free_energy, sheet_binding_energy, sheet_cons, sheet_name_allFE, sheet_selectivity, sheet_name_dGs,
-               cutoff=2.8)
-        print('Data done')
+    if 1:
+        if False: # database to excel
+            # db = del_partial_db(db)
+            db2xls(system_name, xls_name, db, ref_eles, sheet_name_origin, sheet_name_stable, 
+                   sheet_free_energy, sheet_binding_energy, sheet_cons, sheet_name_allFE, sheet_selectivity, sheet_name_dGs,
+                   cutoff=2.8)
+            print('Data done')
+        
+        if True: # plot
+            plot_free_enegy(xls_name, sheet_free_energy, fig_dir)
+            plot_scaling_relations(xls_name, sheet_binding_energy, fig_dir)
+            # plot_selectivity(xls_name, sheet_selectivity, fig_dir)
+            plot_activity(xls_name, sheet_binding_energy, fig_dir)
+        
+        if True:
+            # plot_BE_as_Hcons(xls_name, sheet_cons)
+            # plot_cons_as_layers_with_ads(obj='H')
+            # plot_bar_H_distribution(save=False)
+            plot_line_H_distribution(save=False) # candidates distribution
+        
+        if False:
+            plot_layers_as_strutures(db=db, obj='H', removeX=False) # dft_PdHx_lowest; change db to the lowest
+            # binding_energy_distribution(ads='CO')
+            # plot_count_nn(ads='CO')
+            # plot_count_nn_stack(ads='CO')
+            # plot_count_nn_hist(ads='CO')
+        
+        if True: # statistical distribution
+            for adsorbate in ['HOCO', 'CO', 'H', 'OH']:
+            # for adsorbate in ['OH']:
+                # binding_energy_distribution(ads=adsorbate)
+                # plot_count_nn(ads=adsorbate)
+                # plot_count_nn_stack(ads=adsorbate)
+                plot_count_nn_hist(ads=adsorbate)
     
-    if True: # plot
-        plot_free_enegy(xls_name, sheet_free_energy, fig_dir)
-        plot_scaling_relations(xls_name, sheet_binding_energy, fig_dir)
-        # plot_selectivity(xls_name, sheet_selectivity, fig_dir)
-        plot_activity(xls_name, sheet_binding_energy, fig_dir)
-    
-    if True:
+        if False:
+            # view(db_name)
+            # view_ads('H', all_sites=False, save=True)
+            view_db(db_name)    
+            # view_ads('surface', all_sites=True)
+            # views(formula='Pd51Ti13H59', all_sites=True)
+    else: # test
+        # plot_line_H_distribution(save=False)
+        # db_ads, _ = get_ads_db(ads='surface')
+        # plot_layers_as_strutures(db=db_ads, obj='H', removeX=False)
+        # plot_layers_as_strutures(db=db, obj='H', removeX=False) # dft_PdHx_lowest when database is the lowest db
+        
+        # plot_free_enegy(xls_name, sheet_free_energy, fig_dir)
+        # plot_scaling_relations(xls_name, sheet_binding_energy, fig_dir)
+        # plot_activity(xls_name, sheet_binding_energy, fig_dir)
         # plot_BE_as_Hcons(xls_name, sheet_cons)
+        # plot_pourbaix_diagram(xls_name, sheet_name_dGs)
+        # plot_chemical_potential(xls_name, sheet_name_origin)
+    
+        # plot_cons_as_layers(obj='Pd')
+        # plot_cons_as_layers(obj='H')
+        # sort_db(db)
+        # plot_cons_as_layers(db_name=db_name, obj='H', removeX=False)
         # plot_cons_as_layers_with_ads(obj='H')
-        # plot_bar_H_distribution(save=False)
-        plot_line_H_distribution(save=False) # candidates distribution
-    
-    if False:
-        plot_layers_as_strutures(db=db, obj='H', removeX=False) # dft_PdHx_lowest; change db to the lowest
-        # binding_energy_distribution(ads='CO')
-        # plot_count_nn(ads='CO')
-        # plot_count_nn_stack(ads='CO')
-        # plot_count_nn_hist(ads='CO')
-    
-    if True: # statistical distribution
-        for adsorbate in ['HOCO', 'CO', 'H', 'OH']:
-        # for adsorbate in ['OH']:
-            # binding_energy_distribution(ads=adsorbate)
-            # plot_count_nn(ads=adsorbate)
-            # plot_count_nn_stack(ads=adsorbate)
-            plot_count_nn_hist(ads=adsorbate)
-    
-    if False:
-        # view(db_name)
-        # view_ads('H', all_sites=False, save=True)
-        view_db(db_name)
-        # view_ads('surface', all_sites=True)
-        # views(formula='Pd51Ti13H59', all_sites=True)
-    # plot_line_H_distribution(save=False)
-    # db_ads, _ = get_ads_db(ads='surface')
-    # plot_layers_as_strutures(db=db_ads, obj='H', removeX=False)
-    # plot_layers_as_strutures(db=db, obj='H', removeX=False) # dft_PdHx_lowest when database is the lowest db
-    
-    # plot_free_enegy(xls_name, sheet_free_energy, fig_dir)
-    # plot_scaling_relations(xls_name, sheet_binding_energy, fig_dir)
-    # plot_activity(xls_name, sheet_binding_energy, fig_dir)
-    # plot_BE_as_Hcons(xls_name, sheet_cons)
-    # plot_pourbaix_diagram(xls_name, sheet_name_dGs)
-    # plot_chemical_potential(xls_name, sheet_name_origin)
-    
-    
-    
-    
-    # plot_cons_as_layers(obj='Pd')
-    
-    
-    # plot_cons_as_layers(obj='H')
-    # sort_db(db)
-    # plot_cons_as_layers(db_name=db_name, obj='H', removeX=False)
-    # plot_cons_as_layers_with_ads(obj='H')
-    # sort_db(db)
-    # print(len(db_name))
-    # plot_H_distribution()
+        # sort_db(db)
+        # plot_H_distribution()
+        print(len(db_name))

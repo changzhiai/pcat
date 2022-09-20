@@ -36,6 +36,7 @@ import matplotlib as mpl
 from cycler import cycler
 plt.rcParams.update({'mathtext.default':  'regular', 'figure.dpi': 300})
 
+
 def to_xls(xls_name_Pourbaix):
     """Write data to excel"""
     kB = const.kB
@@ -150,7 +151,11 @@ def plot_1d(xls_name_Pourbaix):
         dG_Hx_dps_sub = df_sub['dG_Hx_dps']
         # color = eval(colors[formu])
         color = colors[formu]
-        line, = plt.plot(Us_sub, dG_Hx_dps_sub, c=color, label=f'{formu}')
+        SHE = True
+        if SHE: # SHE
+            line, = plt.plot(Us_sub, dG_Hx_dps_sub, c=color, label=f'{formu}')
+        else: # RHE
+            line, = plt.plot(Us_sub-kB * T * pH * np.log(10), dG_Hx_dps_sub, c=color, label=f'{formu}')
         # c = line.get_color()
         # colors[formu] = c
         print(formu, colors[formu])
@@ -163,13 +168,16 @@ def plot_1d(xls_name_Pourbaix):
         color = colors[formu]
         # plt.scatter(row['Us'], row['dG_Hx_dps'], c=color, linewidth=1)
         plt.axvspan(row['Us'].values[0], row['Us'].values[0]+.03, facecolor=color, alpha=1)
-
-    plt.xlabel('$U_{SHE}$')
+    
+    if SHE: # SHE
+        plt.xlabel('$U_{SHE}$')
+    else: # RHE
+        plt.xlabel('$U_{RHE}$')
     plt.ylabel('$\Delta G$ (eV/)')
-    plt.legend()
+    plt.legend(loc='upper right')
     plt.tight_layout()
     plt.xlim(U)
-    plt.axvline(x = -0.5, color = 'w', label = 'axvline - full height')
+    # plt.axvline(x = -0.5, color = 'w', label = 'axvline - full height')
     plt.show()
     print(df_min['formulas'].unique())
 
@@ -259,14 +267,14 @@ def pourbaix_diagram(U, pH, gen=True):
         False means no generating excel files and only read it
     """
     if type(pH) == int or type(pH) == float:
-        xls_name_Pourbaix_1d = f'./data/{system_name}_read_Pourbaix_diagram_1d.xlsx' # write
+        xls_name_Pourbaix_1d = f'./data/{system_name}_write_Pourbaix_diagram_1d.xlsx' # write
         if gen:
             print('\nGenerate 1d data')
             to_xls(xls_name_Pourbaix_1d)
         print('\nPlotting 1d')
         plot_1d(xls_name_Pourbaix_1d)
     else:
-        xls_name_Pourbaix_2d = f'./data/{system_name}_read_Pourbaix_diagram_2d.xlsx' # write
+        xls_name_Pourbaix_2d = f'./data/{system_name}_write_Pourbaix_diagram_2d.xlsx' # write
         if gen:
             print('\nGenerate 2d data')
             to_xls(xls_name_Pourbaix_2d)
@@ -279,14 +287,17 @@ def pourbaix_diagram(U, pH, gen=True):
 if __name__ == '__main__':
     T = 297.15
     N, M = 200, 200
+    kB = const.kB
     
     # system_name = 'collect_vasp_coverage_H'
-    system_name = 'collect_vasp_candidates_PdHx_r8'
+    system_name = 'collect_vasp_candidates_PdHx_all_sites_stdout'
     
-    xls_name = f'./data/{system_name}_read_pourbaix.xlsx' # read
+    # xls_name = f'./data/{system_name}_read_pourbaix.xlsx' # read
+    xls_name = f'./data/{system_name}_read_pourbaix_diagram.xlsx' # read
     fig_dir = './figures'
     
     sheet_name_origin = 'Origin'
+    # sheet_name_origin = 'Origin2' # has Pd64H65
     sheet_name_dGs = 'dGs'
     sheet_name_color_list = 'color_list'
     sheet_name_all = 'all'
@@ -294,7 +305,7 @@ if __name__ == '__main__':
     
     U = [-1, 1]
     
-    pH = 0
+    pH = 7.3
     pourbaix_diagram(U, pH, gen=True)
     
     # pH = [0, 14]
