@@ -203,9 +203,7 @@ def get_quantities_P(xls_name, sheet, P=100):
         df_new = df_new.append(row)
     
     # df = df.loc[(df['temp_H2']==T) | (df['cons_H']==0) | (df['cons_H']==1)]
-    
     df_new = df_new.sort_values(by=['$\mu$_H'], ascending=False)
-    
     # df = get_real_quan(df)
     print(df_new)
     return df_new

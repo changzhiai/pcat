@@ -7,7 +7,7 @@ Created on Tue Jan  4 13:55:28 2022
 # import sys
 # sys.path.append("../../../")
 
-from pcat.preprocessing.db2xls_beef import db2xls
+from pcat.preprocessing.db2xls import db2xls
 from ase.db import connect
 from pcat.lib.io import pd_read_excel
 from pcat.free_energy import CO2RRFED
@@ -20,11 +20,8 @@ import matplotlib.pyplot as plt
 from pcat.pourbaix import PourbaixDiagram
 import numpy as np
 import pandas as pd
-from matplotlib.patches import Ellipse
-#from matplotlib.patches import Ellipsoid
-from scipy.stats import norm, chi2
-import matplotlib as mpl
-from cycler import cycler
+import seaborn as sns
+from matplotlib.patches import Rectangle
 
 def concatenate_db(db_name1, db_name2, db_tot):
     """Contatenate two database into the total one"""
@@ -51,6 +48,15 @@ def concatenate_all_db(db_tot: str, db_names: list ):
             db = connect(db_name)
             for row in db.select():
                 db_tot.write(row)
+                
+def remove_specific_rows(db_name, condition):
+    """Remove some rows according to specific condition"""
+    db = connect(db_name)
+    del_rows = []
+    for row in db.select(condition):
+        del_rows.append(row)
+    db.delete(del_rows)
+    return db
 
 def views(formula, all_sites=False):
     """View specific structures
@@ -210,7 +216,8 @@ def plot_cons_as_layers(db='', obj='H', removeX=False, minusH=True):
         plt.ylim(0, 1.18)
         if obj == 'H':
             title = formula + ', H:' + str(round(con_tot, 3))
-            plt.text(0.05, 0.92, title, fontsize=8, horizontalalignment='left', verticalalignment='center', transform=ax.transAxes, color='black', fontweight='bold')
+            plt.text(0.05, 0.92, title, fontsize=8, horizontalalignment='left', 
+                     verticalalignment='center', transform=ax.transAxes, color='black', fontweight='bold')
             # plt.title(formula + ', H:' + str(round(con_tot, 3)), fontsize=8)
             if m2==0:
                 plt.ylabel('Concentration of H', fontsize=10)
@@ -236,6 +243,7 @@ def plot_layers_as_strutures(db='', obj='H', removeX=False, minusH=False):
     else:
         db = db
     # fig = plt.figure(figsize=(16,16))
+    fig = plt.figure(dpi=300)
     ly1s = []
     ly2s = []
     ly3s = []
@@ -270,26 +278,29 @@ def plot_layers_as_strutures(db='', obj='H', removeX=False, minusH=False):
     df = pd.DataFrame(tuples)
     df = df.sort_values(by=['con_tots'])
     # print(df)
+    colors = ('#1f77b4', '#ff7f0e', '#2ca02c', '#d62728'); fontsize = 14
     if False:
         with pd.ExcelWriter(xls_name, engine='openpyxl', mode='a', if_sheet_exists='replace') as writer:
             df.to_excel(writer, sheet_name='layers_as_structures', index=False, float_format='%.8f')
-    plt.plot(df['con_tots'], df['ly1s'], '-o', label='1st layer') # bottom layer
-    plt.plot(df['con_tots'], df['ly2s'], '-o', label='2nd layer')
-    plt.plot(df['con_tots'], df['ly3s'], '-o', label='3rd layer')
-    plt.plot(df['con_tots'], df['ly4s'], '-o', label='4th layer')
+    a,  = plt.plot(df['con_tots'], df['ly4s'], '-o', label='1st layer', color=colors[0]) # top layer
+    b,  = plt.plot(df['con_tots'], df['ly3s'], '-o', label='2nd layer', color=colors[1])
+    c,  = plt.plot(df['con_tots'], df['ly2s'], '-o', label='3rd layer', color=colors[2])
+    d,  = plt.plot(df['con_tots'], df['ly1s'], '-o', label='4th layer', color=colors[3]) # bottom layer
+    # a,  = plt.plot(df['con_tots'], df['ly4s'], '-o', label='1st layer (top)') # top layer
+    # b,  = plt.plot(df['con_tots'], df['ly3s'], '-o', label='2nd layer')
+    # c,  = plt.plot(df['con_tots'], df['ly2s'], '-o', label='3rd layer')
+    # d,  = plt.plot(df['con_tots'], df['ly1s'], '-o', label='4th layer') # bottom layer
     plt.xlabel('Concentration of H', fontsize=10)
     plt.ylabel('H concentration of each layer', fontsize=10)
     plt.legend()
+    print(a.get_color(), b.get_color(), c.get_color(), d.get_color())
     # plt.show()
     # name_fig_cons_as_lys=f'{fig_dir}/{system_name}_cons_as_lys.jpg'
     # fig.savefig(name_fig_cons_as_lys, dpi=300, bbox_inches='tight')
         
-
 def plot_cons_as_layers_with_ads(obj='H'):
     """Plot concentrations as a function of layers
     for optimized DFT suface and surface with intermediates
-    
-    5 colomn bars chart with n rows
     
     obj = 'H' or 'Pd'
     """
@@ -306,8 +317,7 @@ def plot_cons_as_layers_with_ads(obj='H'):
     fig = plt.figure(figsize=(16,16*4))
     for id in uniqueids:
         df_sub = df.loc[df['Origin_id'].astype(int) == id]
-        df_hoco = df_sub[df_sub['Adsorbate']=='HOCO'] # # make virtual surface template
-        assert len(df_hoco)==1
+        df_hoco = df_sub[df_sub['Adsorbate']=='HOCO']
         df_surf = {'Id': df_hoco.Id.values[0],
                    'Origin_id': df_hoco.Origin_id.values[0],
                    'Surface': df_hoco.Surface.values[0],
@@ -316,7 +326,7 @@ def plot_cons_as_layers_with_ads(obj='H'):
                    'Site': 'top1',
                    'Adsorbate': 'surface',
                    }
-        df_sub = df_sub.append(df_surf, ignore_index = True) # add virtual surface row
+        df_sub = df_sub.append(df_surf, ignore_index = True)
         custom_dict = {'surface':0, 'HOCO': 1, 'CO': 2, 'H': 3, 'OH':4} 
         df_sub = df_sub.sort_values(by=['Adsorbate'], key=lambda x: x.map(custom_dict))
         
@@ -387,7 +397,7 @@ def plot_BE_as_Hcons(xls_name, sheet_cons):
     E_CO = df['E(*CO)'].values
     E_H = df['E(*H)'].values
     E_OH = df['E(*OH)'].values
-    plt.figure()
+    plt.figure(dpi=300)
     plt.plot(cons_H, E_HOCO, '-o', c='blue', label='*HOCO')
     plt.plot(cons_H, E_CO, '-o', c='orange', label='*CO')
     plt.plot(cons_H, E_H, '-o', c='green', label='*H')
@@ -503,157 +513,6 @@ def plot_selectivity(xls_name, sheet_selectivity, fig_dir):
     
     selectivity = Selectivity(df, fig_name=name_fig_select)
     selectivity.plot(save=True, title='', xlabel='Different surfaces', tune_tex_pos=1.5, legend=False)
-
-def cov_ellipse(cov, q=None, nsig=None, **kwargs):
-    """Covariance"""
-    if q is not None:
-        q = np.asarray(q)
-    elif nsig is not None:
-        q = 2 * norm.cdf(nsig) - 1
-    else:
-        raise ValueError('One of `q` and `nsig` should be specified.')
-    r2 = chi2.ppf(q, 2)
-    val, vec = np.linalg.eigh(cov)
-    width, height = 2 * np.sqrt(val[:, None] * r2)
-    rotation = np.degrees(np.arctan2(*vec[::-1, 0]))
-    return width, height, rotation
-    
-def plot_point_cov(points, nstd=2, ax=None, **kwargs):
-    pos = points.mean(axis=0)
-    cov = np.cov(points, rowvar=False)
-    return cov, pos
-
-def str_to_array(strs):
-    """Convert string to array"""
-    strs = strs[1:-1].split() # by space in defaut
-    new_list = []
-    for s in strs:
-        s = s.strip()
-        # print(s)
-        new_list.append(float(s))
-    return np.array(new_list)
-
-def plot_energies(x):
-    """Test energies span"""
-    plt.plot(x)
-    plt.show()
-
-def plot_ens_E_HOCO_E_H(xls_name, sheet_selectivity, fig_dir):
-    """Plot ensemble selectivity of CO2RR and HER"""
-    df = pd_read_excel(filename=xls_name, sheet=sheet_selectivity)
-    fig = plt.figure(figsize=(7,7))
-    
-    nums_row = len(df.index)
-    NUM_COLORS = nums_row # 12
-    cm = plt.get_cmap(plt.cm.jet)
-    cs = [cm(1.*i/NUM_COLORS) for i in range(NUM_COLORS)]
-    mpl.rcParams['axes.prop_cycle'] = cycler(color=cs)
-    # from matplotlib.axes._axes import _log as matplotlib_axes_logger
-    formulas_set = df.index.unique()
-    colors = {}
-    hexs = []
-    for i, formu in enumerate(formulas_set):
-        hex_temp = mpl.colors.to_hex(cs[i])
-        colors[formu] = hex_temp
-        hexs.append(hex_temp)
-        # colors[formu] = cs[i]
-    tuples = {'formulas': formulas_set,
-              'colors': hexs,
-              }
-    df_color = pd.DataFrame(tuples) # color list
-    
-    size1=12; size2=12; fig = plt.figure(figsize=(8,7));
-    plt.xticks(fontsize = size2); plt.yticks(fontsize = size2); ax=fig.gca()
-    
-    plt.rcParams['grid.linewidth'] = 0.5
-    for i,row in df.iterrows():
-        x = 'E(*HOCO)'
-        y = 'E(*H)'
-        # x = 'E(*CO)'
-        # y = 'E(*HOCO)'
-        Exval = row[x+'_ens']
-        Eyval = row[y+'_ens']
-        Exval = str_to_array(Exval)+row[x]
-        Eyval = str_to_array(Eyval)+row[y]
-        # plot_energies(Exval)
-        # print(Exval)
-        # print(Eyval)
-        # print(Exval.mean(), Exval.std(), row['E(*H)'])
-        print(Eyval.mean(), Eyval.std(), row['E(*HOCO)'])
-        color = df_color[df_color['formulas']==i].colors.values[0]
-        cov1, pos1=plot_point_cov(np.transpose([Exval,Eyval]))
-        hej2=cov_ellipse(cov1, nsig=1)
-        ellip=Ellipse(xy=pos1, width=hej2[0], height=hej2[1], angle=hej2[2], color=color, alpha=0.2)
-        plt.errorbar(np.asarray(Exval).mean(), np.asarray(Eyval).mean(), np.asarray(Eyval).std(), np.asarray(Exval).std(), c=color,lw=3,fmt='o') 
-        # ax=fig.gca()
-        ax.add_patch(ellip)
-        ax.text(np.asarray(Exval).mean(), np.asarray(Eyval).mean(), i,color='black', fontsize=size1)
-        plt.xlabel('$\Delta${}'.format(x),fontsize=size2)
-        plt.ylabel('$\Delta${}'.format(y),fontsize=size2)
-        plt.xlim([-0.75,1.25])
-        plt.xticks(np.arange(-0.75,1.25, step=0.25))
-        plt.ylim([-0.75,1.25])
-        plt.plot([-1,1.5],[-1,1.5],'k--',lw=2)
-        plt.grid(True)
-        
-def plot_ens_scaling_relation(x, y, xls_name, sheet_selectivity, fig_dir):
-    """Plot ensemble selectivity of CO2RR and HER"""
-    df = pd_read_excel(filename=xls_name, sheet=sheet_selectivity)
-    fig = plt.figure(figsize=(7,7))
-    
-    nums_row = len(df.index)
-    NUM_COLORS = nums_row # 12
-    cm = plt.get_cmap(plt.cm.jet)
-    cs = [cm(1.*i/NUM_COLORS) for i in range(NUM_COLORS)]
-    mpl.rcParams['axes.prop_cycle'] = cycler(color=cs)
-    # from matplotlib.axes._axes import _log as matplotlib_axes_logger
-    formulas_set = df.index.unique()
-    colors = {}
-    hexs = []
-    for i, formu in enumerate(formulas_set):
-        hex_temp = mpl.colors.to_hex(cs[i])
-        colors[formu] = hex_temp
-        hexs.append(hex_temp)
-        # colors[formu] = cs[i]
-    tuples = {'formulas': formulas_set,
-              'colors': hexs,
-              }
-    df_color = pd.DataFrame(tuples) # color list
-    
-    size1=14; size2=14; fig = plt.figure(figsize=(7,7));
-    plt.xticks(fontsize = size2); plt.yticks(fontsize = size2); ax=fig.gca()
-    
-    plt.rcParams['grid.linewidth'] = 0.5
-    for i,row in df.iterrows():
-        # x = 'E(*HOCO)'
-        # y = 'E(*H)'
-        # x = 'E(*CO)'
-        # y = 'E(*HOCO)'
-        Exval = row[x+'_ens']
-        Eyval = row[y+'_ens']
-        Exval = str_to_array(Exval)+row[x]
-        Eyval = str_to_array(Eyval)+row[y]
-        # plot_energies(Exval)
-        # print(Exval)
-        # print(Eyval)
-        # print(Exval.mean(), Exval.std(), row['E(*H)'])
-        print(Eyval.mean(), Eyval.std(), row['E(*HOCO)'])
-        color = df_color[df_color['formulas']==i].colors.values[0]
-        cov1, pos1=plot_point_cov(np.transpose([Exval,Eyval]))
-        hej2=cov_ellipse(cov1, nsig=1)
-        ellip=Ellipse(xy=pos1, width=hej2[0], height=hej2[1], angle=hej2[2], color=color, alpha=0.2)
-        plt.errorbar(np.asarray(Exval).mean(), np.asarray(Eyval).mean(), np.asarray(Eyval).std(), np.asarray(Exval).std(), c=color,lw=3,fmt='o') 
-        # ax=fig.gca()
-        ax.add_patch(ellip)
-        ax.text(np.asarray(Exval).mean(), np.asarray(Eyval).mean(), i,color='black', fontsize=size1)
-        plt.xlabel('$\Delta${}'.format(x),fontsize=size2)
-        plt.ylabel('$\Delta${}'.format(y),fontsize=size2)
-        # plt.xlim([-0.75,1.25])
-        # plt.xticks(np.arange(-0.75,1.25, step=0.25))
-        # plt.ylim([-0.75,1.25])
-        # plt.plot([-1,1.5],[-1,1.5],'k--',lw=2)
-        plt.grid(True)
-    
     
 def plot_activity(xls_name, sheet_binding_energy, fig_dir):
     """Plot activity of CO2RR"""
@@ -677,7 +536,8 @@ def plot_activity(xls_name, sheet_binding_energy, fig_dir):
 def del_partial_db(db):
     """Delet uncomplete database"""
     # db = connect(db_name)
-    del_ids = [142, 141, 140, 139, 138]
+    # del_ids = [142, 141, 140, 139, 138]
+    del_ids = [16]
     # del_ids = np.arange(311)
     del_rows = []
     for row in db.select():
@@ -789,35 +649,215 @@ def plot_line_H_distribution(save=False):
     """Plot all H distributions in line plot"""
     for system in ['surface', 'HOCO', 'CO', 'OH', 'H']: # plot for vasp
         db_ads, _ = get_ads_db(ads=system)
-        fig = plt.figure()
+        fig = plt.figure(dpi=300)
         if system != 'H':
             plot_layers_as_strutures(db=db_ads, obj='H', removeX=False)
         else:
             plot_layers_as_strutures(db=db_ads, obj='H', removeX=False, minusH=True)
-        st = plt.suptitle(str(system))
-        st.set_y(0.92)
+        # st = plt.suptitle(str(system))
+        # st.set_y(0.92)
         # fig.subplots_adjust(top=0.85)
         plt.show()
         if save==True:
             fig.savefig(fig_dir+'/{}.png'.format(system))
+
+def binding_energy_distribution(ads='CO'):
+    """Analysis binding energy distribution"""
+    df = pd_read_excel(xls_name, sheet_name_origin)
+    df_sub = df.loc[df['Adsorbate'] == ads]
+    # df_sub = df_sub.set_index('Origin_id')
+    BE = df_sub['BE']
+    # print(BE)
+    sns.set_context("paper"); fontsize = 14
+    sns.displot(data=BE, kde=True, facet_kws=dict(despine=False))   
+    plt.xlabel('$\Delta E({})$'.format(str('*'+ads)), fontsize=fontsize)
+    plt.ylabel('Frequency', fontsize=fontsize)
+    plt.xticks(fontsize=fontsize)
+    plt.yticks(fontsize=fontsize)
+    plt.title(f'{len(df_sub.index)} datapoints', fontsize=fontsize)
+    plt.gcf().set_size_inches(8, 6)
+    plt.show()
+
+def plot_count_nn(ads='CO'):
+    """Count how many different types of atoms neibour near adsorbate"""
+    df = pd_read_excel(xls_name, sheet_name_origin)
+    df_sub = df.loc[df['Adsorbate'] == ads]
+    num_Pd_nn = df_sub['num_Pd_nn']
+    # num_Ti_nn = df_sub[f'num_{ref_eles[1]}_nn']
+    num_H_nn = df_sub['num_H_nn']
+    BE = df_sub['BE']
+    colors = ('green', 'blue', 'orange', 'red', 'magenta'); fontsize = 14
+    alpha = 0.5; width = 0.05
+    plt.figure()
+    plt.bar(BE, num_Pd_nn, alpha=alpha, color=colors[0], width=width, label='Pd')
+    # plt.bar(BE, num_Ti_nn, alpha=alpha, color=colors[1], width=width, label='Ti')
+    plt.bar(BE, num_H_nn, alpha=alpha, color=colors[2], width=width, label='H')
+    plt.xlabel('$\Delta E({})$'.format(str('*'+ads)), fontsize=fontsize)
+    plt.ylabel('Counts', fontsize=fontsize)
+    plt.xticks(fontsize=fontsize)
+    plt.yticks(fontsize=fontsize)
+    plt.legend(fontsize=fontsize)
+    plt.title(f'{len(df_sub.index)} datapoints', fontsize=fontsize)
+    # plt.gcf().set_size_inches(8, 6)
+    ax = plt.gca()
+    ymin, ymax = ax.get_ylim()
+    if ads == 'CO':
+        bestx1 = -0.8
+        bestx2 = 0.
+        x = np.arange(bestx1, bestx2, 0.01)
+        # ax.add_patch(Rectangle((bestx1, ymax-0.2), bestx2, ymax, facecolor = 'red', fill=True, lw=0))
+        plt.fill_between(x, ymin, ymax, 
+                color='black', alpha=0.2, transform=ax.get_xaxis_transform(), zorder=-1)
+    elif ads == 'HOCO':
+        bestx1 = -0.8
+        bestx2 = 0.4
+        x = np.arange(bestx1, bestx2, 0.01)
+        # ax.add_patch(Rectangle((bestx1, ymax-0.2), bestx2, ymax, facecolor = 'red', fill=True, lw=0))
+        plt.fill_between(x, ymin, ymax, 
+                color='black', alpha=0.2, transform=ax.get_xaxis_transform(), zorder=-1)
+    plt.show()
     
+def plot_count_nn_stack(ads='CO'):
+    """Count how many different types of atoms neibour near adsorbate"""
+    df = pd_read_excel(xls_name, sheet_name_origin)
+    df_sub = df.loc[df['Adsorbate'] == ads]
+    num_Pd_nn = df_sub['num_Pd_nn']
+    num_Ti_nn = df_sub[f'num_{ref_eles[1]}_nn']
+    num_H_nn = df_sub['num_H_nn']
+    BE = df_sub['BE']
+    colors = ('green', 'blue', 'orange', 'red', 'magenta'); fontsize = 14
+    alpha = 1; width = 0.01
+    plt.bar(BE, num_Pd_nn, alpha=alpha, color=colors[0], width=width, label='Pd')
+    # plt.bar(BE, num_Ti_nn, bottom=num_Pd_nn, alpha=alpha, color=colors[1], width=width, label='Ti')
+    plt.bar(BE, num_H_nn, bottom=num_Pd_nn+num_Ti_nn, alpha=alpha, color=colors[2], width=width, label='H')
+    plt.xlabel('$\Delta E({})$'.format(str('*'+ads)), fontsize=fontsize)
+    plt.ylabel('Counts', fontsize=fontsize)
+    plt.xticks(fontsize=fontsize)
+    plt.yticks(fontsize=fontsize)
+    plt.legend(fontsize=fontsize)
+    plt.title(f'{len(df_sub.index)} datapoints', fontsize=fontsize)
+    plt.gcf().set_size_inches(8, 6)
+    ax = plt.gca()
+    ymin, ymax = ax.get_ylim()
+    if ads == 'CO':
+        bestx1 = -0.8
+        bestx2 = 0.
+        x = np.arange(bestx1, bestx2, 0.01)
+        plt.fill_between(x, ymin, ymax, 
+                color='black', alpha=0.2, transform=ax.get_xaxis_transform(), zorder=-1)
+    elif ads == 'HOCO':
+        bestx1 = -0.8
+        bestx2 = 0.4
+        x = np.arange(bestx1, bestx2, 0.01)
+        plt.fill_between(x, ymin, ymax, 
+                color='black', alpha=0.2, transform=ax.get_xaxis_transform(), zorder=-1)
+    plt.show()
+
+def plot_count_nn_hist(ads='CO'):
+    """Plot histogram of statistics of atoms"""
+    df = pd_read_excel(xls_name, sheet_name_origin)
+    df_sub = df.loc[df['Adsorbate'] == ads]
+    hist_Pd_nn = []
+    hist_Ti_nn = []
+    hist_H_nn = []
+    plt.figure()
+    fig, ax = plt.subplots()
+    for i, row in df_sub.iterrows():
+        num_Pd_nn = row['num_Pd_nn']
+        num_Ti_nn = row[f'num_{ref_eles[1]}_nn']
+        num_H_nn = row['num_H_nn']
+        BE = row['BE']
+        if int(num_Pd_nn) != 0:
+            for _ in range(int(num_Pd_nn)):
+                hist_Pd_nn.append(BE)
+        if int(num_Ti_nn) != 0:
+            for _ in range(int(num_Ti_nn)):
+                hist_Ti_nn.append(BE)
+        if int(num_H_nn) != 0:
+            for _ in range(int(num_H_nn)):
+                hist_H_nn.append(BE)
+    if ads == 'HOCO':
+        start, stop, spacing = -1.5, 1.5, 0.075
+    elif ads == 'CO':
+        start, stop, spacing = -2.5, 0.5, 0.075
+    elif ads == 'H':
+        start, stop, spacing = -1.0, 1.0, 0.075
+    elif ads == 'OH':
+        start, stop, spacing = -0.25, 2.75, 0.075
+    # start, stop, spacing = -2, 2.5, 0.075
+    bins = np.arange(start, stop, spacing)
+    colors = ('green', 'blue', 'orange', 'red', 'magenta'); fontsize = 14
+    zorders=[1, 2, 3]
+    plt.hist(hist_Pd_nn, bins, facecolor=colors[0], ec='black', alpha=0.75, histtype='stepfilled', zorder=zorders[0], label='Pd')
+    # plt.hist(hist_Ti_nn, bins, facecolor=colors[1], ec='black', alpha=0.75, histtype='stepfilled', zorder=zorders[1], label='Ti')
+    plt.hist(hist_H_nn, bins, facecolor=colors[2], ec='black', alpha=0.75, histtype='stepfilled', zorder=zorders[2], label='H')
+    print(hist_H_nn)
+    from scipy.stats import norm
+    if ads == 'CO':
+        data = [x for x in hist_H_nn if x>-1]
+    # elif ads == 'H':
+    #     data = [x for x in hist_H_nn if x>0]
+    else:
+        data=hist_H_nn
+    mu, std = norm.fit(data) 
+    xmin, xmax = plt.xlim()
+    # xmin, xmax = min(data), max(data)
+    # bin_width = (xmax - xmin) / len(bins)
+    x = np.linspace(xmin, xmax, 100)
+    p = norm.pdf(x, mu, std)
+    if ads == 'CO':
+        N=3
+    else:
+        N=5
+    plt.plot(x, p*N, colors[2], linewidth=2)
+    print("Fit Values: {:.2f} and {:.2f}".format(mu, std))
+    
+    plt.hist(hist_Pd_nn + hist_Ti_nn + hist_H_nn, bins, facecolor='grey', ec='black', alpha=0.75, histtype='stepfilled', zorder=0, label='total')
+    plt.xlim([start, stop])
+    plt.xlabel('$\Delta E({})$'.format(str('*'+ads)), fontsize=fontsize)
+    plt.ylabel('Frequency', fontsize=fontsize)
+    plt.xticks(fontsize=fontsize)
+    plt.yticks(fontsize=fontsize)
+    # plt.title(f'{len(df_sub.index)} datapoints', fontsize=fontsize)
+    plt.legend()
+    plt.gcf().set_size_inches(8, 6)
+    ymin, ymax = ax.get_ylim()
+    if ads == 'CO':
+        bestx1 = -0.8
+        bestx2 = 0.
+        x = np.arange(bestx1, bestx2, 0.01)
+        plt.fill_between(x, ymin, ymax, 
+                color='blue', alpha=0.2, transform=ax.get_xaxis_transform(), zorder=-1)
+    elif ads == 'HOCO':
+        bestx1 = -0.8
+        bestx2 = 0.4
+        x = np.arange(bestx1, bestx2, 0.01)
+        plt.fill_between(x, ymin, ymax, 
+                color='blue', alpha=0.2, transform=ax.get_xaxis_transform(), zorder=-1)
+    elif ads == 'H':
+        plt.ylim([0, 25.])
+    plt.show()
 
 if __name__ == '__main__':
-    if False:
-        db_tot = '../data/collect_vasp_PdHy_and_insert.db'
-        concatenate_db('../data/collect_vasp_PdHy_v3.db', '../data/collect_vasp_insert_PdHy.db', db_tot)
-    
+    # if False:
+    #     db_tot = '../data/collect_vasp_PdHy_and_insert.db'
+    #     concatenate_db('../data/collect_vasp_PdHy_v3.db', '../data/collect_vasp_insert_PdHy.db', db_tot)
+        
     # system_name = 'collect_ce_init_PdHx_r2_sort'
     # system_name = 'collect_ce_init_PdHx_r3'
     # system_name = 'collect_ce_init_PdHx_r4'
     # system_name = 'collect_ce_init_PdHx_r7'
     
+    # system_name = 'collect_vasp_candidates_PdHx'
     # system_name = 'collect_vasp_candidates_PdHx_r2_sort'
     # system_name = 'collect_vasp_candidates_PdHx_r3'
     # system_name = 'collect_vasp_candidates_PdHx_r4'
     # system_name = 'collect_vasp_candidates_PdHx_r7'
-    # system_name = 'collect_vasp_candidates_PdHx_beef_r8'
-    system_name = 'collect_vasp_candidates_PdHx_all_sites_beef'
+    # system_name = 'collect_vasp_candidates_PdHx_r8'
+    # system_name = 'collect_vasp_extra_H'
+    # system_name = 'collect_vasp_candidates_PdHx_CO_r7'
+    # system_name = 'collect_vasp_candidates_PdHx_all_sites'
+    system_name = 'collect_vasp_candidates_PdHx_all_sites_stdout'
     
     # system_name = 'candidates_PdHx_sort' # candidates surface of CE
     # system_name = 'surface_vasp' # vasp 
@@ -845,63 +885,67 @@ if __name__ == '__main__':
     sheet_name_dGs = 'dGs'
     
     db = connect(db_name)
-    db_molecule = connect('./data/beef_molecule.db')
-    if False: # database to excel
-        # db = del_partial_db(db)
-        db2xls(system_name, xls_name, db, db_molecule, ref_eles, 
-               sheet_name_origin, sheet_name_stable, sheet_free_energy, sheet_binding_energy, 
-               sheet_cons, sheet_name_allFE, sheet_selectivity, sheet_name_dGs)
-    
-    if False: # plot
-        plot_free_enegy(xls_name, sheet_free_energy, fig_dir)
-        plot_scaling_relations(xls_name, sheet_binding_energy, fig_dir)
-        # plot_selectivity(xls_name, sheet_selectivity, fig_dir)
-        plot_activity(xls_name, sheet_binding_energy, fig_dir)
-    
-    if False:
-        plot_BE_as_Hcons(xls_name, sheet_cons)
-        plot_line_H_distribution(save=False)
-        # plot_cons_as_layers_with_ads(obj='H') # 5 columns bar chart
-        # plot_bar_H_distribution(save=False) # plot bar chart for each adsorbate
+    if 0:
+        if False: # database to excel
+            # db = del_partial_db(db)
+            db2xls(system_name, xls_name, db, ref_eles, sheet_name_origin, sheet_name_stable, 
+                   sheet_free_energy, sheet_binding_energy, sheet_cons, sheet_name_allFE, sheet_selectivity, sheet_name_dGs,
+                   cutoff=2.8)
+            print('Data done')
         
+        if True: # plot
+            plot_free_enegy(xls_name, sheet_free_energy, fig_dir)
+            plot_scaling_relations(xls_name, sheet_binding_energy, fig_dir)
+            # plot_selectivity(xls_name, sheet_selectivity, fig_dir)
+            plot_activity(xls_name, sheet_binding_energy, fig_dir)
         
-    if True:    
-        plot_ens_E_HOCO_E_H(xls_name, sheet_selectivity, fig_dir)
-        plot_ens_scaling_relation('E(*HOCO)', 'E(*H)', xls_name, sheet_selectivity, fig_dir)
-        plot_ens_scaling_relation('E(*HOCO)', 'E(*CO)', xls_name, sheet_selectivity, fig_dir)
-        plot_ens_scaling_relation('E(*HOCO)', 'E(*OH)', xls_name, sheet_selectivity, fig_dir)
-        plot_ens_scaling_relation('E(*CO)', 'E(*OH)', xls_name, sheet_selectivity, fig_dir)
-        plot_ens_scaling_relation('E(*CO)', 'E(*H)', xls_name, sheet_selectivity, fig_dir)
-        plot_ens_scaling_relation('E(*OH)', 'E(*H)', xls_name, sheet_selectivity, fig_dir)
+        if True:
+            plot_BE_as_Hcons(xls_name, sheet_cons)
+            # plot_cons_as_layers_with_ads(obj='H')
+            # plot_bar_H_distribution(save=False)
+            plot_line_H_distribution(save=False) # candidates distribution
         
-    # x = 'E(*HOCO)'
-    # y = 'E(*H)'
+        if False:
+            plot_layers_as_strutures(db=db, obj='H', removeX=False) # dft_PdHx_lowest; change db to the lowest
+            # binding_energy_distribution(ads='CO')
+            # plot_count_nn(ads='CO')
+            # plot_count_nn_stack(ads='CO')
+            # plot_count_nn_hist(ads='CO')
+        
+        if True: # statistical distribution
+            for adsorbate in ['HOCO', 'CO', 'H', 'OH']:
+            # for adsorbate in ['OH']:
+                # binding_energy_distribution(ads=adsorbate)
+                # plot_count_nn(ads=adsorbate)
+                # plot_count_nn_stack(ads=adsorbate)
+                plot_count_nn_hist(ads=adsorbate)
     
-    # plot_line_H_distribution(save=False)
-    # db_ads, _ = get_ads_db(ads='surface')
-    # plot_layers_as_strutures(db=db_ads, obj='H', removeX=False)
-    # plot_layers_as_strutures(db=db, obj='H', removeX=False)
+        if False:
+            # view(db_name)
+            # view_ads('H', all_sites=False, save=True)
+            view_db(db_name)    
+            # view_ads('surface', all_sites=True)
+            # views(formula='Pd51Ti13H59', all_sites=True)
+    else: # test
+        # plot_line_H_distribution(save=False)
+        # db_ads, _ = get_ads_db(ads='surface')
+        # plot_layers_as_strutures(db=db_ads, obj='H', removeX=False)
+        # plot_layers_as_strutures(db=db, obj='H', removeX=False) # dft_PdHx_lowest when database is the lowest db
+        
+        # plot_free_enegy(xls_name, sheet_free_energy, fig_dir)
+        # plot_scaling_relations(xls_name, sheet_binding_energy, fig_dir)
+        # plot_activity(xls_name, sheet_binding_energy, fig_dir)
+        # plot_BE_as_Hcons(xls_name, sheet_cons)
+        # plot_pourbaix_diagram(xls_name, sheet_name_dGs)
+        # plot_chemical_potential(xls_name, sheet_name_origin)
     
-    # plot_free_enegy(xls_name, sheet_free_energy, fig_dir)
-    # plot_scaling_relations(xls_name, sheet_binding_energy, fig_dir)
-    # plot_activity(xls_name, sheet_binding_energy, fig_dir)
-    # views(formula='Pd51Ti13H59', all_sites=True)
-    # view(db_name)
-    # plot_BE_as_Hcons(xls_name, sheet_cons)
-    # plot_pourbaix_diagram(xls_name, sheet_name_dGs)
-    # plot_chemical_potential(xls_name, sheet_name_origin)
-    
-    # view_ads('H', all_sites=False, save=True)
-    # view_db(db_name)
-    # view_ads('surface', all_sites=True)
-    
-    # plot_cons_as_layers(obj='Pd')
-    
-    
-    # plot_cons_as_layers(obj='H')
-    # sort_db(db)
-    # plot_cons_as_layers(db_name=db_name, obj='H', removeX=False)
-    # plot_cons_as_layers_with_ads(obj='H')
-    # sort_db(db)
-    # print(len(db_name))
-    # plot_H_distribution()
+        # plot_cons_as_layers(obj='Pd')
+        # plot_cons_as_layers(obj='H')
+        # sort_db(db)
+        # plot_cons_as_layers(db_name=db_name, obj='H', removeX=False)
+        # plot_cons_as_layers_with_ads(obj='H')
+        # sort_db(db)
+        # plot_H_distribution()
+        for adsorbate in ['HOCO', 'CO', 'H', 'OH']:
+            plot_count_nn_hist(ads=adsorbate)
+        print(len(db_name))
