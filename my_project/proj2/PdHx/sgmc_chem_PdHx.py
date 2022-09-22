@@ -146,18 +146,19 @@ def get_quantities(xls_name, sheet, T=500):
     df = df.sort_values(by=['$\mu$_H'], ascending=False)
     
     # df = get_real_quan(df)
-    print(df)
+    # print(df)
     return df
 
 
-def plot_chem_vs_cons(xls_name, sheet, T):
+def plot_chem_vs_cons(xls_name, sheet, T, color):
     """Plot chemical potential vs. concentration of H"""
     df = get_quantities(xls_name, sheet, T=T)
 
     mu_Hs = df['$\mu$_H']
     cons_Hs = df['cons_H']
     # plt.figure()
-    plt.plot(cons_Hs, mu_Hs, '-o', label=str(T)+' K')
+    a, = plt.plot(cons_Hs, mu_Hs, '-o', label=str(T)+' K', color=color)
+    # print(a.get_color())
     plt.axhline(y=-3.579, color='r', linestyle='--')
     plt.text(0.0, -3.5, r'$\frac{1}{2} H_2$')
     # ax = plt.axes()
@@ -183,7 +184,8 @@ def plot_pressure_vs_cons(xls_name, sheet, T):
     cons_Hs = df['cons_H']
     # plt.figure()
     # plt.plot(cons_Hs[:-1], np.log(pH2s[:-1]))
-    plt.semilogy(cons_Hs, pH2s, '-o', label=str(T)+' K')
+    a, = plt.semilogy(cons_Hs, pH2s, '-o', label=str(T)+' K')
+    print(a.get_color())
     # plt.plot(cons_Hs, pH2s, '-o', label=str(T)+'K')
     # plt.semilogy(cons_Hs[:-1], pH2s[:-1])
     # plt.xlabel('Concentration of H')
@@ -282,6 +284,8 @@ if __name__ == '__main__':
         xls_name = f'./{data_dir}/{system}.xlsx'
     
         sheet_name_convex_hull = 'convex_hull'
+        # colors = ['#1f77b4', '#ff7f0e', '#2ca02c', '#d62728', '#9467bd', '#8c564b', '#e377c2', '#7f7f7f', '#bcbd22', '#17becf', '#1f77b4']
+        colors = ['#2ca02c', '#9467bd', '#8c564b', '#e377c2', '#7f7f7f', '#bcbd22', '#17becf', '#1f77b4']
         
         if False:
             db2xls(db_name=db_name)
@@ -289,8 +293,8 @@ if __name__ == '__main__':
             if True:
                 # for T in [300]:
                 # for T in [100, 200, 300, 400, 500, 600, 700, 800]:
-                for T in [100, 200, 300, 400, 500, 600, 700, 800]:
-                    plot_chem_vs_cons(xls_name, sheet=sheet_name_convex_hull, T=T)
+                for i, T in enumerate([100, 200, 300, 400, 500, 600, 700, 800]):
+                    plot_chem_vs_cons(xls_name, sheet=sheet_name_convex_hull, T=T, color=colors[i])
                 plt.xlabel('Concentration of H')
                 plt.ylabel('H chemical potential')
                 plt.legend()
@@ -308,7 +312,7 @@ if __name__ == '__main__':
                 plt.legend()
                 plt.show()
             
-            if True:
+            if False:
                 for P in [10**3, 10**2, 10, 1, 0.1, 10**-2, 10**-3, 10**-4, 10**-5, 10**-6]:
                 # for P in [10, 1, 0.1, 10**-2, 10**-3, 10**-4, 10**-5, 10**-6]:
                     plot_temp_vs_cons(xls_name, sheet=sheet_name_convex_hull, P=P)
@@ -318,7 +322,7 @@ if __name__ == '__main__':
                 plt.legend()
                 plt.show()
                 
-            if True:
+            if False:
                 # for T in [600, ]:
                 for T in [100, 200, 300, 400, 500, 600, 700, 800]:
                     plot_chem_vs_pressure(xls_name, sheet=sheet_name_convex_hull, T=T)
