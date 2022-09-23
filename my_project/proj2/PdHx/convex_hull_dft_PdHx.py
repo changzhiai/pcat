@@ -698,6 +698,5 @@ if __name__ == '__main__':
             # plot_chem_pot_H_PdHx_discrete()
             # get_PdHx_lowest_dft(db_name)
 
-
     # kwargs_write = {'fps':1.0, 'quantizer':'nq'}
     # imageio.mimsave('./convex_hull_PdHx.gif', [plot_animate(i) for i in [1, 2, 3, 4, 5, 6, 7, 8, 9]], fps=1)
