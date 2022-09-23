@@ -874,9 +874,6 @@ if __name__ == '__main__':
         plot_ens_scaling_relation('E(*CO)', 'E(*H)', xls_name, sheet_selectivity, fig_dir)
         plot_ens_scaling_relation('E(*OH)', 'E(*H)', xls_name, sheet_selectivity, fig_dir)
         
-    # x = 'E(*HOCO)'
-    # y = 'E(*H)'
-    
     # plot_line_H_distribution(save=False)
     # db_ads, _ = get_ads_db(ads='surface')
     # plot_layers_as_strutures(db=db_ads, obj='H', removeX=False)
