@@ -829,7 +829,6 @@ if __name__ == '__main__':
     # system_name = 'collect_vasp_coverage_H'
     # system_name = 'dft_PdHx_lowest'
 
-
     ref_eles=['Pd', 'Ti']
     db_name = f'./data/{system_name}.db' # the only one needed
     xls_name = f'./data/{system_name}.xlsx'
@@ -863,7 +862,6 @@ if __name__ == '__main__':
         plot_line_H_distribution(save=False)
         # plot_cons_as_layers_with_ads(obj='H') # 5 columns bar chart
         # plot_bar_H_distribution(save=False) # plot bar chart for each adsorbate
-        
         
     if True:    
         plot_ens_E_HOCO_E_H(xls_name, sheet_selectivity, fig_dir)
@@ -900,5 +898,5 @@ if __name__ == '__main__':
     # plot_cons_as_layers(db_name=db_name, obj='H', removeX=False)
     # plot_cons_as_layers_with_ads(obj='H')
     # sort_db(db)
-    # print(len(db_name))
+    print(len(db_name))
     # plot_H_distribution()
