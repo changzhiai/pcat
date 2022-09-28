@@ -191,7 +191,8 @@ def plot_cons_as_layers(obj='H'):
         plt.ylim(0, 1.18)
         if obj == 'H':
             title = formula + ', H:' + str(round(con_tot, 3))
-            plt.text(0.05, 0.92, title, fontsize=8, horizontalalignment='left', verticalalignment='center', transform=ax.transAxes, color='black', fontweight='bold')
+            plt.text(0.05, 0.92, title, fontsize=8, horizontalalignment='left', \
+                     verticalalignment='center', transform=ax.transAxes, color='black', fontweight='bold')
             # plt.title(formula + ', H:' + str(round(con_tot, 3)), fontsize=8)
             if m2==0:
                 plt.ylabel('Concentration of H', fontsize=10)
@@ -279,7 +280,8 @@ def plot_cons_as_layers_with_ads(obj='H'):
                     plt.ylim(0, 1.18)
                     if obj == 'H':
                         title = formula + ', H:' + str(round(con_tot, 3))
-                        plt.text(0.05, 0.92, title, fontsize=8, horizontalalignment='left', verticalalignment='center', transform=ax.transAxes, color='black', fontweight='bold')
+                        plt.text(0.05, 0.92, title, fontsize=8, horizontalalignment='left', \
+                                 verticalalignment='center', transform=ax.transAxes, color='black', fontweight='bold')
                         # plt.title(formula + ', H:' + str(round(con_tot, 3)), fontsize=8)
                         if m2==0:
                             plt.ylabel('Concentration of H', fontsize=10)
@@ -659,8 +661,8 @@ if __name__ == '__main__':
     #     db_tot = '../data/collect_vasp_PdHy_and_insert.db'
     #     concatenate_db('../data/collect_vasp_PdHy_v3.db', '../data/collect_vasp_insert_PdHy.db', db_tot)
     
-    for i in [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]:
-    # for i in [9]:
+    # for i in [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11]:
+    for i in [12]:
     # for i in [150, 200, 250, 450]:
         # system_name = 'PdTiH_{}'.format(i) # only CE and DFT surface data
         # system_name = 'PdTiH_150' # only CE and DFT surface data
@@ -685,7 +687,7 @@ if __name__ == '__main__':
         sheet_convex_hull = 'Convex_hull'
         
         db = connect(db_name)
-        if False: # database to excel
+        if True: # database to excel
             # db = del_partial_db(db)
             Ti_energy_ref_eles={'Pd':-1.951, metal_obj:-5.858, 'H': -7.158*0.5}
             db2xls_dft(system_name, xls_name, sheet_convex_hull, Ti_energy_ref_eles)
