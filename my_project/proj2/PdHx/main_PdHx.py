@@ -833,6 +833,7 @@ if __name__ == '__main__':
     # system_name = 'collect_vasp_candidates_PdHx_r8'
     # system_name = 'collect_vasp_extra_H'
     # system_name = 'collect_vasp_candidates_PdHx_CO_r7'
+    # system_name = 'collect_vasp_candidates_PdHx_CO_r7_COslab'
     # system_name = 'collect_vasp_candidates_PdHx_all_sites'
     system_name = 'collect_vasp_candidates_PdHx_all_sites_stdout'
     
@@ -863,7 +864,7 @@ if __name__ == '__main__':
     
     db = connect(db_name)
     if 1:
-        if False: # database to excel
+        if True: # database to excel
             # db = del_partial_db(db)
             db2xls(system_name, xls_name, db, ref_eles, sheet_name_origin, sheet_name_stable, 
                    sheet_free_energy, sheet_binding_energy, sheet_cons, sheet_name_allFE, sheet_selectivity, sheet_name_dGs,
