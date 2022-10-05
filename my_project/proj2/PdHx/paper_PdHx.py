@@ -934,7 +934,7 @@ if __name__ == '__main__':
         
         # plot_free_enegy(xls_name, sheet_free_energy, fig_dir)
         # plot_scaling_relations(xls_name, sheet_binding_energy, fig_dir)
-        # plot_activity(xls_name, sheet_binding_energy, fig_dir)
+        plot_activity(xls_name, sheet_binding_energy, fig_dir)
         # plot_BE_as_Hcons(xls_name, sheet_cons)
         # plot_pourbaix_diagram(xls_name, sheet_name_dGs)
         # plot_chemical_potential(xls_name, sheet_name_origin)
@@ -946,6 +946,6 @@ if __name__ == '__main__':
         # plot_cons_as_layers_with_ads(obj='H')
         # sort_db(db)
         # plot_H_distribution()
-        for adsorbate in ['HOCO', 'CO', 'H', 'OH']:
-            plot_count_nn_hist(ads=adsorbate)
-        print(len(db_name))
+        # for adsorbate in ['HOCO', 'CO', 'H', 'OH']:
+        #     plot_count_nn_hist(ads=adsorbate)
+        # print(len(db_name))
