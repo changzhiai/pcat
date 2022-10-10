@@ -529,7 +529,8 @@ def plot_activity(xls_name, sheet_binding_energy, fig_dir):
                         Gact=0.2, 
                         p_factor = 3.6 * 10**4)
     # activity.verify_BE2FE()
-    activity.plot(save=True)
+    tune_tex_pos={'Pd64H13':[-0.05, -0.1], 'Pd64':[-0.05, -0.02]}
+    activity.plot(save=True, tune_tex_pos=tune_tex_pos)
     # activity.plot(save=True, xlim=[-2.5, 2.5], ylim=[-2.5, 2.5])
     # activity.plot(save=True, xlim=[-1., 0], ylim=[-0.2, 1])
 
@@ -885,7 +886,7 @@ if __name__ == '__main__':
     sheet_name_dGs = 'dGs'
     
     db = connect(db_name)
-    if 0:
+    if 1:
         if False: # database to excel
             # db = del_partial_db(db)
             db2xls(system_name, xls_name, db, ref_eles, sheet_name_origin, sheet_name_stable, 

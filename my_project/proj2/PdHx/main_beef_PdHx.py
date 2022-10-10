@@ -587,7 +587,17 @@ def plot_ens_E_HOCO_E_H(xls_name, sheet_selectivity, fig_dir):
         plt.errorbar(np.asarray(Exval).mean(), np.asarray(Eyval).mean(), np.asarray(Eyval).std(), np.asarray(Exval).std(), c=color,lw=3,fmt='o') 
         # ax=fig.gca()
         ax.add_patch(ellip)
-        ax.text(np.asarray(Exval).mean(), np.asarray(Eyval).mean(), i,color='black', fontsize=size1)
+        if i == 'Pd64H2':
+            x_tune=0.1
+            y_tune=-0.15
+            ax.annotate(i,
+            xy=(np.asarray(Exval).mean(), np.asarray(Eyval).mean()), xycoords='data',
+            xytext=((Exval).mean()+x_tune, np.asarray(Eyval).mean()+y_tune), textcoords='data',
+            arrowprops=dict(arrowstyle="->", connectionstyle="arc3")
+            )
+        else:
+            x_tune, y_tune = 0, 0
+            ax.text(np.asarray(Exval).mean()+x_tune, np.asarray(Eyval).mean()+y_tune, i,color='black', fontsize=size1)
         plt.xlabel('$\Delta${}'.format(x),fontsize=size2)
         plt.ylabel('$\Delta${}'.format(y),fontsize=size2)
         plt.xlim([-0.75,1.25])
@@ -865,12 +875,12 @@ if __name__ == '__main__':
         
     if True:    
         plot_ens_E_HOCO_E_H(xls_name, sheet_selectivity, fig_dir)
-        plot_ens_scaling_relation('E(*HOCO)', 'E(*H)', xls_name, sheet_selectivity, fig_dir)
-        plot_ens_scaling_relation('E(*HOCO)', 'E(*CO)', xls_name, sheet_selectivity, fig_dir)
-        plot_ens_scaling_relation('E(*HOCO)', 'E(*OH)', xls_name, sheet_selectivity, fig_dir)
-        plot_ens_scaling_relation('E(*CO)', 'E(*OH)', xls_name, sheet_selectivity, fig_dir)
-        plot_ens_scaling_relation('E(*CO)', 'E(*H)', xls_name, sheet_selectivity, fig_dir)
-        plot_ens_scaling_relation('E(*OH)', 'E(*H)', xls_name, sheet_selectivity, fig_dir)
+        # plot_ens_scaling_relation('E(*HOCO)', 'E(*H)', xls_name, sheet_selectivity, fig_dir)
+        # plot_ens_scaling_relation('E(*HOCO)', 'E(*CO)', xls_name, sheet_selectivity, fig_dir)
+        # plot_ens_scaling_relation('E(*HOCO)', 'E(*OH)', xls_name, sheet_selectivity, fig_dir)
+        # plot_ens_scaling_relation('E(*CO)', 'E(*OH)', xls_name, sheet_selectivity, fig_dir)
+        # plot_ens_scaling_relation('E(*CO)', 'E(*H)', xls_name, sheet_selectivity, fig_dir)
+        # plot_ens_scaling_relation('E(*OH)', 'E(*H)', xls_name, sheet_selectivity, fig_dir)
         
     # plot_line_H_distribution(save=False)
     # db_ads, _ = get_ads_db(ads='surface')

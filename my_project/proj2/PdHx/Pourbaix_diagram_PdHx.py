@@ -135,7 +135,7 @@ def to_xls(xls_name_Pourbaix):
     with pd.ExcelWriter(xls_name_Pourbaix, engine='openpyxl', mode='a') as writer:
         df_min.to_excel(writer, sheet_name=sheet_name_min, float_format='%.5f')
 
-def plot_1d(xls_name_Pourbaix):
+def plot_1d(xls_name_Pourbaix, SHE = True):
     """Plot 1d Pourbaix diagram: dG vs. U"""
     df_colors = pd_read_excel(filename=xls_name_Pourbaix, sheet=sheet_name_color_list)
     colors = df_colors.set_index('formulas')['colors'].to_dict()
@@ -151,7 +151,7 @@ def plot_1d(xls_name_Pourbaix):
         dG_Hx_dps_sub = df_sub['dG_Hx_dps']
         # color = eval(colors[formu])
         color = colors[formu]
-        SHE = True
+        # SHE = True
         if SHE: # SHE
             line, = plt.plot(Us_sub, dG_Hx_dps_sub, c=color, label=f'{formu}')
         else: # RHE
@@ -259,7 +259,7 @@ def plot_2d_scatter(xls_name_Pourbaix):
     plt.ylim(U)
     plt.show()
 
-def pourbaix_diagram(U, pH, gen=True):
+def pourbaix_diagram(U, pH, SHE = False, gen=True):
     """Get pourbaix diagram as a function of applied potential and pH value
     
     gen: Bool
@@ -272,7 +272,7 @@ def pourbaix_diagram(U, pH, gen=True):
             print('\nGenerate 1d data')
             to_xls(xls_name_Pourbaix_1d)
         print('\nPlotting 1d')
-        plot_1d(xls_name_Pourbaix_1d)
+        plot_1d(xls_name_Pourbaix_1d, SHE = SHE)
     else:
         xls_name_Pourbaix_2d = f'./data/{system_name}_write_Pourbaix_diagram_2d.xlsx' # write
         if gen:
@@ -283,7 +283,31 @@ def pourbaix_diagram(U, pH, gen=True):
         # plot_2d_contour(xls_name_Pourbaix_2d)
         plot_2d_scatter(xls_name_Pourbaix_2d)
         
-
+def plot_Pd_num_vs_U(system_name, SHE=False, gen=True):
+    xls_name_Pourbaix = f'./data/{system_name}_write_Pourbaix_diagram_1d.xlsx' # write
+    
+    df_min = pd_read_excel(filename=xls_name_Pourbaix, sheet=sheet_name_min)
+    formulas_set = df_min['formulas'].unique()
+    # fig = plt.figure()
+    df_min_Us = pd.DataFrame()
+    for formu in formulas_set:
+        df_sub = df_min[df_min['formulas']==formu]
+        row_min = df_sub[df_sub['Us']==df_sub['Us'].min()]
+        df_min_Us = df_min_Us.append(row_min, ignore_index=True)
+    if gen==True:
+        with pd.ExcelWriter(xls_name_Pourbaix, engine='openpyxl', mode='a') as writer:
+            df_min_Us.to_excel(writer, sheet_name=sheet_name_min_Us_list, float_format='%.5f')
+    print(df_min_Us)
+    
+    if SHE: # SHE
+        # line = plt.scatter(df_min_Us['Us'], df_min_Us['num_Hs']/64., c=df_min_Us['color'])
+        plt.plot(df_min_Us['Us'], df_min_Us['num_Hs']/64., 'o-')
+    else: # RHE
+        plt.plot(df_min_Us['Us']-kB * T * pH * np.log(10), df_min_Us['num_Hs']/64, 'o-')
+    plt.xlabel('$U_{SHE}$ (V)')
+    plt.ylabel('x in $PdH_x$')
+    plt.show()
+    
 if __name__ == '__main__':
     T = 297.15
     N, M = 200, 200
@@ -302,13 +326,14 @@ if __name__ == '__main__':
     sheet_name_color_list = 'color_list'
     sheet_name_all = 'all'
     sheet_name_min = 'min'
+    sheet_name_min_Us_list = 'speratedU'
     
     U = [-1, 1]
     
     pH = 7.3
-    pourbaix_diagram(U, pH, gen=True)
-    
+    # pourbaix_diagram(U, pH, gen=True)
     # pH = [0, 14]
-    # pourbaix_diagram(U, pH, gen=False)
+    # pourbaix_diagram(U, pH, SHE=True, gen=False)
+    plot_Pd_num_vs_U(system_name, SHE=False, gen=False)
     
     
