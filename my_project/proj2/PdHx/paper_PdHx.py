@@ -458,6 +458,31 @@ def plot_scaling_relations(xls_name, sheet_binding_energy, fig_dir):
             ax = plt.subplot(M, M, m1*M + m2 + 1)
             descriper1 = df.columns[col1[i]-2]
             descriper2 = df.columns[col2[i]-2]
+            offsets={}
+            if i==0: # first subplot
+                offsets={'Pd64H13': [-0.15, -0.25], 'Pd64':[-0.04, -0.15], 
+                         'Pd64H4':[0.02, 0.05]}
+            elif i==1:
+                offsets={'Pd64H4':[0.0, 0.08], 'Pd64H62':[-0.1, 0.15], 
+                         'Pd64H53':[-0.2, 0.05]}
+            elif i==2:
+                offsets={'Pd64':[-0.04, -0.15], 'Pd64H2':[-0.05, 0.1], 
+                         'Pd64H4':[-0.1, 0.2], 'Pd64H10':[-0.1, 0.], 
+                         'Pd64H39':[-0.1, 0.10]}
+            elif i==3:
+                offsets={'Pd64':[-0.07, -0.2], 'Pd64H2':[0.05, 0.10], 
+                         'Pd64H4':[-0.15, 0.22], 'Pd64H8':[0.1, 0.05], 
+                         'Pd64H10':[-0.1, 0.1], 'Pd64H39':[-0.1, 0.10],
+                         'Pd64H64':[-0.1, 0.08]}
+            elif i==4:
+                offsets={'Pd64':[-0.08, -0.15], 'Pd64H2':[-0.14, 0.1], 
+                         'Pd64H4':[-0.1, 0.2], 'Pd64H8':[0.0, -0.15], 
+                         'Pd64H10':[-0.02, -0.1], 'Pd64H31':[-0.2, -0.1], }
+            elif i==5:
+                offsets={'Pd64':[-0.06, -0.12], 'Pd64H2':[-0.05, 0.1], 
+                         'Pd64H4':[-0.1, 0.2], 'Pd64H8':[0., -0.1], 
+                         'Pd64H10':[-0.13, 0.1], 'Pd64H31':[-0.12, -0.15],
+                         'Pd64H62':[-0.12, -0.15],}
             sr = ScalingRelation(df, descriper1, descriper2, fig_name=name_fig_BE)
             sr.plot(ax = ax, save=False, 
                     color_dict=True, 
@@ -466,6 +491,7 @@ def plot_scaling_relations(xls_name, sheet_binding_energy, fig_dir):
                     ylabel=descriper2, 
                     dot_color='red', 
                     line_color='red',
+                    offsets=offsets,
                     annotate=True,)
             i+=1
     plt.show()
@@ -806,10 +832,14 @@ def plot_count_nn_hist(ads='CO'):
     # bin_width = (xmax - xmin) / len(bins)
     x = np.linspace(xmin, xmax, 100)
     p = norm.pdf(x, mu, std)
-    if ads == 'CO':
-        N=3
-    else:
-        N=5
+    if ads == 'HOCO':
+        N=7
+    elif ads == 'CO':
+        N=4
+    elif ads == 'H':
+        N=7
+    elif ads == 'OH':
+        N=8
     plt.plot(x, p*N, colors[2], linewidth=2)
     print("Fit Values: {:.2f} and {:.2f}".format(mu, std))
     
@@ -886,7 +916,7 @@ if __name__ == '__main__':
     sheet_name_dGs = 'dGs'
     
     db = connect(db_name)
-    if 1:
+    if 0:
         if False: # database to excel
             # db = del_partial_db(db)
             db2xls(system_name, xls_name, db, ref_eles, sheet_name_origin, sheet_name_stable, 
@@ -935,7 +965,7 @@ if __name__ == '__main__':
         
         # plot_free_enegy(xls_name, sheet_free_energy, fig_dir)
         # plot_scaling_relations(xls_name, sheet_binding_energy, fig_dir)
-        plot_activity(xls_name, sheet_binding_energy, fig_dir)
+        # plot_activity(xls_name, sheet_binding_energy, fig_dir)
         # plot_BE_as_Hcons(xls_name, sheet_cons)
         # plot_pourbaix_diagram(xls_name, sheet_name_dGs)
         # plot_chemical_potential(xls_name, sheet_name_origin)
@@ -947,6 +977,6 @@ if __name__ == '__main__':
         # plot_cons_as_layers_with_ads(obj='H')
         # sort_db(db)
         # plot_H_distribution()
-        # for adsorbate in ['HOCO', 'CO', 'H', 'OH']:
-        #     plot_count_nn_hist(ads=adsorbate)
+        for adsorbate in ['HOCO', 'CO', 'H', 'OH']:
+            plot_count_nn_hist(ads=adsorbate)
         # print(len(db_name))

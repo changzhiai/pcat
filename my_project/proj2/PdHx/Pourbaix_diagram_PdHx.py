@@ -18,6 +18,7 @@ delta_G(U, pH) = delta_G(U=0, pH=0) - ne * U + n * k_B * T * pH * ln(10)
 Here e is -1, reference Andrew`s paper
 μ( H+(aq)) + μ(e-) = 1/2μH2(g) - eUSHE + kBT ln(10) pH from Heine`s theis
 
+URHE = USHE + kBT ln(10) pH
 Note:   alpha = np.log(10) * self.kT
         if name == 'e-':
             energy = -U
@@ -301,10 +302,11 @@ def plot_Pd_num_vs_U(system_name, SHE=False, gen=True):
     
     if SHE: # SHE
         # line = plt.scatter(df_min_Us['Us'], df_min_Us['num_Hs']/64., c=df_min_Us['color'])
-        plt.plot(df_min_Us['Us'], df_min_Us['num_Hs']/64., 'o-')
+        plt.plot(df_min_Us['Us'], df_min_Us['num_Hs']/64., 'ro-')
+        plt.xlabel('$U_{SHE}$ (V)')
     else: # RHE
-        plt.plot(df_min_Us['Us']-kB * T * pH * np.log(10), df_min_Us['num_Hs']/64, 'o-')
-    plt.xlabel('$U_{SHE}$ (V)')
+        plt.plot(df_min_Us['Us']+kB * T * pH * np.log(10), df_min_Us['num_Hs']/64, 'ro-')
+        plt.xlabel('$U_{RHE}$ (V)')
     plt.ylabel('x in $PdH_x$')
     plt.show()
     
