@@ -596,7 +596,20 @@ def get_candidates(ids):
             num_Pd = 0
         if num_Pd != 64 and num_Pd != 0:
             db_candidates.write(row)
-    
+    return db_candidates
+
+def get_initial_and_final_candidates(ids):
+    """Get DFT candidates from convex hull"""
+    candidates_db_name = 'candidates_initial_and_final_{}.db'.format(system_name)
+    if os.path.exists(candidates_db_name):
+        os.remove(candidates_db_name)
+    db_candidates = connect(candidates_db_name)
+    for id in ids:
+        row_initial = db.get(final_struct_id=id)
+        row_final = db.get(id=id)
+        db_candidates.write(row_initial)
+        db_candidates.write(row_final)
+    return db_candidates
 
 def plot_dft_convex_hull(xls_name, sheet_convex_hull, candidates=False, round=1):
     """Plot convex hull using DFT data"""
@@ -616,7 +629,13 @@ def plot_dft_convex_hull(xls_name, sheet_convex_hull, candidates=False, round=1)
     vertices = pts[hull.vertices]
     plt.scatter(vertices[:,0], vertices[:,1], c='r', marker='.', zorder=2)
     if candidates:
-        get_candidates(ids=vertices[:,3])
+        only_final_candidates = False
+        if only_final_candidates: # only final (DFT) structures
+            db_candidates = get_candidates(ids=vertices[:,3])
+            print(f'candidates of {system_name}:', len(db_candidates))
+        else:
+            db_candidates = get_initial_and_final_candidates(ids=vertices[:,3])
+            print(f'candidates of {system_name}:', len(db_candidates)/2.)
     for s in hull.simplices:
         s = np.append(s, s[0])  # Here we cycle back to the first coordinate
         plt.plot(pts[s, 0], pts[s, 1], "r--", alpha=0.3, zorder=1)
@@ -661,8 +680,8 @@ if __name__ == '__main__':
     #     db_tot = '../data/collect_vasp_PdHy_and_insert.db'
     #     concatenate_db('../data/collect_vasp_PdHy_v3.db', '../data/collect_vasp_insert_PdHy.db', db_tot)
     
-    for i in [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]:
-    # for i in [12]:
+    # for i in [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]:
+    for i in [12]:
     # for i in [150, 200, 250, 450]:
         # system_name = 'PdTiH_{}'.format(i) # only CE and DFT surface data
         # system_name = 'PdTiH_150' # only CE and DFT surface data
@@ -693,7 +712,7 @@ if __name__ == '__main__':
             db2xls_dft(system_name, xls_name, sheet_convex_hull, Ti_energy_ref_eles)
         
         if True:
-            plot_dft_convex_hull(xls_name, sheet_convex_hull, candidates=False, round=i)
+            plot_dft_convex_hull(xls_name, sheet_convex_hull, candidates=True, round=i)
         
         if False: # plot
             plot_free_enegy(xls_name, sheet_free_energy, fig_dir)
