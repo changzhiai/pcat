@@ -21,7 +21,7 @@ from pcat.pourbaix import PourbaixDiagram
 import numpy as np
 import pandas as pd
 import seaborn as sns
-from matplotlib.patches import Rectangle
+# from matplotlib.patches import Rectangle
 
 def concatenate_db(db_name1, db_name2, db_tot):
     """Contatenate two database into the total one"""
@@ -278,7 +278,7 @@ def plot_layers_as_strutures(db='', obj='H', removeX=False, minusH=False):
     df = pd.DataFrame(tuples)
     df = df.sort_values(by=['con_tots'])
     # print(df)
-    colors = ('#1f77b4', '#ff7f0e', '#2ca02c', '#d62728'); fontsize = 14
+    colors = ('#1f77b4', '#ff7f0e', '#2ca02c', '#d62728'); 
     if False:
         with pd.ExcelWriter(xls_name, engine='openpyxl', mode='a', if_sheet_exists='replace') as writer:
             df.to_excel(writer, sheet_name='layers_as_structures', index=False, float_format='%.8f')
@@ -295,8 +295,9 @@ def plot_layers_as_strutures(db='', obj='H', removeX=False, minusH=False):
     plt.legend()
     print(a.get_color(), b.get_color(), c.get_color(), d.get_color())
     # plt.show()
-    # name_fig_cons_as_lys=f'{fig_dir}/{system_name}_cons_as_lys.jpg'
-    # fig.savefig(name_fig_cons_as_lys, dpi=300, bbox_inches='tight')
+    name_fig_cons_as_lys=f'{fig_dir}/{system_name}_cons_as_lys.jpg'
+    if False:
+        fig.savefig(name_fig_cons_as_lys, dpi=300, bbox_inches='tight')
         
 def plot_cons_as_layers_with_ads(obj='H'):
     """Plot concentrations as a function of layers
@@ -869,6 +870,24 @@ def plot_count_nn_hist(ads='CO'):
         plt.ylim([0, 25.])
     plt.show()
 
+def write_paper_db(db):
+    db_new_name = 'PdHx_all_sites.db'
+    if os.path.exists(db_new_name):
+        os.remove(db_new_name)
+    db_new = connect(db_new_name)
+    for row in db.select():
+        atoms = row.toatoms()
+        converged = row.converged
+        uniqueid = (row.uniqueid).split('_')
+        slab = uniqueid[1].replace('X', '')
+        sites = uniqueid[2]
+        ads = uniqueid[3]
+        if ads == 'surface':
+            db_new.write(atoms, converged=converged, slab=slab)
+        else:
+            db_new.write(atoms, converged=converged, slab=slab, ads_site=int(sites), adsorbate=ads)
+        
+
 if __name__ == '__main__':
     # if False:
     #     db_tot = '../data/collect_vasp_PdHy_and_insert.db'
@@ -916,6 +935,8 @@ if __name__ == '__main__':
     sheet_name_dGs = 'dGs'
     
     db = connect(db_name)
+    # write_paper_db(db)
+    # assert False
     if 0:
         if False: # database to excel
             # db = del_partial_db(db)

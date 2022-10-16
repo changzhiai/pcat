@@ -147,12 +147,12 @@ def get_sites(atoms):
     # sites['hollow'] = get_hollow_sites(extended_points)
     return sites
 
-def add_full_adsorbates(atoms, sites, adsorbate='X', tag=None):
+def add_full_adsorbates(atoms, sites, adsorbate='X'):
     """Add adsorbates on given sites"""
     distance = 2.0
     for site in sites:
         if adsorbate == 'X':
-            ads = Atoms([Atom('X', (0, 0, 0), tag=tag)])
+            ads = Atoms([Atom('X', (0, 0, 0))])
             ads.translate(site + (0., 0., distance))
         atoms.extend(ads)
     atoms = remove_atoms_outside_cell(atoms)
@@ -247,25 +247,10 @@ def remove_similar_adsorbates(atoms):
                             skin=0.)
     nl.update(atoms)
     index_adsorbates = [atom.index for atom in atoms if atom.symbol == 'X']
-    index_adsorbates_top = [atom.index for atom in atoms if atom.symbol == 'X' and atom.tag==0]
-    index_adsorbates_hollow = [atom.index for atom in atoms if atom.symbol == 'X' and atom.tag==1]
-    view(atoms[index_adsorbates_top])
-    print(index_adsorbates_top)
-    view(atoms[index_adsorbates_hollow])
-    print(index_adsorbates_hollow)
-    unique_indices = []
-    if index_adsorbates_top != []:
-        index_center_top = index_adsorbates_top[len(index_adsorbates_top)//2]
-        unique_indices.append(index_center_top)
-    if index_adsorbates_hollow != []:
-        index_center_hollow = index_adsorbates_hollow[len(index_adsorbates_hollow)//2]
-        unique_indices.append(index_center_hollow)
-    # index_center = index_adsorbates[len(index_adsorbates)//6]
-    # unique_indices = [index_center]
-    print(unique_indices)
+    index_center = index_adsorbates[len(index_adsorbates)//6]
+    unique_indices = [index_center]
     del_indices = []
-    # index_adsorbates.remove(index_center)
-    index_adsorbates = [index for index in index_adsorbates if index not in unique_indices]
+    index_adsorbates.remove(index_center)
     for index in index_adsorbates:
         indices, offsets = nl.get_neighbors(index)
         atoms_temp = atoms.copy()
@@ -348,8 +333,8 @@ def generate_all_site_sturts_to_db(adsorbate='CO'):
         atoms = atoms[[atom.index for atom in atoms if atom.symbol != 'X']]
         slab_ori = atoms.copy()
         sites = get_sites(atoms)
-        atoms = add_full_adsorbates(atoms, sites['top'], adsorbate='X', tag=0)
-        atoms = add_full_adsorbates(atoms, sites['hollow'], adsorbate='X', tag=1)
+        atoms = add_full_adsorbates(atoms, sites['top'], adsorbate='X')
+        atoms = add_full_adsorbates(atoms, sites['hollow'], adsorbate='X')
         atoms = remove_adsorbates_too_close(atoms)
         # view(atoms)
         atoms = remove_similar_adsorbates(atoms)
@@ -358,24 +343,24 @@ def generate_all_site_sturts_to_db(adsorbate='CO'):
         print('possible sites:', all_possible_sites)
         for site in all_possible_sites:
             slab = slab_ori.copy()
-            # system = system_ori.copy()
-            # for atom in system:
-                # if atom.z > 6.5 and atom.z < 7.5:
-                    # pos_X = atoms[site].position
-                    # pos_potential = atom.position
-                    # pos_pot = pos_potential + (0.0, 0.0, 2.0)
-                    # if sum(abs(pos_X-pos_pot))<0.0001:
-                        # ads_bg = add_ads(adsorbate, pos_potential)
-                        # system.extend(ads_bg)
-                    # else:
-                        # ads = add_ads(adsorbate, pos_potential, bg=True)
-                        # system.extend(ads)
-            # system = rm_1X(system)
-            pos = atoms[site].position
-            ads_bg = add_ads(adsorbate, pos, bg=False)
-            slab.extend(ads_bg)
-            db_all_sites.write(slab)
-            # db_all_sites.write(system)
+            system = system_ori.copy()
+            for atom in system:
+                if atom.z > 6.5 and atom.z < 7.5:
+                    pos_X = atoms[site].position
+                    pos_potential = atom.position
+                    pos_pot = pos_potential + (0.0, 0.0, 2.0)
+                    # print(pos_X, pos_pot)
+                    if sum(abs(pos_X-pos_pot))<0.0001:
+                        ads_bg = add_ads(adsorbate, pos_potential)
+                        system.extend(ads_bg)
+                    else:
+                        ads = add_ads(adsorbate, pos_potential, bg=True)
+                        system.extend(ads)
+            system = rm_1X(system)
+            # pos = atoms[site].position
+            # ads_bg = add_ads(adsorbate, pos, bg=True)
+            # slab.extend(ads_bg)
+            db_all_sites.write(system)
 
 def test_unique_sites(adsorbate='CO'):
     """Generate different sites CO adsorbed slab"""
@@ -390,10 +375,10 @@ def test_unique_sites(adsorbate='CO'):
     atoms = atoms[[atom.index for atom in atoms if atom.symbol != 'X']]
     slab_ori = atoms.copy()
     sites = get_sites(atoms)
-    atoms = add_full_adsorbates(atoms, sites['top'], adsorbate='X', tag=0)
-    atoms = add_full_adsorbates(atoms, sites['hollow'], adsorbate='X', tag=1)
+    atoms = add_full_adsorbates(atoms, sites['top'], adsorbate='X')
+    # atoms = add_full_adsorbates(atoms, sites['hollow'], adsorbate='X')
     atoms = remove_adsorbates_too_close(atoms)
-    view(atoms)
+    # view(atoms)
     atoms = remove_similar_adsorbates(atoms)
     view(atoms)
     all_possible_sites = [atom.index for atom in atoms if atom.symbol == 'X']
@@ -418,6 +403,5 @@ def test_unique_sites(adsorbate='CO'):
 
 if __name__ == "__main__":
     print('start running') 
-    test_unique_sites(adsorbate='CO')
-    # generate_all_site_sturts_to_db(adsorbate='CO')
+    generate_all_site_sturts_to_db(adsorbate='CO')
     print('done')

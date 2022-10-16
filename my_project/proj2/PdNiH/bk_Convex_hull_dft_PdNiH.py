@@ -21,7 +21,6 @@ import numpy as np
 from scipy.spatial import ConvexHull, convex_hull_plot_2d
 import pandas as pd
 from pcat.lib.io import pd_read_excel
-import imageio
 
 def concatenate_db(db_name1, db_name2, db_tot):
     """Contatenate two database into the total one"""
@@ -191,8 +190,7 @@ def plot_cons_as_layers(obj='H'):
         plt.ylim(0, 1.18)
         if obj == 'H':
             title = formula + ', H:' + str(round(con_tot, 3))
-            plt.text(0.05, 0.92, title, fontsize=8, horizontalalignment='left', \
-                     verticalalignment='center', transform=ax.transAxes, color='black', fontweight='bold')
+            plt.text(0.05, 0.92, title, fontsize=8, horizontalalignment='left', verticalalignment='center', transform=ax.transAxes, color='black', fontweight='bold')
             # plt.title(formula + ', H:' + str(round(con_tot, 3)), fontsize=8)
             if m2==0:
                 plt.ylabel('Concentration of H', fontsize=10)
@@ -280,8 +278,7 @@ def plot_cons_as_layers_with_ads(obj='H'):
                     plt.ylim(0, 1.18)
                     if obj == 'H':
                         title = formula + ', H:' + str(round(con_tot, 3))
-                        plt.text(0.05, 0.92, title, fontsize=8, horizontalalignment='left', \
-                                 verticalalignment='center', transform=ax.transAxes, color='black', fontweight='bold')
+                        plt.text(0.05, 0.92, title, fontsize=8, horizontalalignment='left', verticalalignment='center', transform=ax.transAxes, color='black', fontweight='bold')
                         # plt.title(formula + ', H:' + str(round(con_tot, 3)), fontsize=8)
                         if m2==0:
                             plt.ylabel('Concentration of H', fontsize=10)
@@ -581,66 +578,25 @@ def db2xls_dft(system_name, xls_name, sheet_convex_hull, energy_ref_eles):
     df = pd.DataFrame(tuples)
     df.to_excel(xls_name, sheet_convex_hull, float_format='%.3f')
 
-def get_candidates(ids):
-    """Get DFT candidates from convex hull"""
-    candidates_db_name = 'candidates_dft_{}.db'.format(system_name)
-    if os.path.exists(candidates_db_name):
-        os.remove(candidates_db_name)
-    db_candidates = connect(candidates_db_name)
-    for id in ids:
-        row = db.get(id=id)
-        atoms = row.toatoms()
-        try:
-            num_Pd = len(atoms[[atom.index for atom in atoms if atom.symbol=='Pd']])
-        except:
-            num_Pd = 0
-        if num_Pd != 64 and num_Pd != 0:
-            db_candidates.write(row)
-    return db_candidates
-
-def get_initial_and_final_candidates(ids):
-    """Get DFT candidates from convex hull"""
-    candidates_db_name = 'candidates_initial_and_final_{}.db'.format(system_name)
-    if os.path.exists(candidates_db_name):
-        os.remove(candidates_db_name)
-    db_candidates = connect(candidates_db_name)
-    for id in ids:
-        row_initial = db.get(final_struct_id=id)
-        row_final = db.get(id=id)
-        db_candidates.write(row_initial)
-        db_candidates.write(row_final)
-    return db_candidates
-
-def plot_dft_convex_hull(xls_name, sheet_convex_hull, candidates=False, round=1):
-    """Plot convex hull using DFT data"""
+def plot_dft_convex_hull(xls_name, sheet_convex_hull):
     df = pd_read_excel(filename=xls_name, sheet=sheet_convex_hull)
     x = df['Cons_Pd']
     y = df['Cons_H']
     z = df['Form_e']
-    id = df['Id']
     
-    fig, ax = plt.subplots(dpi=300)
-    # ax = plt.figure()
+    ax = plt.figure()
     scat = plt.scatter(x, y, c=z, marker='o', cmap=plt.cm.jet, s=5)
     bar = plt.colorbar(scat)
     
-    pts = np.column_stack((x, y, z, id))
-    hull = ConvexHull(pts[:,:3])
+    pts = np.column_stack((x, y, z))
+    hull = ConvexHull(pts)
     vertices = pts[hull.vertices]
     plt.scatter(vertices[:,0], vertices[:,1], c='r', marker='.', zorder=2)
-    if candidates:
-        only_final_candidates = True
-        if only_final_candidates: # only final (DFT) structures
-            db_candidates = get_candidates(ids=vertices[:,3])
-            print(f'candidates of {system_name}:', len(db_candidates))
-        else:
-            db_candidates = get_initial_and_final_candidates(ids=vertices[:,3])
-            print(f'candidates of {system_name}:', len(db_candidates)/2.)
     for s in hull.simplices:
         s = np.append(s, s[0])  # Here we cycle back to the first coordinate
         plt.plot(pts[s, 0], pts[s, 1], "r--", alpha=0.3, zorder=1)
     bar.set_label(r'Formation energy (eV/atom)', fontsize=12,)
-    plt.title(f'Convex hull {round} of PdTiH ({len(id)} DFT data points)')
+    plt.title(str(pts.shape[0]) + ' dft data points')
     
     plt.xlim([0, 1])
     # ticks = []
@@ -656,24 +612,10 @@ def plot_dft_convex_hull(xls_name, sheet_convex_hull, candidates=False, round=1)
     plt.xlabel('Concentration of Pd', fontsize=12,)
     plt.ylabel('Concentration of H', fontsize=12,)
     # ax.tight_layout()
-    # plt.show()
+    plt.show()
     # ax.savefig('2d_contour.png')
-    return fig, ax
-
-def plot_animate(i):
-    global system_name, metal_obj, ref_eles, db_name, xls_name, fig_dir, sheet_name_convex_hull
-    system_name = 'PdTiH_surf_r{}'.format(i)
-    metal_obj = 'Ti'
-    ref_eles=['Pd', 'Ti']
-    db_name = f'./data/{system_name}.db' # the only one needed
-    xls_name = f'./data/{system_name}.xlsx'
-    fig_dir = '../figures'
-    sheet_name_convex_hull = 'convex_hull'
-    fig, ax = plot_dft_convex_hull(xls_name, sheet_convex_hull, candidates=False, round=i)
-    fig.canvas.draw()       # draw the canvas, cache the renderer
-    image = np.frombuffer(fig.canvas.tostring_rgb(), dtype='uint8')
-    image  = image.reshape(fig.canvas.get_width_height()[::-1] + (3,))
-    return image
+    
+    
 
 if __name__ == '__main__':
     # if False:
@@ -711,18 +653,17 @@ if __name__ == '__main__':
         db = connect(db_name)
         if False: # database to excel
             # db = del_partial_db(db)
+            # Ti_energy_ref_eles={'Pd':-1.951, metal_obj:-5.858, 'H': -7.158*0.5}
             db2xls_dft(system_name, xls_name, sheet_convex_hull, energy_ref_eles)
         
         if True:
-            plot_dft_convex_hull(xls_name, sheet_convex_hull, candidates=True, round=i)
+            plot_dft_convex_hull(xls_name, sheet_convex_hull)
         
         if False: # plot
             plot_free_enegy(xls_name, sheet_free_energy, fig_dir)
             plot_scaling_relations(xls_name, sheet_binding_energy, fig_dir)
             plot_selectivity(xls_name, sheet_selectivity, fig_dir)
             plot_activity(xls_name, sheet_binding_energy, fig_dir)
-            
-
         
     # plot_free_enegy(xls_name, sheet_free_energy, fig_dir)
     # plot_scaling_relations(xls_name, sheet_binding_energy, fig_dir)
@@ -740,6 +681,3 @@ if __name__ == '__main__':
     # plot_cons_as_layers(obj='H')
     
     # plot_cons_as_layers_with_ads(obj='H')
-    
-    # kwargs_write = {'fps':1.0, 'quantizer':'nq'}
-    # imageio.mimsave('./convex_hull_PdTiH.gif', [plot_animate(i) for i in [1, 2, 3, 4, 5, 6, 7, 8, ]], fps=1)
