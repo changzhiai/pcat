@@ -675,6 +675,8 @@ def plot_animate(i):
     image  = image.reshape(fig.canvas.get_width_height()[::-1] + (3,))
     return image
 
+
+
 if __name__ == '__main__':
     # if False:
     #     db_tot = '../data/collect_vasp_PdHy_and_insert.db'
@@ -682,10 +684,6 @@ if __name__ == '__main__':
     
     # for i in [1, 2, 3, 4, 5, 6, 7]:
     for i in [7]:
-    # for i in [150, 200, 250, 450]:
-        # system_name = 'PdTiH_{}'.format(i) # only CE and DFT surface data
-        # system_name = 'PdTiH_150' # only CE and DFT surface data
-        # system_name = 'PdTiH_surf_r5'
         system_name = 'PdNiH_surf_r{}'.format(i)
         
         metal_obj = 'Ni'
@@ -713,7 +711,7 @@ if __name__ == '__main__':
             # db = del_partial_db(db)
             db2xls_dft(system_name, xls_name, sheet_convex_hull, energy_ref_eles)
         
-        if True:
+        if False:
             plot_dft_convex_hull(xls_name, sheet_convex_hull, candidates=True, round=i)
         
         if False: # plot
@@ -728,7 +726,7 @@ if __name__ == '__main__':
     # plot_scaling_relations(xls_name, sheet_binding_energy, fig_dir)
     # plot_activity(xls_name, sheet_binding_energy, fig_dir)
     # views(formula='Pd51Ti13H59', all_sites=True)
-    # view(db_name)
+    view(db_name)
     # plot_BE_as_Hcons(xls_name, sheet_cons)
     # plot_pourbaix_diagram(xls_name, sheet_name_dGs)
     # plot_chemical_potential(xls_name, sheet_name_origin)
