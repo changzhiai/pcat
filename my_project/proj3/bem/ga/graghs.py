@@ -230,7 +230,7 @@ def plot_index_gragh(G, pos, savefig='graph_both.png', *args, **kwargs):
             print('vertex element {}: {}'.format(G.nodes[node]['symbol'], node))
             adj = list(G.adj[node].keys())[0]
             print('vertex adjacency {}: {}'.format(G.nodes[adj]['symbol'], adj))
-    plt.savefig(savefig, *args, **kwargs)
+    fig.savefig(savefig, *args, **kwargs)
 
 if __name__ == '__main__':
     
