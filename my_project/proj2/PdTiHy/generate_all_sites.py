@@ -238,9 +238,17 @@ def looks_like(a1, a2):
     return (cum_diff < pair_cor_cum_diff
             and max_diff < pair_cor_max)
 
+def get_one_min_dist_atoms(atoms_old, indices_ads):
+    atoms=atoms_old[indices_ads]
+    refps = np.array([7.4, 4.3, atoms[0].z])
+    adsps = atoms.positions
+    dists = np.linalg.norm(refps - adsps, axis=1)
+    min_dist_index = np.argmin(dists)
+    return indices_ads[min_dist_index]
+
 def remove_similar_adsorbates(atoms):
     """Remove similar sites on the surface according to similar local environment"""
-    cutoff = 4
+    cutoff = 4 # cutoff radius
     nl = NeighborList(cutoffs=[cutoff / 2.] * len(atoms),
                             self_interaction=True,
                             bothways=True,
@@ -249,16 +257,18 @@ def remove_similar_adsorbates(atoms):
     index_adsorbates = [atom.index for atom in atoms if atom.symbol == 'X']
     index_adsorbates_top = [atom.index for atom in atoms if atom.symbol == 'X' and atom.tag==0]
     index_adsorbates_hollow = [atom.index for atom in atoms if atom.symbol == 'X' and atom.tag==1]
-    view(atoms[index_adsorbates_top])
-    print(index_adsorbates_top)
-    view(atoms[index_adsorbates_hollow])
-    print(index_adsorbates_hollow)
+    # view(atoms[index_adsorbates_top])
+    # print(index_adsorbates_top)
+    # view(atoms[index_adsorbates_hollow])
+    # print(index_adsorbates_hollow)
     unique_indices = []
     if index_adsorbates_top != []:
-        index_center_top = index_adsorbates_top[len(index_adsorbates_top)//2]
+        # index_center_top = index_adsorbates_top[len(index_adsorbates_top)//2]
+        index_center_top = get_one_min_dist_atoms(atoms, index_adsorbates_top)
         unique_indices.append(index_center_top)
     if index_adsorbates_hollow != []:
-        index_center_hollow = index_adsorbates_hollow[len(index_adsorbates_hollow)//2]
+        # index_center_hollow = index_adsorbates_hollow[len(index_adsorbates_hollow)//2]
+        index_center_hollow = get_one_min_dist_atoms(atoms, index_adsorbates_hollow)
         unique_indices.append(index_center_hollow)
     # index_center = index_adsorbates[len(index_adsorbates)//6]
     # unique_indices = [index_center]
@@ -272,7 +282,7 @@ def remove_similar_adsorbates(atoms):
         for i, offset in zip(indices, offsets):
             atoms_temp.positions[i] = atoms.positions[i] + np.dot(offset, atoms.get_cell())
         atoms_part_comp = atoms_temp[indices]
-        # view(atoms_part_comp)
+        view(atoms_part_comp)
         unique = False # flag
         for unique_index in unique_indices:
             indices_u, offsets_u = nl.get_neighbors(unique_index)
@@ -372,6 +382,7 @@ def generate_all_site_sturts_to_db(adsorbate='CO'):
                         # system.extend(ads)
             # system = rm_1X(system)
             pos = atoms[site].position
+            pos = pos + (0.0, 0.0, -2.0)
             ads_bg = add_ads(adsorbate, pos, bg=False)
             slab.extend(ads_bg)
             db_all_sites.write(slab)
@@ -383,7 +394,8 @@ def test_unique_sites(adsorbate='CO'):
     #     remove_adsorbates_too_close, remove_similar_adsorbates
     # db = connect("./dft_candidates_PdHx_r8.db")
     # db_all_sites = connect('all_t_p_sites_CO_on_cands.db')
-    db_template = connect("/home/energy/changai/ce_PdxTiHy/random/mc/ce_ads/db/template.db")
+    # db_template = connect("/home/energy/changai/ce_PdxTiHy/random/mc/ce_ads/db/template.db")
+    db_template = connect("../template.db")
     row1 = list(db_template.select(id=1))[0]
     atoms = row1.toatoms()
     system_ori = atoms.copy()
@@ -393,7 +405,7 @@ def test_unique_sites(adsorbate='CO'):
     atoms = add_full_adsorbates(atoms, sites['top'], adsorbate='X', tag=0)
     atoms = add_full_adsorbates(atoms, sites['hollow'], adsorbate='X', tag=1)
     atoms = remove_adsorbates_too_close(atoms)
-    view(atoms)
+    # view(atoms)
     atoms = remove_similar_adsorbates(atoms)
     view(atoms)
     all_possible_sites = [atom.index for atom in atoms if atom.symbol == 'X']

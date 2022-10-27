@@ -368,7 +368,8 @@ def test_unique_sites(adsorbate='CO'):
     #     remove_adsorbates_too_close, remove_similar_adsorbates
     # db = connect("./dft_candidates_PdHx_r8.db")
     # db_all_sites = connect('all_t_p_sites_CO_on_cands.db')
-    db_template = connect("/home/energy/changai/ce_PdxTiHy/random/mc/ce_ads/db/template.db")
+    db_template = connect("../template.db")
+    # db_template = connect("/home/energy/changai/ce_PdxTiHy/random/mc/ce_ads/db/template.db")
     row1 = list(db_template.select(id=1))[0]
     atoms = row1.toatoms()
     system_ori = atoms.copy()

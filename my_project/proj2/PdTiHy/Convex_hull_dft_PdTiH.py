@@ -499,8 +499,8 @@ def formation_energy_ref_metals(atoms, energy_tot, energy_ref_eles):
     """Formation energy calculation references pure metal and H2 gas
     
     For exmaple: energy_ref_eles={'Pd':-1.951, 'Ti':-5.858, 'H': -7.158*0.5}
-    Pure Pd: -1.951 eV/atom
-    Pure Ti: -5.858 eV/atom
+    Pure bulk Pd: -1.951 eV/atom
+    Pure bulk Ti: -5.858 eV/atom
     H2 gas: -7.158 eV
     """
     energies_ref_eles = 0
@@ -518,9 +518,9 @@ def formation_energy_ref_hyd_and_metals(atoms, energy_tot, energy_ref_eles):
     """Formation energy calculation references pure metal and H2 gas
     
     E_form_e = PdxTi(64-x)Hy - y*PdH + (y-x)*Pd - (64-x)*Ti
-    Pure PdH: -5.22219 eV/atom
-    Pure Pd: -1.59002 ev/atom
-    Pure Ti: -5.32613 eV/atom
+    Pure slab PdH: -5.22219 eV/atom
+    Pure slab Pd: -1.59002 ev/atom
+    Pure slab Ti: -5.32613 eV/atom
     """
     # energies_ref_eles = 0
     # num_eles_tot = 0
