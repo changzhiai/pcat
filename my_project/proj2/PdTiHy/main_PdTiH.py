@@ -424,7 +424,7 @@ def plot_activity(xls_name, sheet_binding_energy, fig_dir):
     # df.drop(['Pd16Ti48H8', 'Pd16Ti48H24'], inplace=True)
     name_fig_act = f'{fig_dir}/{system_name}_activity.jpg'
     activity = Activity(df, descriper1 = 'E(*CO)', descriper2 = 'E(*HOCO)', fig_name=name_fig_act,
-                        U0=-0.3, 
+                        U0=-0.5, 
                         T0=297.15, 
                         pCO2g = 1., 
                         pCOg=0.005562, 
@@ -436,7 +436,7 @@ def plot_activity(xls_name, sheet_binding_energy, fig_dir):
     # activity.plot(save=True)
     # activity.plot(save=True, xlim=[-2.5, 2.5], ylim=[-2.5, 2.5])
     # activity.plot(save=True, xlim=[-1., 0], ylim=[-0.2, 1])
-    activity.plot(save=True, xlim=[-2.5, 0], ylim=[-2.5, 1])
+    activity.plot(save=True, xlim=[-2.5, 1.0], ylim=[-2.5, 1])
 
 def del_partial_db(db):
     """Delet uncomplete database"""
@@ -694,7 +694,7 @@ if __name__ == '__main__':
     
     # plot_free_enegy(xls_name, sheet_free_energy, fig_dir)
     # plot_scaling_relations(xls_name, sheet_binding_energy, fig_dir)
-    # plot_activity(xls_name, sheet_binding_energy, fig_dir)
+    plot_activity(xls_name, sheet_binding_energy, fig_dir)
     # views(formula='Pd51Ti13H59', all_sites=True)
     # view(db_name)
     
