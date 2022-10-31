@@ -12,7 +12,7 @@ import pandas as pd
 from ase import Atom, Atoms
 from ase.visualize import view
 
-def get_CO_binding_energies(xls_name, sheet_binding_e):
+def get_CO_binding_energies(xls_name, sheet_binding_e, save_to_csv = False):
     df = pd_read_excel(filename=xls_name, sheet=sheet_name_stable)
     surf = df['Surface']
     site = df['Site']
@@ -24,7 +24,7 @@ def get_CO_binding_energies(xls_name, sheet_binding_e):
     if save_to_xls:
         with pd.ExcelWriter(xls_name, engine='openpyxl', mode='a') as writer:
             df_sub.to_excel(writer, sheet_name='CO_candidates', index=False, float_format='%.3f')
-    save_to_csv = False
+    # save_to_csv = False
     if save_to_csv:   
         df_sub.to_csv('CO_candidates.csv')
     return df_sub
@@ -103,7 +103,7 @@ if __name__ == '__main__':
         print('data done')
     
     if True:
-        df_sub=get_CO_binding_energies(xls_name, sheet_binding_e)
+        df_sub = get_CO_binding_energies(xls_name, sheet_binding_e, save_to_csv = False)
         cands_id = list(df_sub.Origin_id.values)
         generate_all_sites_HOCO(cands_id)
 
