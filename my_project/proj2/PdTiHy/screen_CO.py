@@ -84,7 +84,7 @@ def generate_all_sites_HOCO(cands_id):
     
 if __name__ == '__main__':
 
-    system_name = 'collect_vasp_candidates_PdTiH_all_sites'
+    system_name = 'collect_vasp_candidates_PdTiH_all_sites' # only slab and slab with CO
     
     metal_obj = 'Ti'
     ref_eles=['Pd', 'Ti']
