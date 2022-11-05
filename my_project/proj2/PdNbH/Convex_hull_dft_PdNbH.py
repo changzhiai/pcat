@@ -640,7 +640,7 @@ def plot_dft_convex_hull(xls_name, sheet_convex_hull, candidates=False, round=1)
         s = np.append(s, s[0])  # Here we cycle back to the first coordinate
         plt.plot(pts[s, 0], pts[s, 1], "r--", alpha=0.3, zorder=1)
     bar.set_label(r'Formation energy (eV/atom)', fontsize=12,)
-    plt.title(f'Convex hull {round} of PdTiH ({len(id)} DFT data points)')
+    plt.title(f'Convex hull {round} of PdNbH ({len(id)} DFT data points)')
     
     plt.xlim([0, 1])
     # ticks = []
