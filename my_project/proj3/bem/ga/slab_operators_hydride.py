@@ -791,7 +791,7 @@ class AdsorbateOperator(OffspringCreator):
             site_pos = site_pos[0]
             site_pos = site_pos - (0.0, 0.0, 2.0) 
         else:
-            assert False
+            raise ValueError('The adsorbate is currently not supported')
         # print(site_pos)
         return site_pos
     
@@ -1377,7 +1377,7 @@ class AdsorbateCutSpliceCrossover(AdsorbateOperator):
         ads_indices1, ads_symbols1 = self.get_adsorbates_from_slab(atoms1)
         ads_indices2, ads_symbols2 = self.get_adsorbates_from_slab(atoms2)
         # print('before permutation:', atoms)
-        print('======start CutSpliceCrossover======')
+        print('======start AdsorbateCutSpliceCrossover======')
         for _ in range(self.num_muts):
             atoms_old1 = copy.deepcopy(atoms1)
             atoms_old2 = copy.deepcopy(atoms2)
@@ -1404,7 +1404,7 @@ class AdsorbateCutSpliceCrossover(AdsorbateOperator):
                     print(f'failed due to too many adsorbate already on slab. \n {atoms.info}')
                     assert False
         # print('after permutation:', atoms, '\n')
-        print('======end CutSpliceCrossover======')
+        print('======end AdsorbateCutSpliceCrossover======')
         return atoms
     
 class InteranlHydrogenOperator(OffspringCreator):
