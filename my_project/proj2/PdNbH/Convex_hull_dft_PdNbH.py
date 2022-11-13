@@ -680,8 +680,8 @@ if __name__ == '__main__':
     #     db_tot = '../data/collect_vasp_PdHy_and_insert.db'
     #     concatenate_db('../data/collect_vasp_PdHy_v3.db', '../data/collect_vasp_insert_PdHy.db', db_tot)
     
-    for i in [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]:
-    # for i in [10]:
+    # for i in [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]:
+    for i in [11]:
     # for i in [150, 200, 250, 450]:
         # system_name = 'PdTiH_{}'.format(i) # only CE and DFT surface data
         # system_name = 'PdTiH_150' # only CE and DFT surface data
@@ -715,7 +715,7 @@ if __name__ == '__main__':
             db2xls_dft(system_name, xls_name, sheet_convex_hull, energy_ref_eles)
         
         if True:
-            plot_dft_convex_hull(xls_name, sheet_convex_hull, candidates=False, round=i)
+            plot_dft_convex_hull(xls_name, sheet_convex_hull, candidates=True, round=i)
         
         if False: # plot
             plot_free_enegy(xls_name, sheet_free_energy, fig_dir)
