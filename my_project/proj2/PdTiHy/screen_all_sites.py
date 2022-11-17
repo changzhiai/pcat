@@ -7,7 +7,7 @@ Created on Tue Jan  4 13:55:28 2022
 # import sys
 # sys.path.append("../../../")
 
-from pcat.preprocessing.db2xls_CO_and_HOCO_filter import db2xls
+from pcat.preprocessing.db2xls_all_sites_filter import db2xls
 from ase.db import connect
 from pcat.lib.io import pd_read_excel
 from pcat.free_energy import CO2RRFED
@@ -613,7 +613,7 @@ def plot_count_nn_hist(ads='CO'):
 
 if __name__ == '__main__':
 
-    system_name = 'collect_vasp_candidates_PdTiH_all_sites_HOCO_and_CO' # slab, slab with CO, slab with HOCO
+    system_name = 'collect_vasp_candidates_PdTiH_all_sites' # slab, slab with CO, slab with HOCO
     
     ref_eles=['Pd', 'Ti']
     db_name = f'./data/{system_name}.db' # the only one needed
@@ -637,7 +637,7 @@ if __name__ == '__main__':
                sheet_name_allFE, sheet_selectivity, sheet_name_dGs,
                cutoff=2.8)
     
-    if False: # plot
+    if True: # plot
         plot_free_enegy(xls_name, sheet_free_energy, fig_dir)
         plot_scaling_relations(xls_name, sheet_binding_energy, fig_dir)
         plot_selectivity(xls_name, sheet_selectivity, fig_dir)
@@ -665,7 +665,7 @@ if __name__ == '__main__':
     
     # plot_free_enegy(xls_name, sheet_free_energy, fig_dir)
     # plot_scaling_relations(xls_name, sheet_binding_energy, fig_dir)
-    plot_activity(xls_name, sheet_binding_energy, fig_dir)
+    # plot_activity(xls_name, sheet_binding_energy, fig_dir)
     # views(formula='Pd51Ti13H59', all_sites=True)
     # view(db_name)
     

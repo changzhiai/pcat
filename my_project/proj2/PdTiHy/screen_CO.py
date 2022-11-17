@@ -80,7 +80,51 @@ def generate_all_sites_HOCO(cands_id):
             db_HOCO.write(atoms, uniqueid=unique_id, slab_id=row.slab_id)
             print(atoms)
     
-    
+def generate_all_sites_H(cands_id):
+    db_CO = connect('./data/all_sites_CO_on_cands.db')
+    db_HOCO = connect('all_sites_H_on_cands.db')
+    for row in db_CO.select():
+        uniqueid = (row.uniqueid).split('_')
+        row_id = uniqueid[0]
+        name = uniqueid[1]
+        site = uniqueid[2]
+        adsorbate = 'H'
+        ori_id = uniqueid[4] # initial id
+        unique_id = str(row_id) + '_' + name + '_' + site + '_' + adsorbate + '_' + str(ori_id)
+        
+        if int(ori_id) in cands_id:
+            atoms = row.toatoms()
+            pos = [atom for atom in atoms if atom.symbol=='C'][0].position
+            pos = pos - (0.0, 0.0, 2.0)
+            atoms = atoms[[atom.index for atom in atoms if atom.symbol!='C' and atom.symbol!='O']]
+            ads = add_ads(adsorbate, pos, bg=False)
+            atoms.extend(ads)
+            # view(atoms)
+            db_HOCO.write(atoms, uniqueid=unique_id, slab_id=row.slab_id)
+            print(atoms)    
+            
+def generate_all_sites_OH(cands_id):
+    db_CO = connect('./data/all_sites_CO_on_cands.db')
+    db_HOCO = connect('all_sites_OH_on_cands.db')
+    for row in db_CO.select():
+        uniqueid = (row.uniqueid).split('_')
+        row_id = uniqueid[0]
+        name = uniqueid[1]
+        site = uniqueid[2]
+        adsorbate = 'OH'
+        ori_id = uniqueid[4] # initial id
+        unique_id = str(row_id) + '_' + name + '_' + site + '_' + adsorbate + '_' + str(ori_id)
+        
+        if int(ori_id) in cands_id:
+            atoms = row.toatoms()
+            pos = [atom for atom in atoms if atom.symbol=='C'][0].position
+            pos = pos - (0.0, 0.0, 2.0)
+            atoms = atoms[[atom.index for atom in atoms if atom.symbol!='C' and atom.symbol!='O']]
+            ads = add_ads(adsorbate, pos, bg=False)
+            atoms.extend(ads)
+            # view(atoms)
+            db_HOCO.write(atoms, uniqueid=unique_id, slab_id=row.slab_id)
+            print(atoms)    
     
 if __name__ == '__main__':
 
@@ -105,6 +149,8 @@ if __name__ == '__main__':
     if True:
         df_sub = get_CO_binding_energies(xls_name, sheet_binding_e, save_to_csv = False)
         cands_id = list(df_sub.Origin_id.values)
-        generate_all_sites_HOCO(cands_id)
+        # generate_all_sites_HOCO(cands_id)
+        # generate_all_sites_H(cands_id)
+        generate_all_sites_OH(cands_id)
 
     
