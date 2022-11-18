@@ -629,7 +629,7 @@ def plot_dft_convex_hull(xls_name, sheet_convex_hull, candidates=False, round=1)
     vertices = pts[hull.vertices]
     plt.scatter(vertices[:,0], vertices[:,1], c='r', marker='.', zorder=2)
     if candidates:
-        only_final_candidates = True
+        only_final_candidates = False
         if only_final_candidates: # only final (DFT) structures
             db_candidates = get_candidates(ids=vertices[:,3])
             print(f'candidates of {system_name}:', len(db_candidates))
@@ -680,7 +680,7 @@ if __name__ == '__main__':
     #     db_tot = '../data/collect_vasp_PdHy_and_insert.db'
     #     concatenate_db('../data/collect_vasp_PdHy_v3.db', '../data/collect_vasp_insert_PdHy.db', db_tot)
     
-    # for i in [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11]:
+    # for i in [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]:
     for i in [12]:
     # for i in [150, 200, 250, 450]:
         # system_name = 'PdTiH_{}'.format(i) # only CE and DFT surface data
@@ -710,7 +710,7 @@ if __name__ == '__main__':
         # energy_ref_eles={'Pd':-1.951, metal_obj:-2.534, 'H': -7.158*0.5} # for Ni
         energy_ref_eles={'Pd':-1.951, metal_obj:-7.245, 'H': -7.158*0.5} # for Nb
         db = connect(db_name)
-        if True: # database to excel
+        if False: # database to excel
             # db = del_partial_db(db)
             db2xls_dft(system_name, xls_name, sheet_convex_hull, energy_ref_eles)
         
