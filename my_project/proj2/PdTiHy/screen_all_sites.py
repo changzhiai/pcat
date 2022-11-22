@@ -643,20 +643,20 @@ if __name__ == '__main__':
         plot_selectivity(xls_name, sheet_selectivity, fig_dir)
         plot_activity(xls_name, sheet_binding_energy, fig_dir)
     
-    if False: # cutoff=4.5
+    if True: # cutoff=4.5
         binding_energy_distribution(ads='HOCO')
         binding_energy_distribution(ads='CO')
         binding_energy_distribution(ads='OH')
         binding_energy_distribution(ads='H')
     
-    if False:
+    if True:
         for ads in ['HOCO', 'CO', 'OH', 'H']:
             plot_count_nn(ads=ads)
             plot_count_nn_stack(ads=ads)
         # plot_count_nn(ads='CO')
         # plot_count_nn_stack(ads='CO')
     
-    if False:
+    if True:
         for ads in ['HOCO', 'CO', 'OH', 'H']:
             plot_count_nn_hist(ads=ads)
             
