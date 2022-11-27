@@ -146,7 +146,7 @@ if __name__ == '__main__':
         db2xls(system_name, xls_name, db,  ref_eles, sheet_binding_e, sheet_name_stable, sheet_binding_energy)
         print('data done')
     
-    if True:
+    if False:
         df_sub = get_CO_binding_energies(xls_name, sheet_binding_e, save_to_csv = False)
         cands_id = list(df_sub.Origin_id.values)
         generate_all_sites_HOCO(cands_id)
