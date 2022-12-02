@@ -149,9 +149,9 @@ if __name__ == '__main__':
     if False:
         df_sub = get_CO_binding_energies(xls_name, sheet_binding_e, save_to_csv = False)
         cands_id = list(df_sub.Origin_id.values)
-        generate_all_sites_HOCO(cands_id)
+        # generate_all_sites_HOCO(cands_id)
         # generate_all_sites_H(cands_id)
-        # generate_all_sites_OH(cands_id)
+        generate_all_sites_OH(cands_id)
         print('Done')
 
     
