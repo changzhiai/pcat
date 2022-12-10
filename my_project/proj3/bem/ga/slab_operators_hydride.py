@@ -33,8 +33,8 @@ def permute2(atoms, rng=np.random, element_pools=None):
         atoms[i2].symbol = sym1
     else:
         # print(element_pools[0], element_pools[1])
-        list1 = [a.index for a in atoms if a.symbol == element_pools[0] and a.tag >= 0] # non ads for tag setting
-        list2 = [a.index for a in atoms if a.symbol == element_pools[1] and a.tag >= 0]
+        list1 = [a.index for a in atoms if a.symbol == element_pools[0] and a.tag >= 0 and a.tag != 4] # non ads for tag setting
+        list2 = [a.index for a in atoms if a.symbol == element_pools[1] and a.tag >= 0 and a.tag != 4]
         if bool(list1) and bool(list2):
             i1 = rng.choice(list1)
             sym1 = atoms[i1].symbol
@@ -51,8 +51,8 @@ def replace_multiple(atoms, rng=np.random, element_pools=None, first_nums_list=[
         print('please specify element pools')
         assert False
     elif first_nums_list != []:
-        list1 = [a.index for a in atoms if a.symbol == element_pools[0] and a.tag >= 0] # non ads for tag setting
-        list2 = [a.index for a in atoms if a.symbol == element_pools[1] and a.tag >= 0]
+        list1 = [a.index for a in atoms if a.symbol == element_pools[0] and a.tag >= 0 and a.tag != 4] # non ads for tag setting
+        list2 = [a.index for a in atoms if a.symbol == element_pools[1] and a.tag >= 0 and a.tag != 4]
         if len(list1)-1 in first_nums_list and len(list1)+1 in first_nums_list:
             operate = rng.choice(['add', 'remove'])
             if operate == 'remove':
@@ -90,8 +90,8 @@ def replace(atoms, rng=np.random, element_pools=None):
         print('please specify element pools')
         assert False
     else:
-        list1 = [a.index for a in atoms if a.symbol == element_pools[0] and a.tag >= 0] # non ads for tag setting
-        list2 = [a.index for a in atoms if a.symbol == element_pools[1] and a.tag >= 0]
+        list1 = [a.index for a in atoms if a.symbol == element_pools[0] and a.tag >= 0 and a.tag != 4] # non ads for tag setting
+        list2 = [a.index for a in atoms if a.symbol == element_pools[1] and a.tag >= 0 and a.tag != 4]
         if bool(list1) and bool(list2):
             operate = rng.choice(['add', 'remove'])
             if operate == 'remove':
@@ -560,8 +560,8 @@ class SymmetrySlabPermutation(SlabOperator):
         f = parents[0]
         flag = 0
         if bool(self.element_pools):
-            list1 = [a.index for a in f if a.symbol == self.element_pools[0] and a.tag >= 0]
-            list2 = [a.index for a in f if a.symbol == self.element_pools[1] and a.tag >= 0]
+            list1 = [a.index for a in f if a.symbol == self.element_pools[0] and a.tag >= 0 and a.tag != 4]
+            list2 = [a.index for a in f if a.symbol == self.element_pools[1] and a.tag >= 0 and a.tag != 4]
             if bool(list1) or bool(list2):
                flag = 1
         # Permutation only makes sense if two different elements are present
@@ -614,8 +614,8 @@ class RandomMetalPermutation(SlabOperator):
         f = parents[0]
         flag = 0
         if bool(self.element_pools):
-            list1 = [a.index for a in f if a.symbol == self.element_pools[0] and a.tag >= 0] # non ads for tag setting
-            list2 = [a.index for a in f if a.symbol == self.element_pools[1] and a.tag >= 0]
+            list1 = [a.index for a in f if a.symbol == self.element_pools[0] and a.tag >= 0 and a.tag != 4] # non ads for tag setting
+            list2 = [a.index for a in f if a.symbol == self.element_pools[1] and a.tag >= 0 and a.tag != 4]
             if not bool(list1) or not bool(list2):
                flag = 1  
        # Permutation only makes sense if two different elements are present
@@ -666,8 +666,8 @@ class RandomMetalComposition(SlabOperator):
         f = parents[0]
         flag = 0
         if bool(self.element_pools):
-            list1 = [a.index for a in f if a.symbol == self.element_pools[0] and a.tag >= 0] # non ads for tag setting
-            list2 = [a.index for a in f if a.symbol == self.element_pools[1] and a.tag >= 0]
+            list1 = [a.index for a in f if a.symbol == self.element_pools[0] and a.tag >= 0 and a.tag != 4] # non ads for tag setting
+            list2 = [a.index for a in f if a.symbol == self.element_pools[1] and a.tag >= 0 and a.tag != 4]
             if not bool(list1) or not bool(list2):
                flag = 1  
        # Permutation only makes sense if two different elements are present

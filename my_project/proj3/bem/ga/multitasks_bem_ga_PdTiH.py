@@ -55,6 +55,8 @@ import random
 import time
 import re
 from ase.calculators.singlepoint import SinglePointCalculator as SPC
+from ase.neighborlist import NeighborList
+from ase.units import kB
 
 
 def remove_X(atoms):
@@ -295,8 +297,6 @@ def vf(atoms):
     niched population."""
     return atoms.get_chemical_formula(mode='hill')
 
-
-
 def get_gas_free_energy(ads, T=298.15, P=3534., geometry='nonlinear'):
     from ase.thermochemistry import IdealGasThermo
     import numpy as np
@@ -383,47 +383,14 @@ def calculate_binding_free_e(atoms, Epot):
         gamma = 1/A_surf*(Epot - num_Pd*mu_slab['PdH']-(num_H-num_Pd)*mu_slab['TiH']-(64-num_H)*mu_slab['Ti']-G_adss)-gamma_Pd
     return gamma
     
-def calculate_gamma(atoms, Epot, T=298.15):
+def calculate_gamma_old(atoms, Epot, T=298.15):
     """Get surface adsorption energy
-    Pure slab PdH: -5.22219 eV/atom
-    Pure slab Pd: -1.59002 ev/atom
-    Pure slab Ti: -5.32613 eV/atom
-    
-    Pure bulk Pd: -1.951 eV/atom
-    Pure bulk Ti: -5.858 eV/atom
-    H2 gas: -7.158 eV
-    
-    E_H2g = -7.158 # eV
-    E_CO2g = -18.459
-    E_H2Og = -12.833
-    E_COg = -12.118
-    
-    # G_gas = E_pot + E_ZPE + C_Idel_gas - TS + Ecorr_overbing + E_solvent
-    Gcor_H2g = 0.274 + 0.091 - 0.403 + 0.1 + 0
-    Gcor_CO2g = 0.306 + 0.099 - 0.664 + 0.3 + 0
-    Gcor_H2Og = 0.572 + 0.104 - 0.670
-    Gcor_COg = 0.132 + 0.091 - 0.669
-    G_H2g = E_H2g + Gcor_H2g
-    G_CO2g = E_CO2g + Gcor_CO2g
-    G_H2Og = E_H2Og + Gcor_H2Og
-    G_COg = E_COg + Gcor_COg
-    
-    # G_gas = E_ZPE + C_harm - TS + Ecorr_overbing + E_solvent
-    Gcor_H = 0.190 + 0.003 - 0.004 + 0 + 0
-    Gcor_HOCO = 0.657 + 0.091 - 0.162 + 0.15 - 0.25
-    Gcor_CO = 0.186 + 0.080 - 0.156 + 0 - 0.10
-    Gcor_OH = 0.355 + 0.056 - 0.103
+    according to PdH, Pd3Ti and H2 gas
     """
-    
     adss = atoms.info['data']['ads_symbols']
     num_ads_H = adss.count('H')
-    # num_ads_OH = adss.count('OH')
-    # num_ads_CO = adss.count('CO')
     num_H = len([s for s in atoms.symbols if s == 'H']) - num_ads_H # H only in slab
-    # num_C = len([s for s in atoms.symbols if s == 'C'])
-    # num_O = len([s for s in atoms.symbols if s == 'O'])
     num_Pd = len([s for s in atoms.symbols if s == 'Pd'])
-    # num_Ti = len([s for s in atoms.symbols if s == 'Ti'])
     A_surf = np.linalg.norm(np.cross(atoms.cell[0], atoms.cell[1]))
     mu_slab = {'PdH': -5.22219, 'Pd': -1.59002, 'Ti': -5.32613, 'TiH': -9.54306}
     mu_bulk = {'PdH':-8.73007, 'Pd3Ti': -10.41178}
@@ -461,6 +428,86 @@ def calculate_gamma(atoms, Epot, T=298.15):
                       (1-num_Pd)*mu_bulk['Pd3Ti'] - 1/2*(num_H-4*num_Pd+3)*G_H2g - 64*mu_slab['PdH'] - G_adss)-gamma_Pd
     return gamma
 
+def calculate_gamma(atoms, Epot, T=298.15, U=0, pH=0, P_H2=101325., P_CO2=101325., P_H2O=3534., P_CO=5562.):
+    """Get surface adsorption energy
+    Pure slab PdH: -5.22219 eV/atom
+    Pure slab Pd: -1.59002 ev/atom
+    Pure slab Ti: -5.32613 eV/atom
+    
+    Pure bulk Pd: -1.951 eV/atom
+    Pure bulk Ti: -5.858 eV/atom
+    H2 gas: -7.158 eV
+    
+    E_H2g = -7.158 # eV
+    E_CO2g = -18.459
+    E_H2Og = -12.833
+    E_COg = -12.118
+    
+    # G_gas = E_pot + E_ZPE + C_Idel_gas - TS + Ecorr_overbing + E_solvent
+    Gcor_H2g = 0.274 + 0.091 - 0.403 + 0.1 + 0
+    Gcor_CO2g = 0.306 + 0.099 - 0.664 + 0.3 + 0
+    Gcor_H2Og = 0.572 + 0.104 - 0.670
+    Gcor_COg = 0.132 + 0.091 - 0.669
+    G_H2g = E_H2g + Gcor_H2g
+    G_CO2g = E_CO2g + Gcor_CO2g
+    G_H2Og = E_H2Og + Gcor_H2Og
+    G_COg = E_COg + Gcor_COg
+    
+    # G_gas = E_ZPE + C_harm - TS + Ecorr_overbing + E_solvent
+    Gcor_H = 0.190 + 0.003 - 0.004 + 0 + 0
+    Gcor_HOCO = 0.657 + 0.091 - 0.162 + 0.15 - 0.25
+    Gcor_CO = 0.186 + 0.080 - 0.156 + 0 - 0.10
+    Gcor_OH = 0.355 + 0.056 - 0.103
+    """
+    num_full = 16
+    adss = atoms.info['data']['ads_symbols']
+    num_ads_H = adss.count('H')
+    # num_ads_OH = adss.count('OH')
+    # num_ads_CO = adss.count('CO')
+    num_H = len([s for s in atoms.symbols if s == 'H']) - num_ads_H # H only in slab
+    d_num_H = num_H - num_full
+    num_Pd = len([s for s in atoms.symbols if s == 'Pd'])
+    d_num_Pd = num_Pd - num_full
+    d_num_Ti = -d_num_Pd
+    A_surf = np.linalg.norm(np.cross(atoms.cell[0], atoms.cell[1]))
+    mu_slab = {'PdH': -5.22219, 'Pd': -1.59002, 'Ti': -5.32613, 'TiH': -9.54306}
+    mu_bulk = {'PdH':-8.73007, 'Pd3Ti': -10.41178, 'Pd': -1.951}
+    d_mu_equi = {'Pd': -2.24900, 'Ti': -7.28453, 'H': -3.61353}
+    G_H2g = get_gas_free_energy(ads='H2', T=T, P=P_H2, geometry='linear')
+    G_CO2g = get_gas_free_energy(ads='CO2', T=T, P=P_CO2, geometry='linear')
+    G_H2Og = get_gas_free_energy(ads='H2O', T=T, P=P_H2O, geometry='nonlinear')
+    G_COg = get_gas_free_energy(ads='CO', T=T, P=P_CO, geometry='linear')
+    Gcor_H2g = 0.1 + 0 # overbinding and solvent correction
+    Gcor_CO2g = 0.3 + 0
+    Gcor_H2Og = 0
+    Gcor_COg = 0
+    G_H2g = G_H2g + Gcor_H2g
+    G_CO2g = G_CO2g + Gcor_CO2g
+    G_H2Og = G_H2Og + Gcor_H2Og
+    G_COg = G_COg + Gcor_COg
+    
+    # E_Pd_slab = -101.76139444 # 64 Pd atoms
+    # mu_Pd_bulk = -1.951 # per atom
+    gamma_Pd = 1/(2*A_surf) * (num_full*mu_slab['Pd'] - num_full*mu_bulk['Pd'])
+    G_adss = 0
+    for ads in adss: # ads correction
+    # - (64-x)*u - (64-x) * kB * T * ph * np.log(10)
+        if ads == 'H':
+            G_adss += 0.5 * G_H2g - U - kB * T * pH * np.log(10)
+            Gcor_H = 0.190 + 0.003 - 0.0000134*T + 0 + 0
+            Epot += Gcor_H
+        elif ads == 'OH':
+            G_adss += G_H2Og - 0.5 * G_H2g + U + kB * T * pH * np.log(10)
+            Gcor_OH = 0.355 + 0.056 - 0.000345*T
+            Epot += Gcor_OH
+        elif ads == 'CO':
+            G_adss += G_COg
+            Gcor_CO = 0.186 + 0.080 - 0.000523*T + 0 - 0.10
+            Epot += Gcor_CO
+    gamma = 1/A_surf*(Epot -d_num_Pd*d_mu_equi['Pd'] -
+                      d_num_Ti*d_mu_equi['Ti'] - d_num_H*d_mu_equi['H'] - num_full*mu_slab['PdH'] - G_adss)-gamma_Pd
+    return gamma
+
 def relax(atoms, single_point=True):
     # t1 = time.time()
     atoms.calc = EMT()
@@ -474,7 +521,7 @@ def relax(atoms, single_point=True):
     atoms.info['key_value_pairs']['nnmat_string'] = get_nnmat_string(atoms, 2, True) # for compator
     # atoms.info['data']['nnmat'] = get_nnmat(atoms)
     # atoms.info['key_value_pairs']['raw_score'] = -Epot
-    Ts = np.arange(20., 30., 1.)
+    # Ts = np.arange(200., 300., 1.)
     fs = np.array([calculate_gamma(atoms, Epot, T=T) for T in Ts])
     atoms.info['data']['raw_scores'] = fs
     # t2 = time.time()
@@ -630,7 +677,39 @@ def update_H_tags_after_dft_relax(atoms):
     _, _ = check_adsorbates(atoms)
     _ = check_tags(atoms)
                     
-                
+def check_distortion(atoms, cutoff=1.2):
+    """Check if there are some distortion structures, such as, H2O, H2"""
+    cutoff = cutoff # within 1.2 A
+    nl = NeighborList(cutoffs=[cutoff / 2.] * len(atoms),
+                            self_interaction=True,
+                            bothways=True,
+                            skin=0.)
+    nl.update(atoms)
+    for atom in atoms:
+        if atom.symbol == 'O':
+            n1 = atom.index
+            indices, _ = nl.get_neighbors(n1)
+            indices = list(set(indices))
+            indices.remove(n1)
+            if len(indices) != 0:
+                syms = atoms[indices].get_chemical_symbols()
+                num = syms.count('H')
+                if num >= 2:
+                    reason = 'H2O_exists'
+                    return True, reason
+        elif atom.symbol == 'H':
+            n1 = atom.index
+            indices, _ = nl.get_neighbors(n1)
+            indices = list(set(indices))
+            indices.remove(n1)
+            if len(indices) != 0:
+                syms = atoms[indices].get_chemical_symbols()
+                num = syms.count('H')
+                if num >= 1:
+                    reason = 'H2_exists'
+                    return True, reason
+    return False, 'undistortion'
+
 
 if __name__ == '__main__':
     
@@ -666,32 +745,9 @@ if __name__ == '__main__':
                                 AdsorbateMoveToUnoccupied(ads_pools=['CO', 'OH', 'H'], num_muts=1),
                                 AdsorbateCutSpliceCrossover(ads_pools=['CO', 'OH', 'H'], num_muts=1),
                                 ])
-    # species = ['CO', 'H', 'OH']
-    # temp = read('./template_2x2.traj')
-    # sas = ClusterAdsorptionSites(temp, composition_effect=False)
-    # op_selector = OperationSelector([2, 1, 1, 1, 1, 2],
-    #        [RandomSlabPermutation(element_pools=['Pd', 'Ni'], num_muts=5),
-    #         AddAdsorbate(species, adsorption_sites=sas, num_muts=5),
-    #         RemoveAdsorbate(species, adsorption_sites=sas, num_muts=5),
-    #         MoveAdsorbate(species, adsorption_sites=sas, num_muts=5),
-    #         ReplaceAdsorbate(species, adsorption_sites=sas, num_muts=5),
-    #         SimpleCutSpliceCrossoverWithAdsorbates(species, keep_composition=True,
-    #                                                adsorption_sites=sas),])
-    # population = RankFitnessPopulation(data_connection=db,
-    #                         population_size=pop_size,
-    #                         comparator=get_comparators(db),
-    #                         variable_function=vf,
-    #                         exp_function=True,
-    #                         logfile='log.txt')
-    # population = Population(data_connection=db,
-    #              population_size=pop_size,
-    #              comparator=get_comparators(db),
-    #              logfile='log.txt')
-    
     
     # Define the tasks. In this case we use 10 different chemical potentials of CH4
-    Ts = np.arange(20., 30., 1.)
-    # tasks = np.arange(250., 350., 10.)
+    Ts = np.arange(200., 300., 1.)
     # Initialize the population and specify the number of tasks
     population = MultitaskPopulation(data_connection=db,
                               population_size=pop_size,
