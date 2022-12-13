@@ -306,7 +306,8 @@ def plot_Pd_num_vs_U(system_name, SHE=False, gen=True):
         plt.xlabel('$U_{SHE}$ (V)')
     else: # RHE
         plt.plot(df_min_Us['Us']+kB * T * pH * np.log(10), df_min_Us['num_Hs']/64, 'ro-')
-        plt.xlabel('$U_{RHE}$ (V)')
+        plt.plot([-0.57, -0.46734+kB * T * pH * np.log(10)], [39/64, 39/64], 'r--')
+        plt.xlabel('$U_{RHE}$')
     plt.ylabel('x in $PdH_x$')
     plt.show()
     
