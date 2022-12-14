@@ -767,6 +767,10 @@ class AdsorbateOperator(OffspringCreator):
         return ads
     
     def get_ads_pos(self, atoms, ads_index, ads_symbol):
+        print(ads_index, ads_symbol)
+        print(atoms, atoms.info['data']['ads_indices'], atoms.info['data']['ads_symbols'])
+        print([atom.position for atom in atoms[ads_index] if atom.symbol=='C'])
+        print(len([atom.position for atom in atoms[ads_index] if atom.symbol=='C']))
         if ads_symbol == "HOCO":
             assert len(ads_index)==4
             site_pos = [atom.position for atom in atoms[ads_index] if atom.symbol=='C']

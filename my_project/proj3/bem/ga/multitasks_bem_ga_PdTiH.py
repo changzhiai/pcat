@@ -491,13 +491,12 @@ def calculate_gamma(atoms, Epot, T=298.15, U=0, pH=0, P_H2=101325., P_CO2=101325
     gamma_Pd = 1/(2*A_surf) * (num_full*mu_slab['Pd'] - num_full*mu_bulk['Pd'])
     G_adss = 0
     for ads in adss: # ads correction
-    # - (64-x)*u - (64-x) * kB * T * ph * np.log(10)
         if ads == 'H':
             G_adss += 0.5 * G_H2g - U - kB * T * pH * np.log(10)
             Gcor_H = 0.190 + 0.003 - 0.0000134*T + 0 + 0
             Epot += Gcor_H
         elif ads == 'OH':
-            G_adss += G_H2Og - 0.5 * G_H2g + U + kB * T * pH * np.log(10)
+            G_adss += G_H2Og - 0.5 * G_H2g + U + kB * T * pH * np.log(10)  # !!! change into liquid H2O
             Gcor_OH = 0.355 + 0.056 - 0.000345*T
             Epot += Gcor_OH
         elif ads == 'CO':
@@ -515,17 +514,17 @@ def relax(atoms, single_point=True):
         opt = BFGS(atoms, logfile=None)
         opt.run(fmax=0.1)
     Epot = atoms.get_potential_energy()
-    atoms.calc = None
     # Calculate_mixing_energy()
     atoms.info['key_value_pairs']['potential_energy'] = Epot # for compator
     atoms.info['key_value_pairs']['nnmat_string'] = get_nnmat_string(atoms, 2, True) # for compator
     # atoms.info['data']['nnmat'] = get_nnmat(atoms)
     # atoms.info['key_value_pairs']['raw_score'] = -Epot
-    # Ts = np.arange(200., 300., 1.)
+    Ts = np.arange(200., 300., 1.)
     fs = np.array([calculate_gamma(atoms, Epot, T=T) for T in Ts])
     atoms.info['data']['raw_scores'] = fs
     # t2 = time.time()
     # print('Relaxing time:', t2-t1)
+    atoms.calc = None
     print('Relaxing offspring candidate {0}'.format(atoms.info['confid']))
     return atoms
 
@@ -597,8 +596,9 @@ def relax_generation(cores, db, gens_running):
             atoms.info['key_value_pairs']['generation'] = gens_running
         pool.close()
         pool.join()
-        db.add_more_relaxed_candidates(relaxed_candidates)
-        population.update()
+        # db.add_more_relaxed_candidates(relaxed_candidates)
+        # population.update()
+        population.update(new_cand=relaxed_candidates)
     else:
         relaxed_candidates = []
         for _ in range(pop_size):
@@ -607,11 +607,11 @@ def relax_generation(cores, db, gens_running):
             a.info['key_value_pairs']['generation'] = gens_running
             # db.add_relaxed_step(a) # insert optimized structure into database
             # population.update() # ! update after add one new atoms
-            population.update(new_cand=[a])
-            # relaxed_candidates.append(a)
+            # population.update(new_cand=[a])
+            relaxed_candidates.append(a)
             t2 = time.time()
             print('offspring relaxing time:', t2-t1)
-    # population.update(new_cand=relaxed_candidates)
+    population.update(new_cand=relaxed_candidates)
     t_end = time.time()
     print('generation timing:', t_end-t_start)
     if copy_to_scratch:
@@ -729,8 +729,8 @@ if __name__ == '__main__':
         db, fname = copy_to_scratch(db_name)
     else:
         db = DataConnection(db_name)
-
-    op_selector = OperationSelector([1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
+    
+    op_selector = OperationSelector([1, 1, 1, 1, 1, 1, 1, 1, 1],
                                 [
                                 RandomMetalPermutation(element_pools=['Pd', 'Ni'], num_muts=5),
                                 RandomMetalComposition(element_pools=['Pd', 'Ni'], num_muts=5),
@@ -738,12 +738,12 @@ if __name__ == '__main__':
                                 InternalHydrogenAddition(internal_H_pools=['H'], num_muts=5),
                                 InternalHydrogenRemoval(internal_H_pools=['H'], num_muts=5),
                                 InternalHydrogenMoveToUnoccupied(internal_H_pools=['H'], num_muts=5),
-                                AdsorbateSubstitution(ads_pools=['CO', 'OH', 'H'], num_muts=1),
+                                # AdsorbateSubstitution(ads_pools=['CO', 'OH', 'H'], num_muts=1),
                                 AdsorbateAddition(ads_pools=['CO', 'OH', 'H'], num_muts=1),
                                 AdsorbateRemoval(ads_pools=['CO', 'OH', 'H'], num_muts=1),
-                                AdsorbateSwapOccupied(ads_pools=['CO', 'OH', 'H'], num_muts=1),
-                                AdsorbateMoveToUnoccupied(ads_pools=['CO', 'OH', 'H'], num_muts=1),
-                                AdsorbateCutSpliceCrossover(ads_pools=['CO', 'OH', 'H'], num_muts=1),
+                                AdsorbateSwapOccupied(ads_pools=['CO', 'OH', 'H'], num_muts=1), # the problem
+                                # AdsorbateMoveToUnoccupied(ads_pools=['CO', 'OH', 'H'], num_muts=1),
+                                # AdsorbateCutSpliceCrossover(ads_pools=['CO', 'OH', 'H'], num_muts=1),
                                 ])
     
     # Define the tasks. In this case we use 10 different chemical potentials of CH4
@@ -772,5 +772,5 @@ if __name__ == '__main__':
         print('\nCreating and evaluating generation {0}'.format(gens_running))
         db = relax_generation(cores, db, gens_running)
         # population.update()
-        
+    
    
