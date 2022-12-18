@@ -767,10 +767,10 @@ class AdsorbateOperator(OffspringCreator):
         return ads
     
     def get_ads_pos(self, atoms, ads_index, ads_symbol):
-        print(ads_index, ads_symbol)
-        print(atoms, atoms.info['data']['ads_indices'], atoms.info['data']['ads_symbols'])
-        print([atom.position for atom in atoms[ads_index] if atom.symbol=='C'])
-        print(len([atom.position for atom in atoms[ads_index] if atom.symbol=='C']))
+        # print(ads_index, ads_symbol)
+        # print(atoms, atoms.info['data']['ads_indices'], atoms.info['data']['ads_symbols'])
+        # print([atom.position for atom in atoms[ads_index] if atom.symbol=='C'])
+        # print(len([atom.position for atom in atoms[ads_index] if atom.symbol=='C']))
         if ads_symbol == "HOCO":
             assert len(ads_index)==4
             site_pos = [atom.position for atom in atoms[ads_index] if atom.symbol=='C']
@@ -818,7 +818,7 @@ class AdsorbateOperator(OffspringCreator):
         ads_indices = atoms.info['data']['ads_indices']
         ads_symbols = atoms.info['data']['ads_symbols']
         assert len(ads_indices)==len(ads_symbols)
-        # self.debug_atoms_data(atoms, ads_indices, ads_symbols)
+        self.debug_atoms_data(atoms, ads_indices, ads_symbols)
         return ads_indices, ads_symbols
     
     def update_all_adss_indices(self, atoms, atoms_old):
@@ -1210,7 +1210,7 @@ class AdsorbateSwapOccupied(AdsorbateOperator):
             if bool(list1):
                flag = 1
        # Permutation only makes sense if two different elements are present
-        if flag == 1:
+        if flag == 0:
             f = parents[1]
             list1 = [a.tag for a in f if a.tag < 0]
             if not bool(list1):
@@ -1235,8 +1235,9 @@ class AdsorbateSwapOccupied(AdsorbateOperator):
         assert len(ads_indices) == len(ads_symbols)
         # print('before permutation:', atoms)
         print('======start Swap======')
-        for _ in range(self.num_muts):
-            if len(ads_indices)>=2 and len(set(ads_symbols))>=2:
+        
+        if len(ads_indices)>=2 and len(set(ads_symbols))>=2:
+            for _ in range(self.num_muts):
                 random.seed(random.randint(1,100000000))
                 random_index1 = random.choice(range(len(ads_indices)))
                 ads_index1 = ads_indices[random_index1]
@@ -1256,11 +1257,12 @@ class AdsorbateSwapOccupied(AdsorbateOperator):
                     ads_symbol2 = ads2_symbols[random_index2]
                 site_pos2 = self.get_ads_pos(atoms, ads_index2, ads_symbol2)
                 atoms = self.remove_adsorbate_from_slab(atoms, ads_index2, ads_symbol2)
+                _, _ = self.get_adsorbates_from_slab(atoms)
                 atoms, _ = self.add_adsorbate_onto_slab(atoms, site_pos1, ads_symbol2, cutoff=1.7)
                 atoms, _ = self.add_adsorbate_onto_slab(atoms, site_pos2, ads_symbol1, cutoff=1.7)
                 _, _ = self.get_adsorbates_from_slab(atoms)
-            else:
-                print(f'failed due to too less adsorbate. \n {atoms.info}')
+        else:
+            print(f'failed due to too less adsorbate. \n {atoms.info}')
         # print('after permutation:', atoms, '\n')
         print('======end Swap======')
         return atoms
