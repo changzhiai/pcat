@@ -730,7 +730,7 @@ if __name__ == '__main__':
     else:
         db = DataConnection(db_name)
     
-    op_selector = OperationSelector([1, 1, 1, 1, 1, 1, 1, 1, 1],
+    op_selector = OperationSelector([1, 1, 1, 1, 1, 1, 1, 1],
                                 [
                                 RandomMetalPermutation(element_pools=['Pd', 'Ni'], num_muts=5),
                                 RandomMetalComposition(element_pools=['Pd', 'Ni'], num_muts=5),
@@ -741,7 +741,7 @@ if __name__ == '__main__':
                                 # AdsorbateSubstitution(ads_pools=['CO', 'OH', 'H'], num_muts=1),
                                 AdsorbateAddition(ads_pools=['CO', 'OH', 'H'], num_muts=1),
                                 AdsorbateRemoval(ads_pools=['CO', 'OH', 'H'], num_muts=1),
-                                AdsorbateSwapOccupied(ads_pools=['CO', 'OH', 'H'], num_muts=1), # the problem
+                                # AdsorbateSwapOccupied(ads_pools=['CO', 'OH', 'H'], num_muts=1), # the problem
                                 # AdsorbateMoveToUnoccupied(ads_pools=['CO', 'OH', 'H'], num_muts=1),
                                 # AdsorbateCutSpliceCrossover(ads_pools=['CO', 'OH', 'H'], num_muts=1),
                                 ])
