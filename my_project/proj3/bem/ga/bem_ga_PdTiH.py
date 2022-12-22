@@ -326,14 +326,19 @@ def relax_init_pop(cores, db):
         pool.join()
         db.add_more_relaxed_candidates(relaxed_candidates)
     else:
-        while db.get_number_of_unrelaxed_candidates() > 0:
-            t_start = time.time()
-            atoms = db.get_an_unrelaxed_candidate()
+        # while db.get_number_of_unrelaxed_candidates() > 0:
+        #     t_start = time.time()
+        #     atoms = db.get_an_unrelaxed_candidate()
+        #     a = relax_an_unrelaxed_candidate(atoms)
+        #     # print(a.info)
+        #     db.add_relaxed_step(a) # insert optimized structures into database
+        #     t_end = time.time()
+        #     print('initial relaxing:', t_end-t_start)
+        relaxed_candidates = []
+        for atoms in db.get_all_unrelaxed_candidates():
             a = relax_an_unrelaxed_candidate(atoms)
-            # print(a.info)
-            db.add_relaxed_step(a) # insert optimized structures into database
-            t_end = time.time()
-            print('initial relaxing:', t_end-t_start)
+            relaxed_candidates.append(a)
+        db.add_more_relaxed_candidates(relaxed_candidates)
     population.update()
     if copy_to_scratch:
         if 'SLURM_JOB_ID' in os.environ:
@@ -376,14 +381,18 @@ def relax_generation(cores, db, gens_running):
         db.add_more_relaxed_candidates(relaxed_candidates)
         population.update()
     else:
+        # relaxed_candidates = []
         for _ in range(pop_size):
             t1 = time.time()
             a = relax_offspring(1)
             a.info['key_value_pairs']['generation'] = gens_running
             db.add_relaxed_step(a) # insert optimized structure into database
             population.update() # !!! update after add one new atoms
+            # relaxed_candidates.append(a)
             t2 = time.time()
             print('offspring relaxing time:', t2-t1)
+    # db.add_more_relaxed_candidates(relaxed_candidates)
+    # population.update()
     t_end = time.time()
     print('generation timing:', t_end-t_start)
     if copy_to_scratch:

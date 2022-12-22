@@ -873,7 +873,7 @@ class AdsorbateOperator(OffspringCreator):
         return atoms, if_too_close
         
     def substitute_adsorbate_on_slab(self, atoms, ads_index, ads_symbol):
-        """Random substitue one adsorbate using other one"""
+        """Random substitue one adsorbate using other one on the same slab"""
         _, _ = self.get_adsorbates_from_slab(atoms)
         site_pos = self.get_ads_pos(atoms, ads_index, ads_symbol)
         atoms = self.remove_adsorbate_from_slab(atoms, ads_index, ads_symbol)
@@ -1015,7 +1015,7 @@ class AdsorbateSubstitution(AdsorbateOperator):
             if bool(list1):
                flag = 1
        # Permutation only makes sense if two different elements are present
-        if flag == 1:
+        if flag == 0:
             f = parents[1]
             list1 = [a.tag for a in f if a.tag < 0]
             if not bool(list1):
@@ -1023,6 +1023,7 @@ class AdsorbateSubstitution(AdsorbateOperator):
                                                               self.descriptor)
         indi = self.initialize_individual(f, f)
         indi.info['data'] = f.info['data']
+        # indi.info = f.info
         # indi.info['data']['parents'] = [i.info['confid'] for i in parents]
         indi.info['data']['parents'] = [f.info['confid']]
         # print(indi.info['data'])
@@ -1042,7 +1043,7 @@ class AdsorbateSubstitution(AdsorbateOperator):
         ads_indices, ads_symbols = self.get_adsorbates_from_slab(atoms)
         assert len(ads_indices) == len(ads_symbols)
         # print('before permutation:', atoms)
-        # print('======start substitute======')
+        print('======start AdsorbateSubstitution======')
         for _ in range(self.num_muts):
             if ads_indices != [] and ads_symbols != []:
                 random.seed(random.randint(1,100000000))
@@ -1050,12 +1051,13 @@ class AdsorbateSubstitution(AdsorbateOperator):
                 ads_index = ads_indices[random_index]
                 ads_symbol = ads_symbols[random_index]
                 atoms = self.substitute_adsorbate_on_slab(atoms, ads_index, ads_symbol)
-                _, _ = self.get_adsorbates_from_slab(atoms)
+                ads_indices, ads_symbols = self.get_adsorbates_from_slab(atoms)
             else:
                 print(f'failed due to empty adsorbate. \n {atoms.info}')
             # permute2(atoms, rng=self.rng)
         # print('after permutation:', atoms, '\n')
-        # print('======end substitute======')
+        _, _ = self.get_adsorbates_from_slab(atoms)
+        print('======end AdsorbateSubstitution======')
         return atoms
     
 class AdsorbateAddition(AdsorbateOperator):
@@ -1080,7 +1082,7 @@ class AdsorbateAddition(AdsorbateOperator):
             if bool(list1):
                flag = 1
        # Permutation only makes sense if two different elements are present
-        if flag == 1:
+        if flag == 0:
             f = parents[1]
             list1 = [a.tag for a in f if a.tag < 0]
             if not bool(list1):
@@ -1104,7 +1106,7 @@ class AdsorbateAddition(AdsorbateOperator):
         ads_indices, ads_symbols = self.get_adsorbates_from_slab(atoms)
         assert len(ads_indices) == len(ads_symbols)
         # print('before permutation:', atoms)
-        print('======start Addition======')
+        print('======start AdsorbateAddition======')
         for _ in range(self.num_muts):
             atoms_old = copy.deepcopy(atoms)
             atoms_X, all_sites, occupied_sites, _ = self.get_sites(atoms_old)
@@ -1112,19 +1114,23 @@ class AdsorbateAddition(AdsorbateOperator):
             if_too_close = True
             count = len(all_sites)
             while if_too_close:
+                if unoccupied_sites == [] or count == 0:
+                    print(f'failed due to too many adsorbate already on slab. \n {atoms.info}')
+                    break
                 random.seed(random.randint(1,100000000))
                 random_sites = random.choice(unoccupied_sites)
+                unoccupied_sites.remove(random_sites)
                 ads_symbol = random.choice(self.ads_pools)
                 site_pos = atoms_X[random_sites].position
                 atoms, if_too_close = self.add_adsorbate_onto_slab(atoms, site_pos, ads_symbol, cutoff=1.7)
                 _, _ = self.get_adsorbates_from_slab(atoms)
                 count -= 1
-                if count == 0:
-                    print(f'failed due to too many adsorbate already on slab. \n {atoms.info}')
-                    break
+                # if count == 0:
+                #     print(f'failed due to too many adsorbate already on slab. \n {atoms.info}')
+                #     break
                 
         # print('after permutation:', atoms, '\n')
-        print('======end Addition======')
+        print('======end AdsorbateAddition======')
         return atoms
     
 class AdsorbateRemoval(AdsorbateOperator):
@@ -1138,7 +1144,7 @@ class AdsorbateRemoval(AdsorbateOperator):
                               ads_pools=ads_pools, # :)
                               rng=rng)
 
-        self.descriptor = 'AdsorbateAddition'
+        self.descriptor = 'AdsorbateRemoval'
         self.ads_pools = ads_pools
 
     def get_new_individual(self, parents):
@@ -1173,7 +1179,7 @@ class AdsorbateRemoval(AdsorbateOperator):
         ads_indices, ads_symbols = self.get_adsorbates_from_slab(atoms)
         assert len(ads_indices) == len(ads_symbols)
         # print('before permutation:', atoms)
-        print('======start Addition======')
+        print('======start AdsorbateRemoval======')
         for _ in range(self.num_muts):
             if ads_indices != [] and ads_symbols != []:
                 random.seed(random.randint(1,100000000))
@@ -1181,11 +1187,11 @@ class AdsorbateRemoval(AdsorbateOperator):
                 ads_index = ads_indices[random_index]
                 ads_symbol = ads_symbols[random_index]
                 atoms = self.remove_adsorbate_from_slab(atoms, ads_index, ads_symbol)
-                _, _ = self.get_adsorbates_from_slab(atoms)
+                ads_indices, ads_symbols = self.get_adsorbates_from_slab(atoms)
             else:
                 print(f'failed due to empty adsorbate. \n {atoms.info}')
         # print('after permutation:', atoms, '\n')
-        print('======end Addition======')
+        print('======end AdsorbateRemoval======')
         return atoms
 
 class AdsorbateSwapOccupied(AdsorbateOperator):
