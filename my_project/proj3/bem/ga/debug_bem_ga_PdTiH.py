@@ -338,6 +338,7 @@ def relax_init_pop(cores, db):
         for atoms in db.get_all_unrelaxed_candidates():
             a = relax_an_unrelaxed_candidate(atoms)
             relaxed_candidates.append(a)
+            check_adsorbates(a)
         db.add_more_relaxed_candidates(relaxed_candidates)
     population.update()
     if copy_to_scratch:
@@ -358,6 +359,7 @@ def relax_offspring(n):
         a3, desc = offspring
         # view(a3)
         if a3 is not None:
+            check_adsorbates(a3)
             break
     if 'data' not in a3.info:
         a3.info['data'] = {}
@@ -388,7 +390,7 @@ def relax_generation(cores, db, gens_running):
             # population.update() # !!! update after add one new atoms
             relaxed_candidates.append(a)
             t2 = time.time()
-            print('offspring relaxing time:', t2-t1)  
+            print('offspring relaxing time:', t2-t1)
         db.add_more_relaxed_candidates(relaxed_candidates)
         population.update()
     t_end = time.time()
@@ -404,7 +406,7 @@ def check_adsorbates(atoms):
     ads_symbols = atoms.info['data']['ads_symbols']
     for ads_index, ads_symbol in zip(ads_indices, ads_symbols):
         print(str(atoms[ads_index].symbols), ads_symbol)
-    print('-----')
+    print('---check--')
     for ads_index, ads_symbol in zip(ads_indices, ads_symbols):
         print(str(atoms[ads_index].symbols), ads_symbol)
         for i in ads_index:
@@ -479,7 +481,7 @@ if __name__ == '__main__':
 
     
     #                             ])
-    op_selector = OperationSelector([1, 1, 1, 1, 1, 1, 1, 1, ],
+    op_selector = OperationSelector([1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1], # 
                                 [
                                 RandomMetalPermutation(element_pools=['Pd', 'Ni'], num_muts=5),
                                 RandomMetalComposition(element_pools=['Pd', 'Ni'], num_muts=5),
@@ -489,10 +491,10 @@ if __name__ == '__main__':
                                 InternalHydrogenMoveToUnoccupied(internal_H_pools=['H'], num_muts=5),
                                 AdsorbateAddition(ads_pools=['CO', 'OH', 'H'], num_muts=2),
                                 AdsorbateRemoval(ads_pools=['CO', 'OH', 'H'], num_muts=2),
-                                # AdsorbateSubstitution(ads_pools=['CO', 'OH', 'H'], num_muts=1),
-                                # AdsorbateSwapOccupied(ads_pools=['CO', 'OH', 'H'], num_muts=1),
-                                # AdsorbateMoveToUnoccupied(ads_pools=['CO', 'OH', 'H'], num_muts=1),
-                                # AdsorbateCutSpliceCrossover(ads_pools=['CO', 'OH', 'H'], num_muts=1),
+                                AdsorbateSubstitution(ads_pools=['CO', 'OH', 'H'], num_muts=2),
+                                AdsorbateSwapOccupied(ads_pools=['CO', 'OH', 'H'], num_muts=2),
+                                AdsorbateMoveToUnoccupied(ads_pools=['CO', 'OH', 'H'], num_muts=1),
+                                AdsorbateCutSpliceCrossover(ads_pools=['CO', 'OH', 'H'], num_muts=1),
                                 ])
   
     population = RankFitnessPopulation(data_connection=db,

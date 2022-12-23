@@ -801,6 +801,7 @@ class AdsorbateOperator(OffspringCreator):
     
     def debug_atoms_data(self, atoms, ads_indices, ads_symbols):
         print('===debug start===')
+        print(ads_indices, ads_symbols)
         for ads_index, ads_symbol in zip(ads_indices, ads_symbols):
             print(str(atoms[ads_index].symbols), ads_symbol)
         print('---ads location---')
@@ -813,30 +814,33 @@ class AdsorbateOperator(OffspringCreator):
         print('===debug end===')
         return True
     
-    def get_adsorbates_from_slab(self, atoms):
+    def get_adsorbates_from_slab(self, atoms, debug=True):
         """Get adsorbate information from atoms, including indices and symbols"""
         ads_indices = atoms.info['data']['ads_indices']
         ads_symbols = atoms.info['data']['ads_symbols']
         assert len(ads_indices)==len(ads_symbols)
-        self.debug_atoms_data(atoms, ads_indices, ads_symbols)
+        if debug:
+            self.debug_atoms_data(atoms, ads_indices, ads_symbols)
         return ads_indices, ads_symbols
     
     def update_all_adss_indices(self, atoms, atoms_old):
         """Update adsorbates indices after deleting one adsorbate"""
         update_ads_indices = []
         update_ads_symbols = []
-        ads_indices_old, ads_symbols_old = self.get_adsorbates_from_slab(atoms_old)
+        ads_indices_old, ads_symbols_old = self.get_adsorbates_from_slab(atoms_old, debug=False)
         if len(atoms) < len(atoms_old): # due to deleting adsorbate
             for ads_index_old, ads_symbol_old in zip(ads_indices_old, ads_symbols_old):
                 update_ads_index = []
                 for atom_index_old in ads_index_old:
                     atom_pos_old = atoms_old[atom_index_old].position
+                    atoms_sym_old = atoms_old[atom_index_old].symbol
                     ads_indices_new = [atom.index for atom in atoms if atom.tag<0]
                     for atom_index_new in ads_indices_new:
                         atom_pos_new = atoms[atom_index_new].position
-                        if (abs(atom_pos_new-atom_pos_old)<0.0000001).all():
+                        atoms_sym_new = atoms[atom_index_new].symbol
+                        if (abs(atom_pos_new-atom_pos_old)<0.0000001).all() and atoms_sym_new==atoms_sym_old:
                             update_ads_index.append(atom_index_new)
-                if update_ads_index != []:
+                if update_ads_index != [] and len(update_ads_index)==len(ads_index_old):
                     update_ads_indices.append(update_ads_index)
                     update_ads_symbols.append(ads_symbol_old)
                     # update_ads_symbols.append(str(atoms[update_ads_index].symbols))        
@@ -846,16 +850,18 @@ class AdsorbateOperator(OffspringCreator):
     
     def remove_adsorbate_from_slab(self, atoms, ads_index, ads_symbol):
         """Remove one adsorbate"""
-        # atoms_old = atoms.copy()
+        atoms = copy.deepcopy(atoms)
         atoms_old = copy.deepcopy(atoms)
         del atoms[ads_index]
         print('deleting:', ads_index, ads_symbol)
         update_ads_indices, update_ads_symbols = self.update_all_adss_indices(atoms, atoms_old)
         atoms.info['data']['ads_symbols'] = update_ads_symbols
         atoms.info['data']['ads_indices'] = update_ads_indices
+        _, _ = self.get_adsorbates_from_slab(atoms, debug=False)
         return atoms
     
     def add_adsorbate_onto_slab(self, atoms, site_pos, ads_symbol, cutoff):
+        atoms = copy.deepcopy(atoms)
         atoms_old = copy.deepcopy(atoms)
         ads = self.add_ads(site_pos, ads_symbol, bg=False)
         atoms.extend(ads) 
@@ -874,6 +880,7 @@ class AdsorbateOperator(OffspringCreator):
         
     def substitute_adsorbate_on_slab(self, atoms, ads_index, ads_symbol):
         """Random substitue one adsorbate using other one on the same slab"""
+        atoms = copy.deepcopy(atoms)
         _, _ = self.get_adsorbates_from_slab(atoms)
         site_pos = self.get_ads_pos(atoms, ads_index, ads_symbol)
         atoms = self.remove_adsorbate_from_slab(atoms, ads_index, ads_symbol)
@@ -1242,8 +1249,8 @@ class AdsorbateSwapOccupied(AdsorbateOperator):
         # print('before permutation:', atoms)
         print('======start Swap======')
         
-        if len(ads_indices)>=2 and len(set(ads_symbols))>=2:
-            for _ in range(self.num_muts):
+        for _ in range(self.num_muts):
+            if len(ads_indices)>=2 and len(set(ads_symbols))>=2:  
                 random.seed(random.randint(1,100000000))
                 random_index1 = random.choice(range(len(ads_indices)))
                 ads_index1 = ads_indices[random_index1]
@@ -1266,7 +1273,7 @@ class AdsorbateSwapOccupied(AdsorbateOperator):
                 _, _ = self.get_adsorbates_from_slab(atoms)
                 atoms, _ = self.add_adsorbate_onto_slab(atoms, site_pos1, ads_symbol2, cutoff=1.7)
                 atoms, _ = self.add_adsorbate_onto_slab(atoms, site_pos2, ads_symbol1, cutoff=1.7)
-                _, _ = self.get_adsorbates_from_slab(atoms)
+                ads_indices, ads_symbols = self.get_adsorbates_from_slab(atoms)
         else:
             print(f'failed due to too less adsorbate. \n {atoms.info}')
         # print('after permutation:', atoms, '\n')
@@ -1466,30 +1473,33 @@ class InteranlHydrogenOperator(OffspringCreator):
         print('===debug end===')
         return True
     
-    def get_adsorbates_from_slab(self, atoms):
+    def get_adsorbates_from_slab(self, atoms, debug=True):
         """Get adsorbate information from atoms, including indices and symbols"""
         ads_indices = atoms.info['data']['ads_indices']
         ads_symbols = atoms.info['data']['ads_symbols']
         assert len(ads_indices)==len(ads_symbols)
-        # self.debug_atoms_data(atoms, ads_indices, ads_symbols)
+        if debug:
+            self.debug_atoms_data(atoms, ads_indices, ads_symbols)
         return ads_indices, ads_symbols
     
     def update_all_adss_indices(self, atoms, atoms_old):
         """Update adsorbates indices after deleting one adsorbate"""
         update_ads_indices = []
         update_ads_symbols = []
-        ads_indices_old, ads_symbols_old = self.get_adsorbates_from_slab(atoms_old)
+        ads_indices_old, ads_symbols_old = self.get_adsorbates_from_slab(atoms_old, debug=False)
         if len(atoms) < len(atoms_old): # due to deleting adsorbate
             for ads_index_old, ads_symbol_old in zip(ads_indices_old, ads_symbols_old):
                 update_ads_index = []
                 for atom_index_old in ads_index_old:
                     atom_pos_old = atoms_old[atom_index_old].position
+                    atoms_sym_old = atoms_old[atom_index_old].symbol
                     ads_indices_new = [atom.index for atom in atoms if atom.tag<0]
                     for atom_index_new in ads_indices_new:
                         atom_pos_new = atoms[atom_index_new].position
-                        if (abs(atom_pos_new-atom_pos_old)<0.0000001).all():
+                        atoms_sym_new = atoms[atom_index_new].symbol
+                        if (abs(atom_pos_new-atom_pos_old)<0.0000001).all() and atoms_sym_new==atoms_sym_old:
                             update_ads_index.append(atom_index_new)
-                if update_ads_index != []:
+                if update_ads_index != [] and len(update_ads_index)==len(ads_index_old):
                     update_ads_indices.append(update_ads_index)
                     update_ads_symbols.append(ads_symbol_old)
                     # update_ads_symbols.append(str(atoms[update_ads_index].symbols))        
@@ -1695,7 +1705,6 @@ class InternalHydrogenAddition(InteranlHydrogenOperator):
             _, _ = self.get_adsorbates_from_slab(indi)
         except:
             view(indi)
-            assert False
         indi = self.operate(indi)
         parent_message = ': Parent {0}'.format(f.info['confid'])
         return (self.finalize_individual(indi),
@@ -1737,7 +1746,7 @@ class InternalHydrogenRemoval(InteranlHydrogenOperator):
                               internal_H_pools=internal_H_pools, # :)
                               rng=rng)
 
-        self.descriptor = 'InternalHydrogenRemove'
+        self.descriptor = 'InternalHydrogenRemoval'
         self.internal_H_pools = internal_H_pools
 
     def get_new_individual(self, parents):
@@ -1762,7 +1771,7 @@ class InternalHydrogenRemoval(InteranlHydrogenOperator):
         ads_indices, ads_symbols = self.get_adsorbates_from_slab(atoms)
         assert len(ads_indices) == len(ads_symbols)
         # print('before permutation:', atoms)
-        print('======start HydrogenRemove======')
+        print('======start InternalHydrogenRemoval======')
         for _ in range(self.num_muts):
             atoms_old = copy.deepcopy(atoms)
             all_existed_Hs_indices = self.get_existed_Hs_indices(atoms,  bilayers=[2, 3])
@@ -1777,7 +1786,7 @@ class InternalHydrogenRemoval(InteranlHydrogenOperator):
             else:
                 atoms = atoms_old         
         # print('after permutation:', atoms, '\n')
-        print('======end HydrogenRemove======')
+        print('======end InternalHydrogenRemoval======')
         return atoms
 
 class InternalHydrogenMoveToUnoccupied(InteranlHydrogenOperator):
@@ -1791,7 +1800,7 @@ class InternalHydrogenMoveToUnoccupied(InteranlHydrogenOperator):
                               internal_H_pools=internal_H_pools, # :)
                               rng=rng)
 
-        self.descriptor = 'InternalHydrogenAddition'
+        self.descriptor = 'InternalHydrogenMoveToUnoccupied'
         self.internal_H_pools = internal_H_pools
 
     def get_new_individual(self, parents):
@@ -1816,7 +1825,7 @@ class InternalHydrogenMoveToUnoccupied(InteranlHydrogenOperator):
         ads_indices, ads_symbols = self.get_adsorbates_from_slab(atoms)
         assert len(ads_indices) == len(ads_symbols)
         # print('before permutation:', atoms)
-        print('======start HydrogenAddition======')
+        print('======start InternalHydrogenMoveToUnoccupied======')
         for _ in range(self.num_muts):
             atoms_old = copy.deepcopy(atoms)
             all_existed_Hs_indices = self.get_existed_Hs_indices(atoms,  bilayers=[2, 3])
@@ -1840,5 +1849,5 @@ class InternalHydrogenMoveToUnoccupied(InteranlHydrogenOperator):
             else:
                 atoms = atoms_old         
         # print('after permutation:', atoms, '\n')
-        print('======end HydrogenAddition======')
+        print('======end InternalHydrogenMoveToUnoccupied======')
         return atoms
