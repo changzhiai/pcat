@@ -310,6 +310,7 @@ class SlabOperator(OffspringCreator):
     def finalize_individual(self, indi):
         atoms_string = ''.join(indi.get_chemical_symbols())
         indi.info['key_value_pairs']['atoms_string'] = atoms_string
+        # indi.info['data']['atoms_string'] = atoms_string
         return OffspringCreator.finalize_individual(self, indi)
 
 
