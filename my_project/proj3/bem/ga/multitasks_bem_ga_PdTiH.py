@@ -808,7 +808,7 @@ if __name__ == '__main__':
     print('initial optimization done')
     gen_num = db.get_generation_number()
     max_gens = 20000 # maximum of generations
-    cc = GenerationRepetitionConvergence(population, 3) # Set convergence criteria
+    cc = GenerationRepetitionConvergence(population, 2) # Set convergence criteria
     # cc = MultitaskGenerationRepetitionConvergence(population, 5)
     for i in range(max_gens):
         if cc.converged():  # Check if converged
