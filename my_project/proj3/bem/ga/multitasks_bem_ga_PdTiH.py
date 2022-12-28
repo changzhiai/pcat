@@ -38,7 +38,6 @@ from acat.ga.adsorbate_operators import (AddAdsorbate, RemoveAdsorbate,
 from acat.adsorption_sites import ClusterAdsorptionSites
 from acat.ga.adsorbate_comparators import AdsorptionSitesComparator
 from acat.ga.multitasking import MultitaskPopulation
-from acat.ga.multitasking import MultitaskGenerationRepetitionConvergence
 
 from ase.ga.utilities import get_nnmat
 from ase.ga.utilities import get_nnmat_string
@@ -57,6 +56,8 @@ import re
 from ase.calculators.singlepoint import SinglePointCalculator as SPC
 from ase.neighborlist import NeighborList
 from ase.units import kB
+import copy
+from ase.geometry import find_mic
 
 
 def remove_X(atoms):
@@ -625,7 +626,7 @@ def check_adsorbates(atoms):
     ads_symbols = atoms.info['data']['ads_symbols']
     for ads_index, ads_symbol in zip(ads_indices, ads_symbols):
         print(str(atoms[ads_index].symbols), ads_symbol)
-    print('-----')
+    print('--check---')
     for ads_index, ads_symbol in zip(ads_indices, ads_symbols):
         print(str(atoms[ads_index].symbols), ads_symbol)
         for i in ads_index:
@@ -676,7 +677,49 @@ def update_H_tags_after_dft_relax(atoms):
                 all_Hs.remove(index_H)
     _, _ = check_adsorbates(atoms)
     _ = check_tags(atoms)
-                    
+    
+def get_adsorbates_from_slab(atoms, debug=False):
+    """Get adsorbate information from atoms, including indices and symbols"""
+    atoms = copy.deepcopy(atoms)
+    ads_indices = atoms.info['data']['ads_indices']
+    ads_symbols = atoms.info['data']['ads_symbols']
+    assert len(ads_indices)==len(ads_symbols)
+    if debug:
+        check_adsorbates(atoms, ads_indices, ads_symbols)
+    return ads_indices, ads_symbols
+
+def check_adsorbates_too_close(atoms, newp, oldp, cutoff, mic=True): 
+    """Check if there are atoms that are too close to each other after 
+    adding some new atoms.
+    cutoff : float, default 1.5
+        The cutoff radius. Two atoms are too close if the distance between
+        them is less than this cutoff
+    mic : bool, default False
+        Whether to apply minimum image convention. Remember to set 
+        mic=True for periodic systems.
+    """
+    newps = np.repeat(newp, len(oldp), axis=0)
+    oldps = np.tile(oldp, (len(newp), 1))
+    if mic:
+        _, dists = find_mic(newps - oldps, atoms.cell, pbc=True)
+    else:
+        dists = np.linalg.norm(newps - oldps, axis=1)
+    return any(dists < cutoff)
+
+def check_too_close_after_optimized(atoms, cutoff=1.7):
+    atoms_old = copy.deepcopy(atoms)
+    ads_indices, ads_symbols = get_adsorbates_from_slab(atoms)
+    if_too_close = False
+    for ads_index, ads_symbol in zip(ads_indices, ads_symbols):
+        atoms = copy.deepcopy(atoms_old)
+        newp = atoms[ads_index].positions
+        del atoms[ads_index]
+        oldp = atoms.positions
+        if_too_close = check_adsorbates_too_close(atoms, newp, oldp, cutoff, mic=True)
+        if if_too_close:
+            break
+    return if_too_close
+
 def check_distortion(atoms, cutoff=1.2):
     """Check if there are some distortion structures, such as, H2O, H2"""
     cutoff = cutoff # within 1.2 A
@@ -708,6 +751,10 @@ def check_distortion(atoms, cutoff=1.2):
                 if num >= 1:
                     reason = 'H2_exists'
                     return True, reason
+    if_too_close = check_too_close_after_optimized(atoms, cutoff=1.7)
+    if if_too_close:
+        reason = 'ads_too_close'
+        return True, reason
     return False, 'undistortion'
 
 
@@ -761,8 +808,8 @@ if __name__ == '__main__':
     print('initial optimization done')
     gen_num = db.get_generation_number()
     max_gens = 20000 # maximum of generations
-    # cc = GenerationRepetitionConvergence(population, 5) # Set convergence criteria
-    cc = MultitaskGenerationRepetitionConvergence(population, 5)
+    cc = GenerationRepetitionConvergence(population, 2) # Set convergence criteria
+    # cc = MultitaskGenerationRepetitionConvergence(population, 5)
     for i in range(max_gens):
         if cc.converged():  # Check if converged
             print('Converged')
