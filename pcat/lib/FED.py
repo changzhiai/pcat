@@ -135,21 +135,25 @@ class FED:
             # self.fig = ax.figure
             # Constrain the target axis to have the proper aspect ratio
             self.ax.set_aspect(self.aspect)
+            # self.ax.set_zorder(ax.get_zorder()-1)
 
-        ax.set_xlabel(xlabel, fontsize=14) #xlabel frontsize
-        ax.set_ylabel(ylabel, fontsize=14) #ylabel frontsize
+        ax.set_xlabel(xlabel, fontsize=14) # xlabel frontsize
+        ax.set_ylabel(ylabel, fontsize=14) # ylabel frontsize
         
-        ax.tick_params(axis="x", labelsize=12) #xtick frontsize
-        ax.tick_params(axis="y", labelsize=12) #ytick frontsize
+        ax.tick_params(axis="x", labelsize=12) # xtick frontsize
+        ax.tick_params(axis="y", labelsize=12) # ytick frontsize
         #ax.tick_params(labelsize=8)
         
         ax.axes.get_xaxis().set_visible(True)
         ax.spines['top'].set_visible(True)
         ax.spines['right'].set_visible(True)
         ax.spines['bottom'].set_visible(True)
+        
+        # plt.xticks(rotation=45)
+        
         plt.title(title, fontsize=14)
         for axis in ['top','bottom','left','right']:
-            ax.spines[axis].set_linewidth(1.2) #linewith of frame
+            ax.spines[axis].set_linewidth(1.2) # linewith of frame
 
 
         self.__auto_adjust()
@@ -164,11 +168,13 @@ class FED:
                         self.label))  # 6
         
         pos = []
-        for level in data:
+        for idx, level in enumerate(data):
             start = level[1]*(self.dimension+self.space)
             pos.append(start + self.dimension/2.)
             #print(pos)
-            ax.hlines(level[0], start, start + self.dimension, color=level[4], linewidth=2)
+            ax.hlines(level[0], start, start + self.dimension, color=level[4], linewidth=2, 
+                      zorder = ax.get_zorder()-idx,
+                      )
             # ax.text(start+self.dimension/2.,  # X
             #         level[0]+self.offset,  # Y
             #         level[3],  # self.top_texts
@@ -221,7 +227,9 @@ class FED:
                 line = Line2D([x1, x2], [y1, y2],
                               ls=i[1],
                               linewidth=i[2],
-                              color=i[3])
+                              color=i[3],
+                              zorder = ax.get_zorder()-idx, 
+                              )
                 ax.add_line(line)
 
         # add connection barriers
@@ -241,13 +249,15 @@ class FED:
                 
                 x = [x1, xb, x2]
                 y = [y1, yb, y2]
-                f = interp1d(x, y, kind='quadratic')  #Interpolate a 1-D function
+                f = interp1d(x, y, kind='quadratic', )  #Interpolate a 1-D function
                 x_interpol = np.linspace(x1, x2, 1000)
                 y_interpol = f(x_interpol)
                 line = plt.plot(x_interpol, y_interpol,
                               ls=i[2],
                               linewidth=i[3],
-                              color=i[4])
+                              color=i[4],
+                              zorder = ax.get_zorder()-idx,
+                              )
                 # ax.add_line(line)
         return pos #return x ticks values
 

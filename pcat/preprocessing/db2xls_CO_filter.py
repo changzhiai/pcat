@@ -68,12 +68,8 @@ def db2xls(system_name,
            ref_eles, # such as, ref_eles=['Pd', 'Ti']
            sheet_name_origin, 
            sheet_name_stable, 
-           sheet_free_energy, 
+           # sheet_free_energy, 
            sheet_binding_energy,
-           sheet_cons,
-           sheet_name_allFE, 
-           sheet_selectivity,
-           sheet_name_dGs,
            cutoff = 4.5,
            **kwargs):
     """
@@ -137,10 +133,10 @@ def db2xls(system_name,
         uniqueid = row.uniqueid
         items = uniqueid.split('_')
         id = items[0]
-        # formula = items[1]
+        formula = items[1]
         # i_X = formula.find('X')
         # formula = formula[:i_X] + formula[i_X+4:] # remove Xxxx
-        formula = row.formula
+        # formula = row.formula
         site = items[2]
         adsor = items[3]
         ori_id = items[4]
@@ -201,11 +197,10 @@ def db2xls(system_name,
     # uniqueids = df['Origin_id'].astype(int).unique()
     uniqueids = df['Origin_id'].unique()
     df_sort  = pd.DataFrame()
-    custom_dict = {'surface':0, 'HOCO': 1, 'CO': 2, 'H': 3, 'OH':4} 
+    # custom_dict = {'surface':0, 'HOCO': 1, 'CO': 2, 'H': 3, 'OH':4} 
     for id in uniqueids:
-        # df_sub = df.loc[df['Origin_id'].astype(int) == id]
         df_sub = df.loc[df['Origin_id'] == id]
-        df_sub = df_sub.sort_values(by=['Adsorbate'], key=lambda x: x.map(custom_dict))
+        # df_sub = df_sub.sort_values(by=['Adsorbate'], key=lambda x: x.map(custom_dict))
         
         Surface = df_sub.loc[df_sub['Adsorbate'] == 'surface']
         E_Surface = Surface.Energy.values[0]
@@ -220,22 +215,22 @@ def db2xls(system_name,
             ads = row['Adsorbate']
             if ads == 'surface':
                 Binding_energy.append(0)
-            elif ads == 'HOCO':
-                E_HOCO = row.Energy
-                Eb_HOCO = E_HOCO - E_Surface - E_CO2g - 0.5 * E_H2g
-                Binding_energy.append(Eb_HOCO)
+            # elif ads == 'HOCO':
+            #     E_HOCO = row.Energy
+            #     Eb_HOCO = E_HOCO - E_Surface - E_CO2g - 0.5 * E_H2g
+            #     Binding_energy.append(Eb_HOCO)
             elif ads == 'CO':
                 E_CO = row.Energy
                 Eb_CO = E_CO - E_Surface - E_COg
                 Binding_energy.append(Eb_CO)
-            elif ads == 'H':
-                E_H = row.Energy
-                Eb_H = E_H - E_Surface - 0.5 * E_H2g
-                Binding_energy.append(Eb_H)
-            elif ads == 'OH':
-                E_OH = row.Energy
-                Eb_OH = E_OH - E_Surface - E_H2Og + 0.5 * E_H2g
-                Binding_energy.append(Eb_OH)
+            # elif ads == 'H':
+            #     E_H = row.Energy
+            #     Eb_H = E_H - E_Surface - 0.5 * E_H2g
+            #     Binding_energy.append(Eb_H)
+            # elif ads == 'OH':
+            #     E_OH = row.Energy
+            #     Eb_OH = E_OH - E_Surface - E_H2Og + 0.5 * E_H2g
+            #     Binding_energy.append(Eb_OH)
                 
         df_sub['BE'] = Binding_energy
         df_sort = df_sort.append(df_sub, ignore_index=True)
@@ -265,18 +260,16 @@ def db2xls(system_name,
     FE_final = G_COg + G_H2Og - G_CO2g - G_H2g
     df_new  = pd.DataFrame()
     for id in uniqueids:
-        # print(id)
-        # df_sub = df_sort.loc[df_sort['Origin_id'].astype(int) == id]
         df_sub = df_sort.loc[df_sort['Origin_id'] == id]
         del df_sub['BE']
         Surface = df_sub.loc[df_sub['Adsorbate'] == 'surface']
         E_Surface = Surface.Energy.values[0]
-        # print(df_sub)
-        HOCOs = df_sub.loc[df_sub['Adsorbate'] == 'HOCO']
-        HOCO = HOCOs[HOCOs.Energy == HOCOs.Energy.min()].head(1)
-        E_HOCO = HOCO.Energy.values[0]
-        Eb_HOCO = E_HOCO - E_Surface - E_CO2g - 0.5 * E_H2g
-        G_HOCO = E_HOCO + Gcor_HOCO - E_Surface - G_CO2g - 0.5 * G_H2g
+
+        # HOCOs = df_sub.loc[df_sub['Adsorbate'] == 'HOCO']
+        # HOCO = HOCOs[HOCOs.Energy == HOCOs.Energy.min()].head(1)
+        # E_HOCO = HOCO.Energy.values[0]
+        # Eb_HOCO = E_HOCO - E_Surface - E_CO2g - 0.5 * E_H2g
+        # G_HOCO = E_HOCO + Gcor_HOCO - E_Surface - G_CO2g - 0.5 * G_H2g
         
         COs = df_sub.loc[df_sub['Adsorbate'] == 'CO']
         CO = COs[COs.Energy == COs.Energy.min()].head(1)
@@ -288,145 +281,150 @@ def db2xls(system_name,
         # >> 0.579
         # import pdb; pdb.set_trace()
         
-        Hs = df_sub.loc[df_sub['Adsorbate'] == 'H']
-        H = Hs[Hs.Energy == Hs.Energy.min()].head(1)
-        E_H = H.Energy.values[0]
-        Eb_H = E_H - E_Surface - 0.5 * E_H2g
-        G_H = E_H + Gcor_H - E_Surface - 0.5 * G_H2g
+        # Hs = df_sub.loc[df_sub['Adsorbate'] == 'H']
+        # H = Hs[Hs.Energy == Hs.Energy.min()].head(1)
+        # E_H = H.Energy.values[0]
+        # Eb_H = E_H - E_Surface - 0.5 * E_H2g
+        # G_H = E_H + Gcor_H - E_Surface - 0.5 * G_H2g
         
-        OHs = df_sub.loc[df_sub['Adsorbate'] == 'OH']
-        OH = OHs[OHs.Energy == OHs.Energy.min()].head(1)
-        E_OH = OH.Energy.values[0]
-        Eb_OH = E_OH - E_Surface - E_H2Og + 0.5 * E_H2g
-        G_OH = E_OH + Gcor_OH - E_Surface - G_H2Og + 0.5 * G_H2g
+        # OHs = df_sub.loc[df_sub['Adsorbate'] == 'OH']
+        # OH = OHs[OHs.Energy == OHs.Energy.min()].head(1)
+        # E_OH = OH.Energy.values[0]
+        # Eb_OH = E_OH - E_Surface - E_H2Og + 0.5 * E_H2g
+        # G_OH = E_OH + Gcor_OH - E_Surface - G_H2Og + 0.5 * G_H2g
         
-        Binding_energy = [Eb_HOCO, Eb_CO, Eb_H, Eb_OH]
-        Free_energy = [G_HOCO, G_CO, G_H, G_OH] # free energy according to reaction equations
-        df_stack = pd.concat([HOCO, CO, H, OH], axis=0)
+        # Binding_energy = [Eb_HOCO, Eb_CO, Eb_H, Eb_OH]
+        # Free_energy = [G_HOCO, G_CO, G_H, G_OH] # free energy according to reaction equations
+        # df_stack = pd.concat([HOCO, CO, H, OH], axis=0)
+        Binding_energy = [Eb_CO]
+        Free_energy = [G_CO] # free energy according to reaction equations
+        df_stack = pd.concat([CO], axis=0)
         df_stack['BE'] = Binding_energy
         df_stack['FE'] = Free_energy
         df_new = df_new.append(df_stack, ignore_index=True)
         
         surfaces.append(Surface.Surface.values[0])
         step_ini.append(0)
-        step_HOCO.append(G_HOCO)
+        # step_HOCO.append(G_HOCO)
         step_CO.append(G_CO)
         step_final.append(FE_final)
         
-        Eb_HOCOs.append(Eb_HOCO)
+        # Eb_HOCOs.append(Eb_HOCO)
         Eb_COs.append(Eb_CO)
-        Eb_Hs.append(Eb_H)
-        Eb_OHs.append(Eb_OH)
+        # Eb_Hs.append(Eb_H)
+        # Eb_OHs.append(Eb_OH)
         
-        G_HOCOs.append(G_HOCO)
+        # G_HOCOs.append(G_HOCO)
         G_COs.append(G_CO)
-        G_Hs.append(G_H)
-        G_OHs.append(G_OH)
+        # G_Hs.append(G_H)
+        # G_OHs.append(G_OH)
         
-        selectivities.append(G_HOCO - G_H)
+        # selectivities.append(G_HOCO - G_H)
         
         cons_Pd.append(Surface.Cons_Pd.values[0])
         cons_H.append(Surface.Cons_H.values[0])
         
         # calculate each equation:
-        dG1 = E_HOCO + Gcor_HOCO - E_Surface - G_CO2g - 0.5 * G_H2g
-        dG2 = E_CO + Gcor_CO + G_H2Og - E_HOCO - Gcor_HOCO - 0.5 * G_H2g
+        # dG1 = E_HOCO + Gcor_HOCO - E_Surface - G_CO2g - 0.5 * G_H2g
+        # dG2 = E_CO + Gcor_CO + G_H2Og - E_HOCO - Gcor_HOCO - 0.5 * G_H2g
         dG3 = G_COg + E_Surface - E_CO - Gcor_CO
-        dG4 = E_H + Gcor_H - E_Surface - 0.5 * G_H2g
-        dG5 = E_OH + Gcor_OH - E_Surface - G_H2Og + 0.5 * G_H2g
-        dG1s.append(dG1)
-        dG2s.append(dG2)
+        # dG4 = E_H + Gcor_H - E_Surface - 0.5 * G_H2g
+        # dG5 = E_OH + Gcor_OH - E_Surface - G_H2Og + 0.5 * G_H2g
+        # dG1s.append(dG1)
+        # dG2s.append(dG2)
         dG3s.append(dG3)
-        dG4s.append(dG4)
-        dG5s.append(dG5)
+        # dG4s.append(dG4)
+        # dG5s.append(dG5)
         
     """
     Save the most stable site into excel
     """
+    
     with pd.ExcelWriter(xls_name, engine='openpyxl', mode='a') as writer:
         df_new.to_excel(writer, sheet_name=sheet_name_stable, float_format='%.3f')
     
-    """
-    Save free energy sheet to excel
-    """
-    tuples = {'Surface': surfaces,
-              '* + CO2': step_ini,
-              '*HOCO': step_HOCO,
-              '*CO': step_CO,
-              '* + CO': step_final,
-              }
-    df_FE = pd.DataFrame(tuples)
-    with pd.ExcelWriter(xls_name, engine='openpyxl', mode='a') as writer:
-        df_FE.to_excel(writer, sheet_name=sheet_free_energy, index=False, float_format='%.3f')
+    # """
+    # Save free energy sheet to excel
+    # """
+    # tuples = {'Surface': surfaces,
+    #           '* + CO2': step_ini,
+    #           '*HOCO': step_HOCO,
+    #           '*CO': step_CO,
+    #           '* + CO': step_final,
+    #           }
+    # df_FE = pd.DataFrame(tuples)
+    # with pd.ExcelWriter(xls_name, engine='openpyxl', mode='a') as writer:
+    #     df_FE.to_excel(writer, sheet_name=sheet_free_energy, index=False, float_format='%.3f')
         
     
     """
     Save binding energy sheet to excel
     """
+    
     tuples = {'Surface': surfaces,
-              'E(*HOCO)': Eb_HOCOs,
+              # 'E(*HOCO)': Eb_HOCOs,
               'E(*CO)': Eb_COs,
-              'E(*H)': Eb_Hs,
-              'E(*OH)': Eb_OHs,
+              # 'E(*H)': Eb_Hs,
+              # 'E(*OH)': Eb_OHs,
               }
     df_BE = pd.DataFrame(tuples)
     with pd.ExcelWriter(xls_name, engine='openpyxl', mode='a') as writer:
         df_BE.to_excel(writer, sheet_name=sheet_binding_energy, index=False, float_format='%.3f')
     
     
-    """
-    Save concentration sheet to excel
-    """
-    tuples = {'Surface': surfaces,
-              'Cons_Pd': cons_Pd,
-              'Cons_H': cons_H,
-              'E(*HOCO)': Eb_HOCOs,
-              'E(*CO)': Eb_COs,
-              'E(*H)': Eb_Hs,
-              'E(*OH)': Eb_OHs,
-              }
-    df_cons = pd.DataFrame(tuples)
-    with pd.ExcelWriter(xls_name, engine='openpyxl', mode='a') as writer:
-        df_cons.to_excel(writer, sheet_name=sheet_cons, index=False, float_format='%.3f')
+    # """
+    # Save concentration sheet to excel
+    # """
+    # tuples = {'Surface': surfaces,
+    #           'Cons_Pd': cons_Pd,
+    #           'Cons_H': cons_H,
+    #           'E(*HOCO)': Eb_HOCOs,
+    #           'E(*CO)': Eb_COs,
+    #           'E(*H)': Eb_Hs,
+    #           'E(*OH)': Eb_OHs,
+    #           }
+    # df_cons = pd.DataFrame(tuples)
+    # with pd.ExcelWriter(xls_name, engine='openpyxl', mode='a') as writer:
+    #     df_cons.to_excel(writer, sheet_name=sheet_cons, index=False, float_format='%.3f')
     
     
-    """
-    Save all intermediate`s free energy sheet to excel for check
-    """
-    tuples = {'Surface': surfaces,
-              'G(*HOCO)': G_HOCOs,
-              'G(*CO)': G_COs,
-              'G(*H)': G_Hs,
-              'G(*OH)': G_OHs,
-              }
-    df_all_FE = pd.DataFrame(tuples)
-    with pd.ExcelWriter(xls_name, engine='openpyxl', mode='a') as writer:
-        df_all_FE.to_excel(writer, sheet_name=sheet_name_allFE, index=False, float_format='%.3f')
+    # """
+    # Save all intermediate`s free energy sheet to excel for check
+    # """
+    # tuples = {'Surface': surfaces,
+    #           'G(*HOCO)': G_HOCOs,
+    #           'G(*CO)': G_COs,
+    #           'G(*H)': G_Hs,
+    #           'G(*OH)': G_OHs,
+    #           }
+    # df_all_FE = pd.DataFrame(tuples)
+    # with pd.ExcelWriter(xls_name, engine='openpyxl', mode='a') as writer:
+    #     df_all_FE.to_excel(writer, sheet_name=sheet_name_allFE, index=False, float_format='%.3f')
     
     
-    """
-    Save selectivity sheet to excel
-    """
-    tuples = {'Surface': surfaces,
-              'G_HOCO-G_H': selectivities,
-              }
-    df_select = pd.DataFrame(tuples)
-    with pd.ExcelWriter(xls_name, engine='openpyxl', mode='a') as writer:
-        df_select.to_excel(writer, sheet_name=sheet_selectivity, index=False, float_format='%.3f')
+    # """
+    # Save selectivity sheet to excel
+    # """
+    # tuples = {'Surface': surfaces,
+    #           'G_HOCO-G_H': selectivities,
+    #           }
+    # df_select = pd.DataFrame(tuples)
+    # with pd.ExcelWriter(xls_name, engine='openpyxl', mode='a') as writer:
+    #     df_select.to_excel(writer, sheet_name=sheet_selectivity, index=False, float_format='%.3f')
         
-    """
-    Save each reaction equation`s free energy difference sheet to excel for check
-    """
-    tuples = {'Surface': surfaces,
-              'dG1': dG1s,
-              'dG2': dG2s,
-              'dG3': dG3s,
-              'dG4': dG4s,
-              'dG5': dG5s,
-              }
-    df_dGs = pd.DataFrame(tuples)
-    with pd.ExcelWriter(xls_name, engine='openpyxl', mode='a') as writer:
-        df_dGs.to_excel(writer, sheet_name=sheet_name_dGs, index=False, float_format='%.3f')
+    # """
+    # Save each reaction equation`s free energy difference sheet to excel for check
+    # """
+    # tuples = {'Surface': surfaces,
+    #           'dG1': dG1s,
+    #           'dG2': dG2s,
+    #           'dG3': dG3s,
+    #           'dG4': dG4s,
+    #           'dG5': dG5s,
+    #           }
+    # df_dGs = pd.DataFrame(tuples)
+    # with pd.ExcelWriter(xls_name, engine='openpyxl', mode='a') as writer:
+    #     df_dGs.to_excel(writer, sheet_name=sheet_name_dGs, index=False, float_format='%.3f')
         
         
         

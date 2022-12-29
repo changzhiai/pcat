@@ -51,6 +51,7 @@ class ScalingRelationPlot:
              ylabel='*CO', 
              title='', 
              text='',
+             offsets=dict(),
              annotate=True,
              color_dict=False):
         
@@ -66,28 +67,57 @@ class ScalingRelationPlot:
         # fig = plt.figure(figsize=(8, 6), dpi = 300)
         # plt.plot(self.descriper1, self.descriper2, 's', color='black')  #plot dots
         
+        
         for i, name in enumerate(self.obser_names):
             if color_dict==False:
                 self.ColorDict[name] = dot_color
-            try:
-                plt.plot(self.descriper1[i], self.descriper2[i], 's', color=self.ColorDict[name])  # plot dots
-                if annotate == True:
-                    plt.annotate(name, (self.descriper1[i], self.descriper2[i]+0.005), color=self.ColorDict[name], fontsize=14, horizontalalignment='center', verticalalignment='bottom', zorder=10)
-            except:
-                plt.plot(self.descriper1[i], self.descriper2[i], 's', color=dot_color)  # plot dots
-                if annotate == True:
-                    plt.annotate(name, (self.descriper1[i], self.descriper2[i]+0.005), color=dot_color, fontsize=14, horizontalalignment='center', verticalalignment='bottom')
-
+            color = dot_color
+            kw = dict(color=color)
+            if name in self.ColorDict.keys():
+                color = self.ColorDict[name]
+                zorder = 10
+                kw = dict(color=color, zorder=zorder)
+            plt.plot(self.descriper1[i], self.descriper2[i], 's', color=color)  # plot dots
+            if annotate == True:
+                x_offset, y_offset = 0., 0.
+                if name in offsets.keys():
+                    x_offset=offsets[name][0]
+                    y_offset=offsets[name][1]
+                if x_offset==0. and y_offset==0.:
+                    plt.annotate(name, (self.descriper1[i], self.descriper2[i]+0.005), fontsize=14, \
+                                 horizontalalignment='center', verticalalignment='bottom', **kw)
+                else:
+                    plt.annotate(name,
+                    xy=(self.descriper1[i], self.descriper2[i]+0.005), xycoords='data', fontsize=14, \
+                    xytext=(self.descriper1[i]+x_offset, self.descriper2[i]+y_offset), textcoords='data',
+                    arrowprops=dict(arrowstyle="->", connectionstyle="arc3", color=color),**kw)
+        # add element colors
+        if False: # deprecated
+            for i, name in enumerate(self.obser_names):
+                if color_dict==False:
+                    self.ColorDict[name] = dot_color
+                try:
+                    plt.plot(self.descriper1[i], self.descriper2[i], 's', color=self.ColorDict[name])  # plot dots
+                    if annotate == True:
+                        plt.annotate(name, (self.descriper1[i], self.descriper2[i]+0.005), color=self.ColorDict[name],\
+                                     fontsize=14, horizontalalignment='center', verticalalignment='bottom', zorder=10)
+                except:
+                    plt.plot(self.descriper1[i], self.descriper2[i], 's', color=dot_color)  # plot dots
+                    if annotate == True:
+                        plt.annotate(name, (self.descriper1[i], self.descriper2[i]+0.005), color=dot_color, \
+                                     fontsize=14, horizontalalignment='center', verticalalignment='bottom')
         # add element tags
         if False: # deprecated
             if isinstance(dot_color, dict)==True:
                 for i, name in enumerate(self.obser_names):
                     plt.plot(self.descriper1[i], self.descriper2[i], 's', color=dot_color[name]) 
-                    plt.annotate(name, (self.descriper1[i], self.descriper2[i]+0.005), color=dot_color[name], fontsize=14, horizontalalignment='center', verticalalignment='bottom')
+                    plt.annotate(name, (self.descriper1[i], self.descriper2[i]+0.005), \
+                                 color=dot_color[name], fontsize=14, horizontalalignment='center', verticalalignment='bottom')
             else:
                 plt.plot(self.descriper1, self.descriper2, 's', color=dot_color)
                 for i, name in enumerate(self.obser_names):
-                    plt.annotate(name, (self.descriper1[i], self.descriper2[i]+0.005), color=dot_color, fontsize=14, horizontalalignment='center', verticalalignment='bottom')
+                    plt.annotate(name, (self.descriper1[i], self.descriper2[i]+0.005), \
+                                 color=dot_color, fontsize=14, horizontalalignment='center', verticalalignment='bottom')
                     
 
         # plt.plot(self.descriper1, self.descriper2, 's', color=dot_color)
@@ -97,7 +127,8 @@ class ScalingRelationPlot:
         ax.yaxis.set_major_formatter(FormatStrFormatter('%.2f'))
         plt.margins(y=0.08)
         plt.title(title, fontsize=14)
-        plt.text(0.05, 0.93, text, horizontalalignment='left', verticalalignment='center', transform=ax.transAxes, fontsize=14, fontweight='bold')        
+        plt.text(0.05, 0.93, text, horizontalalignment='left', verticalalignment='center', \
+                 transform=ax.transAxes, fontsize=14, fontweight='bold')        
         
         # get current axis object and change format
         # ax = fig.gca()
@@ -118,7 +149,8 @@ class ScalingRelationPlot:
         m = np.round(m, 2)
         b = np.round(b, 2)
         # plt.text(0.85, 0.3, 'R2 = {}'.format(r2), fontsize=14)
-        plt.legend(handles = handleFit, labelcolor=line_color, labels = ['$R^2$ = {}\ny = {} + {} * x '.format(r2, b, m)], loc="lower right", handlelength=0, fontsize=14)
+        plt.legend(handles = handleFit, labelcolor=line_color, \
+                   labels = ['$R^2$ = {}\ny = {} + {} * x '.format(r2, b, m)], loc="lower right", handlelength=0, fontsize=14)
         logging.debug(f'r2: {r2}')
         # print('r2:', r2)
         

@@ -239,8 +239,9 @@ class Activity:
         k3 = self.get_k3(nu_c, Eb_CO, U, T=T, tc=tc0)
         return k1, K1, k2, K2, k3, K3
     
-    def plot_scaling_rev(self, Eb_CO_model, Eb_HOCO_model, xlim, ylim):
-        """Plot scaling relation but slope is inverse in order to correspond to previous scaling relation"""
+    def plot_scaling_rev(self, Eb_CO_model, Eb_HOCO_model, xlim, ylim, tune_tex_pos=None):
+        """Plot scaling relation but slope is inverse in order to correspond to previous scaling relation
+        tune_tex_pos = {'Pd64H31': [0.1, 0.2], 'Pd64H39': [0.3, 0.4]}"""
         
         Eb_CO_d = (self.df[self.descriper1]).values
         Eb_HOCO_d = (self.df[self.descriper2]).values
@@ -253,18 +254,31 @@ class Activity:
                 if Eb_CO_d[i] >= min(xlim) and Eb_CO_d[i] <= max(xlim) and Eb_HOCO_d[i] >= min(ylim) and Eb_HOCO_d[i] <= max(ylim):
                     plt.plot(Eb_CO_d[i], Eb_HOCO_d[i], 'o', color=ColorDict[obser_name]) 
                     # plt.text would fail xlim and ylim 
-                    plt.text(Eb_CO_d[i], Eb_HOCO_d[i]+0.05, obser_name, fontsize=12, horizontalalignment='center', verticalalignment='bottom', color=ColorDict[obser_name],zorder=10)
+                    plt.text(Eb_CO_d[i], Eb_HOCO_d[i]+0.05, obser_name, fontsize=12, \
+                             horizontalalignment='center', verticalalignment='bottom', color=ColorDict[obser_name],zorder=10)
             except:
                 if Eb_CO_d[i] >= min(xlim) and Eb_CO_d[i] <= max(xlim) and Eb_HOCO_d[i] >= min(ylim) and Eb_HOCO_d[i] <= max(ylim):
                     plt.plot(Eb_CO_d[i], Eb_HOCO_d[i], 'o', color='white') 
-                    plt.text(Eb_CO_d[i], Eb_HOCO_d[i]+0.05, obser_name, fontsize=12, horizontalalignment='center', verticalalignment='bottom', color='white')
+                    if tune_tex_pos==None:
+                        plt.text(Eb_CO_d[i], Eb_HOCO_d[i]+0.05, obser_name, fontsize=12, \
+                                 horizontalalignment='center', verticalalignment='bottom', color='white')
+                    else:
+                        names = tune_tex_pos.keys()
+                        if obser_name in names:
+                            pos_tune = tune_tex_pos[obser_name]
+                            tune_x = pos_tune[0]
+                            tune_y = pos_tune[1]
+                        else:
+                            tune_x, tune_y = 0, 0
+                        plt.text(Eb_CO_d[i]+tune_x, Eb_HOCO_d[i]+0.05+tune_y, obser_name, fontsize=12, \
+                                 horizontalalignment='center', verticalalignment='bottom', color='white')
         
         m, b = np.polyfit(Eb_HOCO_d, Eb_CO_d, 1)
         plt.axline(( Eb_CO_d[0], Eb_CO_d[0]/m-b/m), slope=1/m, color='white')
         # plt.plot(self.descriper2, m * self.descriper2 + b, linewidth=2, color=linecolor)   
         
     
-    def plot(self, save=True, Eb_CO_d=None, Eb_HOCO_d=None, TOF_to_j=47.96, title='', subtitle='', xlim=None, ylim=None):
+    def plot(self, save=True, Eb_CO_d=None, Eb_HOCO_d=None, TOF_to_j=47.96, title='', subtitle='', xlim=None, ylim=None, tune_tex_pos=None):
         """
         Set range, for example, Eb_CO_d=[-2,0.3], Eb_HOCO_d=[-1,1.3]
         """
@@ -356,13 +370,13 @@ class Activity:
             xlim = [min(Eb_CO_model), max(Eb_CO_model)]
         if ylim == None:
             ylim = [min(Eb_HOCO_model), max(Eb_HOCO_model)]
-        self.plot_scaling_rev(Eb_CO_model, Eb_HOCO_model, xlim, ylim)
+        self.plot_scaling_rev(Eb_CO_model, Eb_HOCO_model, xlim, ylim, tune_tex_pos=tune_tex_pos)
         
         plt.tick_params(labelsize=12) # tick label font size
         plt.title(title, fontsize=14,)
         plt.text(0.05, 0.93, subtitle, horizontalalignment='left', verticalalignment='center', transform=ax.transAxes, fontsize=14, color='white', fontweight='bold')        
-        plt.xlabel(r'$E_{\mathrm{CO}}$ (eV)', fontsize=14,)
-        plt.ylabel(r'$E_{\mathrm{HOCO}}$ (eV)', fontsize=14,)
+        plt.xlabel(r'$E_{\mathrm{*CO}}$ (eV)', fontsize=14,)
+        plt.ylabel(r'$E_{\mathrm{*HOCO}}$ (eV)', fontsize=14,)
         
         """add figure index in front of figure"""
         # import string
