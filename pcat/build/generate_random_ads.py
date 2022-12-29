@@ -538,7 +538,7 @@ def add_tags_for_metals(atoms):
     return atoms
 
 def generate_random_init_structs_n_ads(tot=50, sub_ele='Ti',
-                            temp=read('template_2x2.traj'),
+                            temp='',
                             adsorbates=['CO', 'H', 'OH'], 
                             random_slab_Pd=True, 
                             random_slab_H=True, 
