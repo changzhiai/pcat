@@ -385,6 +385,7 @@ def relax_generation(cores, db, gens_running):
         for _ in range(pop_size):
             t1 = time.time()
             a = relax_offspring(1)
+            check_adsorbates(a)
             a.info['key_value_pairs']['generation'] = gens_running
             # db.add_relaxed_step(a) # insert optimized structure into database
             # population.update() # !!! update after add one new atoms
@@ -400,6 +401,24 @@ def relax_generation(cores, db, gens_running):
             shutil.copyfile(fname, db_name)
     return db
 
+def check_adss_num(atoms):
+    ads_indices = atoms.info['data']['ads_indices']
+    ads_symbols = atoms.info['data']['ads_symbols']
+    symbols = atoms.symbols
+    num_C = symbols.count('C')
+    num_O = symbols.count('O')
+    num_O = num_O - num_C
+    num_CO = ads_symbols.count('CO')
+    num_OH = ads_symbols.count('OH')
+    print(num_C, num_CO)
+    print(num_O, num_OH)
+    try:
+        assert num_C == num_CO
+        assert num_O == num_OH
+    except:
+        view(atoms)
+        assert False
+
 def check_adsorbates(atoms):
     """Check if ads_indices corresponds ads_symbols"""
     ads_indices = atoms.info['data']['ads_indices']
@@ -413,6 +432,7 @@ def check_adsorbates(atoms):
             s = atoms[i].symbol
             assert (s in ads_symbol)
         # assert str(atoms[ads_index].symbols)==ads_symbol
+    check_adss_num(atoms)
     return ads_indices, ads_symbols
 
 def check_tags(atoms):
@@ -457,7 +477,6 @@ def update_H_tags_after_dft_relax(atoms):
                 all_Hs.remove(index_H)
     _, _ = check_adsorbates(atoms)
     _ = check_tags(atoms)
-                    
                 
 
 if __name__ == '__main__':
@@ -480,20 +499,35 @@ if __name__ == '__main__':
         db = DataConnection(db_name)
 
     
+    # op_selector = OperationSelector([1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1], # 
+    #                             [
+    #                             RandomMetalPermutation(element_pools=['Pd', 'Ni'], num_muts=5),
+    #                             RandomMetalComposition(element_pools=['Pd', 'Ni'], num_muts=5),
+    #                             SymmetrySlabPermutation(element_pools=['Pd', 'Ni'], num_muts=1),
+    #                             InternalHydrogenAddition(internal_H_pools=['H'], num_muts=5),
+    #                             InternalHydrogenRemoval(internal_H_pools=['H'], num_muts=5),
+    #                             InternalHydrogenMoveToUnoccupied(internal_H_pools=['H'], num_muts=5),
+    #                             AdsorbateAddition(ads_pools=['CO', 'OH', 'H'], num_muts=2),
+    #                             AdsorbateRemoval(ads_pools=['CO', 'OH', 'H'], num_muts=2),
+    #                             AdsorbateSubstitution(ads_pools=['CO', 'OH', 'H'], num_muts=2),
+    #                             AdsorbateSwapOccupied(ads_pools=['CO', 'OH', 'H'], num_muts=2),
+    #                             AdsorbateMoveToUnoccupied(ads_pools=['CO', 'OH', 'H'], num_muts=1),
+    #                             AdsorbateCutSpliceCrossover(ads_pools=['CO', 'OH', 'H'], num_muts=1),
     #                             ])
-    op_selector = OperationSelector([1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1], # 
+    
+    op_selector = OperationSelector([1], 
                                 [
-                                RandomMetalPermutation(element_pools=['Pd', 'Ni'], num_muts=5),
-                                RandomMetalComposition(element_pools=['Pd', 'Ni'], num_muts=5),
-                                SymmetrySlabPermutation(element_pools=['Pd', 'Ni'], num_muts=1),
-                                InternalHydrogenAddition(internal_H_pools=['H'], num_muts=5),
-                                InternalHydrogenRemoval(internal_H_pools=['H'], num_muts=5),
-                                InternalHydrogenMoveToUnoccupied(internal_H_pools=['H'], num_muts=5),
-                                AdsorbateAddition(ads_pools=['CO', 'OH', 'H'], num_muts=2),
-                                AdsorbateRemoval(ads_pools=['CO', 'OH', 'H'], num_muts=2),
-                                AdsorbateSubstitution(ads_pools=['CO', 'OH', 'H'], num_muts=2),
-                                AdsorbateSwapOccupied(ads_pools=['CO', 'OH', 'H'], num_muts=2),
-                                AdsorbateMoveToUnoccupied(ads_pools=['CO', 'OH', 'H'], num_muts=1),
+                                # RandomMetalPermutation(element_pools=['Pd', 'Ni'], num_muts=5),
+                                # RandomMetalComposition(element_pools=['Pd', 'Ni'], num_muts=5),
+                                # SymmetrySlabPermutation(element_pools=['Pd', 'Ni'], num_muts=1),
+                                # InternalHydrogenAddition(internal_H_pools=['H'], num_muts=5),
+                                # InternalHydrogenRemoval(internal_H_pools=['H'], num_muts=5),
+                                # InternalHydrogenMoveToUnoccupied(internal_H_pools=['H'], num_muts=1),
+                                # AdsorbateAddition(ads_pools=['CO', 'OH', 'H'], num_muts=2),
+                                # AdsorbateRemoval(ads_pools=['CO', 'OH', 'H'], num_muts=2),
+                                # AdsorbateSubstitution(ads_pools=['CO', 'OH', 'H'], num_muts=2),
+                                # AdsorbateSwapOccupied(ads_pools=['CO', 'OH', 'H'], num_muts=2),
+                                # AdsorbateMoveToUnoccupied(ads_pools=['CO', 'OH', 'H'], num_muts=1),
                                 AdsorbateCutSpliceCrossover(ads_pools=['CO', 'OH', 'H'], num_muts=1),
                                 ])
   
