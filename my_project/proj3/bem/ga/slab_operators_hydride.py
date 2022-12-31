@@ -884,7 +884,50 @@ class AdsorbateOperator(OffspringCreator):
         ads_pools.remove(ads_symbol)
         random.seed(random.randint(1,100000000))
         ads_symbol = random.choice(ads_pools)
-        atoms, _ = self.add_adsorbate_onto_slab(atoms, site_pos, ads_symbol, cutoff=1.7)
+        atoms, _ = self.add_adsorbate_onto_slab(atoms, site_pos, ads_symbol, cutoff=1.6)
+        return atoms
+    
+    def sort_by_position(self, atoms):
+        """Sort atoms by positions."""
+        atoms = copy.deepcopy(atoms)
+        ps = atoms.get_positions()
+        ps = ps.tolist()
+        sorted_ps = sorted([(p, i) for i, p in enumerate(ps)])
+        indices = [i for p, i in sorted_ps]
+        return atoms[indices]
+    
+    def check_X_too_close(self, atoms, newp, oldp, cutoff, mic=True):
+        """Check if there are atoms that are too close to each other.
+        """
+        newps = np.repeat(newp, len(oldp), axis=0)
+        oldps = np.tile(oldp, (len(newp), 1))
+        if mic:
+            _, dists = find_mic(newps - oldps, atoms.cell, pbc=True)
+        else:
+            dists = np.linalg.norm(newps - oldps, axis=1)
+        return any(dists < cutoff)
+    
+    def remove_too_close_X(self, atoms):
+        """Chech if X is too close"""
+        atoms = copy.deepcopy(atoms)
+        cutoff = 0.4
+        indices = [atom.index for atom in atoms]
+        del_indices = []
+        times = 1
+        for _ in range(times):
+            for index in indices:
+                a = copy.deepcopy(atoms)
+                newp = a.positions[[index]]
+                del a[index]
+                oldp = a.positions
+                if_too_close = self.check_X_too_close(a, newp, oldp, cutoff, mic=True)
+                if if_too_close:
+                    print(f'deleting {index}')
+                    del_indices.append(index)
+                    break
+            indices = [i for i in indices if i not in del_indices]
+        atoms = atoms[indices]
+        atoms = self.sort_by_position(atoms)
         return atoms
     
     def remove_atoms_outside_cell(self, atoms):
@@ -896,6 +939,7 @@ class AdsorbateOperator(OffspringCreator):
             if all(abs(atoms[i].position - a2[i].position) < 0.0001):
                 indices.append(atoms[i].index)
         atoms = atoms[indices]
+        atoms = self.sort_by_position(atoms)
         return atoms
     
     def add_full_adsorbates(self, atoms, sites, adsorbate='X'):
@@ -991,6 +1035,7 @@ class AdsorbateOperator(OffspringCreator):
         atoms = self.add_full_adsorbates(atoms, sites['hollow'], adsorbate='X')
         all_possible_sites = [atom.index for atom in atoms if atom.symbol == 'X']
         atoms_X = atoms[all_possible_sites]
+        atoms_X = self.remove_too_close_X(atoms_X)
         all_sites, occupied_sites, occupied_adss = self.get_occupied_sites(atoms_old, atoms_X, mic=True)
         return atoms_X, all_sites, occupied_sites, occupied_adss
 
@@ -1124,7 +1169,7 @@ class AdsorbateAddition(AdsorbateOperator):
                 unoccupied_sites.remove(random_sites)
                 ads_symbol = random.choice(self.ads_pools)
                 site_pos = atoms_X[random_sites].position
-                atoms, if_too_close = self.add_adsorbate_onto_slab(atoms, site_pos, ads_symbol, cutoff=1.7)
+                atoms, if_too_close = self.add_adsorbate_onto_slab(atoms, site_pos, ads_symbol, cutoff=1.6)
                 _, _ = self.get_adsorbates_from_slab(atoms)
                 count -= 1
                 # if count == 0:
@@ -1266,8 +1311,8 @@ class AdsorbateSwapOccupied(AdsorbateOperator):
                 site_pos2 = self.get_ads_pos(atoms, ads_index2, ads_symbol2)
                 atoms = self.remove_adsorbate_from_slab(atoms, ads_index2, ads_symbol2)
                 _, _ = self.get_adsorbates_from_slab(atoms)
-                atoms, _ = self.add_adsorbate_onto_slab(atoms, site_pos1, ads_symbol2, cutoff=1.7)
-                atoms, _ = self.add_adsorbate_onto_slab(atoms, site_pos2, ads_symbol1, cutoff=1.7)
+                atoms, _ = self.add_adsorbate_onto_slab(atoms, site_pos1, ads_symbol2, cutoff=1.6)
+                atoms, _ = self.add_adsorbate_onto_slab(atoms, site_pos2, ads_symbol1, cutoff=1.6)
                 ads_indices, ads_symbols = self.get_adsorbates_from_slab(atoms)
         else:
             print(f'failed due to too less adsorbate.')
@@ -1340,7 +1385,7 @@ class AdsorbateMoveToUnoccupied(AdsorbateOperator):
                     random.seed(random.randint(1,100000000))
                     random_sites = random.choice(unoccupied_sites)
                     site_pos = atoms_X[random_sites].position
-                    atoms, if_too_close = self.add_adsorbate_onto_slab(atoms, site_pos, ads_symbol, cutoff=1.7)
+                    atoms, if_too_close = self.add_adsorbate_onto_slab(atoms, site_pos, ads_symbol, cutoff=1.6)
                     _, _ = self.get_adsorbates_from_slab(atoms)
                     count -= 1
                     if count == 0:
@@ -1402,6 +1447,7 @@ class AdsorbateCutSpliceCrossover(AdsorbateOperator):
             atoms_X1, all_sites1, occupied_sites1, occupied_adss1 = self.get_sites(atoms_old1)
             atoms_X2, all_sites2, occupied_sites2, occupied_adss2 = self.get_sites(atoms_old2)
             occupied_sites2_from_sites1, occupied_adss2_from_adss1 = [], []
+            print(all_sites1, all_sites2)
             assert len(all_sites1)==len(all_sites2)
             for occupied_site1, occupied_ads1 in zip(occupied_sites1, occupied_adss1):
                 if occupied_site1 in all_sites1:
@@ -1418,7 +1464,7 @@ class AdsorbateCutSpliceCrossover(AdsorbateOperator):
             for occupied_site, occupied_ads in zip(occupied_sites2_from_sites1, occupied_adss2_from_adss1):
                 site_pos = atoms_X2[occupied_site].position
                 ads_symbol = occupied_ads
-                atoms, if_too_close = self.add_adsorbate_onto_slab(atoms, site_pos, ads_symbol, cutoff=1.7)
+                atoms, if_too_close = self.add_adsorbate_onto_slab(atoms, site_pos, ads_symbol, cutoff=1.6)
                 if if_too_close:
                     # print(f'failed due to too many adsorbate already on slab. \n {atoms.info}')
                     # assert False
