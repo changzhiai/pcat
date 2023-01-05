@@ -99,10 +99,11 @@ def views(formula, all_sites=False):
         adsorbate = row['Adsorbate']
         for r in db.select():
             unique_id = r.uniqueid
+            # print(unique_id)
             r_origin_id = unique_id.split('_')[4]
             r_site = unique_id.split('_')[2]
             r_adsorbate = unique_id.split('_')[3]
-            if str(origin_id)==r_origin_id and site==r_site and adsorbate==r_adsorbate:
+            if str(origin_id)==r_origin_id and str(site)==r_site and adsorbate==r_adsorbate:
                 # db_temp.write(r)
                 # view(r.toatoms())
                 atoms_list.append(r.toatoms())
@@ -347,7 +348,7 @@ def plot_free_enegy(xls_name, sheet_free_energy, fig_dir):
     fig = plt.figure(figsize=(8, 6), dpi = 300)
     ax = fig.add_subplot(111)
     CO2RR_FED = CO2RRFED(df, fig_name=name_fig_FE)
-    CO2RR_FED.plot(ax=ax, save=False, title='')
+    CO2RR_FED.plot(ax=ax, save=False, title='',)
     plt.legend(loc='upper center', bbox_to_anchor=(0.5, -0.12), fancybox=True, shadow=True, ncol=5)
     # plt.legend(loc = "lower left", bbox_to_anchor=(0.00, -0.50, 0.8, 1.02), ncol=5, borderaxespad=0)
     plt.show()
@@ -433,10 +434,14 @@ def plot_activity(xls_name, sheet_binding_energy, fig_dir):
                         Gact=0.2, 
                         p_factor = 3.6 * 10**4)
     # activity.verify_BE2FE()
-    # activity.plot(save=True)
+    ColorDict= {'Pd64H64': 'red', 'Pd9Ti55H20': 'red'}
+    tune_tex_pos = {'Pd64H64': [-0.0, -0.2], 'Pd9Ti55H20': [-0.0, -0.]}
+    # tune_tex_pos={'Pd64H13':[-0.05, -0.1], 'Pd64':[-0.05, -0.02]}
+    activity.plot(save=True, tune_tex_pos=tune_tex_pos, ColorDict=ColorDict)
+    # activity.plot(save=True,)
     # activity.plot(save=True, xlim=[-2.5, 2.5], ylim=[-2.5, 2.5])
     # activity.plot(save=True, xlim=[-1., 0], ylim=[-0.2, 1])
-    activity.plot(save=True, xlim=[-2.5, 1.0], ylim=[-2.5, 1])
+    # activity.plot(save=True, xlim=[-2.5, 1.0], ylim=[-2.5, 1])
 
 def del_partial_db(db):
     """Delet uncomplete database"""
@@ -615,7 +620,6 @@ if __name__ == '__main__':
     # if False:
     #     db_tot = './data/collect_vasp_PdHy_and_insert.db'
     #     concatenate_db('./data/collect_vasp_PdHy_v3.db', './data/collect_vasp_insert_PdHy.db', db_tot)
-    
     # system_name = 'collect_vasp_test_m'
     # system_name = 'collect_vasp_Pd0Hy'
     # system_name = 'collect_vasp_layers_H' # important
@@ -631,7 +635,7 @@ if __name__ == '__main__':
     # system_name = 'collect_ce_candidates_vasp_for_surface'
     # system_name = 'collect_vasp_layers_H_fix_bot'
     # system_name = 'vasp_122'
-    system_name = 'PdTiH_vasp_200_r3' # 9 rows for each surface including top and hollow sites of HOCO, CO, OH, H
+    # system_name = 'PdTiH_vasp_200_r3' # 9 rows for each surface including top and hollow sites of HOCO, CO, OH, H
     
     # system_name = 'collect_vasp_PdHy_v3'
     # system_name = 'collect_vasp_Pd32Hy'
@@ -643,6 +647,8 @@ if __name__ == '__main__':
     # system_name = 'collect_vasp_PdHy_and_Pd16Hy_and_Pd32Hy'
     # system_name = 'collect_vasp_PdHy_and_Pd16Hy_and_Pd32Hy_and_Pd48Hy'
     # system_name = 'collect_vasp_PdHy_and_Pd16Hy_and_Pd32Hy_and_Pd48Hy_and_Pd51Hy'
+    system_name = 'collect_vasp_candidates_PdTiH_all_sites'
+
     ref_eles=['Pd', 'Ti']
     db_name = f'./data/{system_name}.db' # the only one needed
     xls_name = f'./data/{system_name}.xlsx'
@@ -665,11 +671,12 @@ if __name__ == '__main__':
                sheet_name_origin, sheet_name_stable, sheet_free_energy, sheet_binding_energy, sheet_cons,
                sheet_name_allFE, sheet_selectivity, sheet_name_dGs,
                cutoff=2.8)
+        print('Generating data done!')
     
     if False: # plot
         plot_free_enegy(xls_name, sheet_free_energy, fig_dir)
         plot_scaling_relations(xls_name, sheet_binding_energy, fig_dir)
-        plot_selectivity(xls_name, sheet_selectivity, fig_dir)
+        # plot_selectivity(xls_name, sheet_selectivity, fig_dir)
         plot_activity(xls_name, sheet_binding_energy, fig_dir)
     
     if False: # cutoff=4.5
@@ -695,7 +702,7 @@ if __name__ == '__main__':
     # plot_free_enegy(xls_name, sheet_free_energy, fig_dir)
     # plot_scaling_relations(xls_name, sheet_binding_energy, fig_dir)
     plot_activity(xls_name, sheet_binding_energy, fig_dir)
-    # views(formula='Pd51Ti13H59', all_sites=True)
+    # views(formula='Pd9Ti55H20', all_sites=True)
     # view(db_name)
     
     # plot_pourbaix_diagram(xls_name, sheet_name_dGs)
