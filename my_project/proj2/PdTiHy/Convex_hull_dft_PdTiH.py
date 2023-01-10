@@ -640,7 +640,7 @@ def plot_dft_convex_hull(xls_name, sheet_convex_hull, candidates=False, round=1)
         s = np.append(s, s[0])  # Here we cycle back to the first coordinate
         plt.plot(pts[s, 0], pts[s, 1], "r--", alpha=0.3, zorder=1)
     bar.set_label(r'Formation energy (eV/atom)', fontsize=12,)
-    plt.title(f'Convex hull {round} of PdTiH ({len(id)} DFT data points)')
+    # plt.title(f'Convex hull {round} of PdTiH ({len(id)} DFT data points)')
     
     plt.xlim([0, 1])
     # ticks = []
@@ -680,8 +680,8 @@ if __name__ == '__main__':
     #     db_tot = '../data/collect_vasp_PdHy_and_insert.db'
     #     concatenate_db('../data/collect_vasp_PdHy_v3.db', '../data/collect_vasp_insert_PdHy.db', db_tot)
     
-    # for i in [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]:
-    for i in [12]:
+    for i in [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]:
+    # for i in [12]:
     # for i in [150, 200, 250, 450]:
         # system_name = 'PdTiH_{}'.format(i) # only CE and DFT surface data
         # system_name = 'PdTiH_150' # only CE and DFT surface data
@@ -712,7 +712,7 @@ if __name__ == '__main__':
             db2xls_dft(system_name, xls_name, sheet_convex_hull, Ti_energy_ref_eles)
         
         if True:
-            plot_dft_convex_hull(xls_name, sheet_convex_hull, candidates=True, round=i)
+            plot_dft_convex_hull(xls_name, sheet_convex_hull, candidates=False, round=i)
         
         if False: # plot
             plot_free_enegy(xls_name, sheet_free_energy, fig_dir)

@@ -262,13 +262,13 @@ def plot_2d_contour_Pd(pts, vertices=True):
     plt.show()
     ax.savefig('2d_contour.png')
 
-def plot_2d_contour(pts, vertices=True):
+def plot_2d_contour(pts, r=1, vertices=True):
     """Projection 3d convex hull to 2d contour
     
     pts: array(n, 3)
         each formation energy corresponding to each 2d concentration. | cons_Pd | cons_H | form_energies |
     """
-    ax = plt.figure()
+    ax = plt.figure(dpi=300)
     # scat = plt.contourf(pts[:,0], pts[:,1], pts[:,2], cmap=plt.cm.jet)
     # scat = plt.scatter(pts[:,0], pts[:,1], c=pts[:,2], marker='o', cmap="viridis")
     scat = plt.scatter(pts[:,0], pts[:,1], c=pts[:,2], marker='o', cmap=plt.cm.jet)
@@ -281,23 +281,23 @@ def plot_2d_contour(pts, vertices=True):
             s = np.append(s, s[0])  # Here we cycle back to the first coordinate
             plt.plot(pts[s, 0], pts[s, 1], "r--", alpha=0.3, zorder=1)
     bar.set_label(r'Formation energy (eV/atom)', fontsize=12,)
-    plt.title(str(pts.shape[0]) + ' data points')
+    # plt.title(str(pts.shape[0]) + f' data points of round {r}')
     plt.xlim([0, 1])
     ticks = []
     # set ticks
-    for each in range(65):
-        a = round(each/64, 2)
-        b = each
-        if each%2 == 0:
-            ticks.append(format(a,'.2f')+' ('+str(b)+')')
-    plt.xticks(np.arange(0, 65, 2)/64, ticks, rotation ='vertical')
-    plt.yticks(np.arange(0, 65, 2)/64, ticks)
+    # for each in range(65):
+    #     a = round(each/64, 2)
+    #     b = each
+    #     if each%2 == 0:
+    #         ticks.append(format(a,'.2f')+' ('+str(b)+')')
+    # plt.xticks(np.arange(0, 65, 2)/64, ticks, rotation ='vertical')
+    # plt.yticks(np.arange(0, 65, 2)/64, ticks)
     plt.ylim([0, 1])
     plt.xlabel('Concentration of Pd', fontsize=12,)
     plt.ylabel('Concentration of H', fontsize=12,)
     ax.tight_layout()
     plt.show()
-    ax.savefig('2d_contour.png')
+    ax.savefig(f'./figures/2d_contour_ce_r{r}.png')
 
 def plot_basical_convex_hull(vertices, ax=None):
     """Plot 2d convex hull"""
@@ -870,54 +870,65 @@ def plot_convex_hull_stacking_subplots(data_name, data_name_rev, fix_ele='H', me
     
 if __name__ == '__main__':
     
-    db_name='results_last.db'
-    data_name='data_last_dict.pkl'
-    data_name_rev='data_last_dict_reverse.pkl'
-    metal_obj = 'Ti'
-    # metal_obj = 'Sc'
-    # metal_obj = 'Ni'
+    if True:
+        for i in [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]:
+            data_name=f'./data/data_last1_r{i}.npy'
+            pts = np.load(data_name, mmap_mode='r')
+            pts = pts[:,0:3].astype(np.float32)
+            plot_2d_contour(pts=pts, r=str(i))
     
-    # Ti_energy_ref_eles={'Pd':-1.951, metal_obj:-5.858, 'H': -7.158*0.5}
-    # Sc_energy_ref_eles={'Pd':-1.951, metal_obj:-3.626, 'H': -7.158*0.5}
-    energy_ref_eles={'Pd':-1.951, metal_obj:-2.534, 'H': -7.158*0.5} # for Ni
     
-    eles=['Pd', metal_obj, 'H']
-    if False: # collect
-        collec_dict_last_data(energy_ref_eles,
-                              db_name=db_name, 
-                              data_name=data_name, 
-                              eles=eles)  # output: results_last1.db and data_last_dict.pkl
-        # collec_dict_last_data_reverse(energy_ref_eles,
-                                      # db_name=db_name, 
-                                      # data_name_rev=data_name_rev, 
-                                      # eles=eles) # output: data_last_dict_reverse.pkl
+    # db_name= ''
+    # data_name_rev=''
+    # # db_name='results_last.db'
+    # # data_name='data_last_dict.pkl'
+    # # data_name_rev='data_last_dict_reverse.pkl'
+    # metal_obj = 'Ti'
+    # # metal_obj = 'Sc'
+    # # metal_obj = 'Ni'
     
-    if True: # plot convex hull
-        with open(data_name, 'rb') as f:
-            pts = pickle.load(f)
-        # plot_convex_hull_ref_metals_3d_line(pts=dct_to_array(pts))
-        # plot_convex_hull_ref_metals_3d_plane(pts=dct_to_array(pts))
-        # plot_convex_hull_ref_metals_3d_poly(pts=dct_to_array(pts))
-        # plot_2d_contour_Pd(pts=dct_to_array(pts,all_cols=True))
+    # # Ti_energy_ref_eles={'Pd':-1.951, metal_obj:-5.858, 'H': -7.158*0.5}
+    # # Sc_energy_ref_eles={'Pd':-1.951, metal_obj:-3.626, 'H': -7.158*0.5}
+    # energy_ref_eles={'Pd':-1.951, metal_obj:-2.534, 'H': -7.158*0.5} # for Ni
+    
+    # eles=['Pd', metal_obj, 'H']
+    # if False: # collect
+    #     collec_dict_last_data(energy_ref_eles,
+    #                           db_name=db_name, 
+    #                           data_name=data_name, 
+    #                           eles=eles)  # output: results_last1.db and data_last_dict.pkl
+    #     # collec_dict_last_data_reverse(energy_ref_eles,
+    #                                   # db_name=db_name, 
+    #                                   # data_name_rev=data_name_rev, 
+    #                                   # eles=eles) # output: data_last_dict_reverse.pkl
+    
+    # if False: # plot convex hull
+    #     with open(data_name, 'rb') as f:
+    #         pts = pickle.load(f)
+    #     # plot_convex_hull_ref_metals_3d_line(pts=dct_to_array(pts))
+    #     # plot_convex_hull_ref_metals_3d_plane(pts=dct_to_array(pts))
+    #     # plot_convex_hull_ref_metals_3d_poly(pts=dct_to_array(pts))
+    #     # plot_2d_contour_Pd(pts=dct_to_array(pts,all_cols=True))
         
-        plot_2d_contour(pts=dct_to_array(pts))
-        get_candidates(pts=dct_to_array(pts,all_cols=True), db_name=db_name, db_cand_name='candidates.db') # candidates on vertices of convex hull
-        # plot_convex_hull_stacking_subplots(data_name, data_name_rev, fix_ele='H', metal_obj=metal_obj)
-        # plot_convex_hull_stacking_subplots(data_name, data_name_rev, fix_ele=metal_obj, metal_obj=metal_obj)
+    #     plot_2d_contour(pts=dct_to_array(pts))
+    #     # get_candidates(pts=dct_to_array(pts,all_cols=True), db_name=db_name, db_cand_name='candidates.db') # candidates on vertices of convex hull
+    #     # plot_convex_hull_stacking_subplots(data_name, data_name_rev, fix_ele='H', metal_obj=metal_obj)
+    #     # plot_convex_hull_stacking_subplots(data_name, data_name_rev, fix_ele=metal_obj, metal_obj=metal_obj)
     
     
-    if False: # chemical potential
-        with open(data_name_rev, 'rb') as f:
-            pts_rev = pickle.load(f)
-        get_chem_pot_H_vertices(pts_rev, # use reverse data, such as data_last_dict_reverse.pkl
-                                fix_ele=metal_obj, 
-                                db_name=db_name, 
-                                metal_obj=metal_obj, 
-                                num_metal_obj=0, 
-                                save_cand=False, 
-                                db_candidate='PdHx_vertices.db') # PdHy
-        get_chem_pot_H_vertices_2d_contour(pts_rev, fix_ele=metal_obj, metal_obj=metal_obj)
+    
+    # if False: # chemical potential
+    #     with open(data_name_rev, 'rb') as f:
+    #         pts_rev = pickle.load(f)
+    #     get_chem_pot_H_vertices(pts_rev, # use reverse data, such as data_last_dict_reverse.pkl
+    #                             fix_ele=metal_obj, 
+    #                             db_name=db_name, 
+    #                             metal_obj=metal_obj, 
+    #                             num_metal_obj=0, 
+    #                             save_cand=False, 
+    #                             db_candidate='PdHx_vertices.db') # PdHy
+    #     get_chem_pot_H_vertices_2d_contour(pts_rev, fix_ele=metal_obj, metal_obj=metal_obj)
         
-        # save to database
-        # for num_H in [32, 33, 34, 35]:
-        #     views(num_Pd=64, num_H=num_H, save=True)
+    #     # save to database
+    #     # for num_H in [32, 33, 34, 35]:
+    #     #     views(num_Pd=64, num_H=num_H, save=True)
