@@ -613,7 +613,8 @@ def plot_count_nn_hist(ads='CO'):
 
 if __name__ == '__main__':
 
-    system_name = 'collect_vasp_candidates_PdNbH_all_sites_HOCO_and_CO' # slab, slab with CO, slab with HOCO
+    # system_name = 'collect_vasp_candidates_PdNbH_all_sites_HOCO_and_CO' # slab, slab with CO, slab with HOCO
+    system_name = 'collect_vasp_candidates_PdNbH_all_sites'
     
     ref_eles=['Pd', 'Nb']
     db_name = f'./data/{system_name}.db' # the only one needed
