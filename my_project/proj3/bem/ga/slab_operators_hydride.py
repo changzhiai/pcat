@@ -1174,7 +1174,6 @@ class AdsorbateAddition(AdsorbateOperator):
                 count -= 1
                 # if count == 0:
                 #     print(f'failed due to too many adsorbate already on slab. \n {atoms.info}')
-                #     break
                 
         # print('after permutation:', atoms, '\n')
         print('======end AdsorbateAddition======')
