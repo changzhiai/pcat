@@ -488,7 +488,6 @@ if __name__ == '__main__':
     db_name = 'ga_PdTiH.db'
     pop_size = 10
     # check_db(db_name)
-    # assert False
     temp = read('./template_2x2.traj')
     init_images = read('../random50_adss.traj', index=':')
     if continue_ga == False:
