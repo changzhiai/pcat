@@ -444,11 +444,12 @@ def check_tags(atoms):
         assert len(indices_existed_Hs)<=4
     return True
 
-def check_db(db_name):
+def check_db(db_name, check=False):
     """Check atoms in database"""
     db = DataConnection(db_name)
     for atoms in db.get_all_relaxed_candidates():
-        # _, _ = check_adsorbates(atoms)
+        if check:
+            _, _ = check_adsorbates(atoms)
         view(atoms)
         _ = check_tags(atoms)
     print('done')
@@ -496,7 +497,6 @@ if __name__ == '__main__':
         db, fname = copy_to_scratch(db_name)
     else:
         db = DataConnection(db_name)
-
     
     # op_selector = OperationSelector([1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1], # 
     #                             [
