@@ -42,8 +42,8 @@ from ase.ga.utilities import get_nnmat_string
 from ase.db import connect
 from ase.constraints import UnitCellFilter
 from ase.optimize import BFGS
-import json
-import sys
+# import json
+# import sys
 from multiprocessing import Pool
 import os
 import shutil
