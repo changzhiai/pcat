@@ -6,7 +6,7 @@ from ase.io import write, read
 from ase.geometry import get_duplicate_atoms
 from ase.ga.data import DataConnection, PrepareDB
 from ase.ga.startgenerator import StartGenerator
-from ase.ga.utilities import get_all_atom_types
+# from ase.ga.utilities import get_all_atom_types
 from ase.ga.utilities import closest_distances_generator
 from ase.constraints import FixAtoms
 from ase.ga.offspring_creator import OperationSelector
