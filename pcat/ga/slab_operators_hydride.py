@@ -23,7 +23,6 @@ from scipy.spatial import Delaunay
 from ase.neighborlist import NeighborList
 from ase.visualize import view
 
-
 def permute2(atoms, rng=np.random, element_pools=None):
     if not bool(element_pools):
         i1 = rng.choice(range(len(atoms)))
@@ -32,7 +31,6 @@ def permute2(atoms, rng=np.random, element_pools=None):
         atoms[i1].symbol = atoms[i2].symbol
         atoms[i2].symbol = sym1
     else:
-        # print(element_pools[0], element_pools[1])
         list1 = [a.index for a in atoms if a.symbol == element_pools[0] and a.tag >= 0 and a.tag != 4] # non ads for tag setting
         list2 = [a.index for a in atoms if a.symbol == element_pools[1] and a.tag >= 0 and a.tag != 4]
         if bool(list1) and bool(list2):
@@ -258,7 +256,6 @@ class SlabOperator(OffspringCreator):
             else:
                 add_rem[sym] = -num
         # collect elements from individual pools
-
         diff = self.get_closest_composition_diff(stay_comp)
         add_rem.update(dict((s, c) for s, c in zip(stay_syms, diff)))
         return get_add_remove_lists(**add_rem)
@@ -388,7 +385,6 @@ class CutSpliceSlabCrossover(SlabOperator):
 
 
 # Mutations: Random, MoveUp/Down/Left/Right, six or all elements
-
 class RandomCompositionMutation(SlabOperator):
     """Change the current composition to another of the allowed compositions.
     The allowed compositions should be input in the same order as the element pools,
@@ -690,7 +686,6 @@ class RandomMetalComposition(SlabOperator):
 
     def operate(self, atoms):
         # Do the operation
-        # print('before permutation:', atoms)
         for _ in range(self.num_muts):
             if self.allowed_compositions == None:
                 atoms = replace(atoms, self.rng, self.element_pools)
@@ -704,7 +699,6 @@ class RandomMetalComposition(SlabOperator):
                     if conc >= float(min_conc) and conc <= float(max_conc):
                         first_nums_list.append(i)
                 atoms = replace_multiple(atoms, rng=np.random, element_pools=None, first_nums_list=first_nums_list)
-        # print('after permutation:', atoms, '\n')
         return atoms
 
 class AdsorbateOperator(OffspringCreator):
@@ -712,11 +706,13 @@ class AdsorbateOperator(OffspringCreator):
     def __init__(self, verbose=False, num_muts=1,
                  allowed_compositions=None,
                  ads_pools=['CO', 'OH', 'H'],
-                 rng=np.random):
+                 rng=np.random, 
+                 tc_cutoff=1.6): # too close cutoff
         OffspringCreator.__init__(self, verbose, num_muts=num_muts, rng=rng)
 
         self.allowed_compositions = allowed_compositions
         self.ads_pools = ads_pools
+        self.tc_cutoff = tc_cutoff
         
     def atoms_too_close_after_addition(self, atoms, n_added, cutoff, mic=True): 
         """Check if there are atoms that are too close to each other after 
@@ -803,7 +799,6 @@ class AdsorbateOperator(OffspringCreator):
         print('---ads location---')
         for ads_index, ads_symbol in zip(ads_indices, ads_symbols):
             print(str(atoms[ads_index].symbols), ads_symbol)
-            # assert str(atoms[ads_index].symbols)==ads_symbol
             for i in ads_index:
                 s = atoms[i].symbol
                 assert (s in ads_symbol)
@@ -839,9 +834,6 @@ class AdsorbateOperator(OffspringCreator):
                 if update_ads_index != [] and len(update_ads_index)==len(ads_index_old):
                     update_ads_indices.append(update_ads_index)
                     update_ads_symbols.append(ads_symbol_old)
-                    # update_ads_symbols.append(str(atoms[update_ads_index].symbols))        
-        # print('update:', update_ads_indices)
-        # print('update:', update_ads_symbols)
         return update_ads_indices, update_ads_symbols
     
     def remove_adsorbate_from_slab(self, atoms, ads_index, ads_symbol):
@@ -884,7 +876,50 @@ class AdsorbateOperator(OffspringCreator):
         ads_pools.remove(ads_symbol)
         random.seed(random.randint(1,100000000))
         ads_symbol = random.choice(ads_pools)
-        atoms, _ = self.add_adsorbate_onto_slab(atoms, site_pos, ads_symbol, cutoff=1.7)
+        atoms, _ = self.add_adsorbate_onto_slab(atoms, site_pos, ads_symbol, cutoff=self.tc_cutoff)
+        return atoms
+
+    def sort_by_position(self, atoms):
+        """Sort atoms by positions."""
+        atoms = copy.deepcopy(atoms)
+        ps = atoms.get_positions()
+        ps = ps.tolist()
+        sorted_ps = sorted([(p, i) for i, p in enumerate(ps)])
+        indices = [i for p, i in sorted_ps]
+        return atoms[indices]
+    
+    def check_X_too_close(self, atoms, newp, oldp, cutoff, mic=True):
+        """Check if there are atoms that are too close to each other.
+        """
+        newps = np.repeat(newp, len(oldp), axis=0)
+        oldps = np.tile(oldp, (len(newp), 1))
+        if mic:
+            _, dists = find_mic(newps - oldps, atoms.cell, pbc=True)
+        else:
+            dists = np.linalg.norm(newps - oldps, axis=1)
+        return any(dists < cutoff)
+    
+    def remove_too_close_X(self, atoms):
+        """Chech if X is too close"""
+        atoms = copy.deepcopy(atoms)
+        cutoff = 0.4
+        indices = [atom.index for atom in atoms]
+        del_indices = []
+        times = 1 # only check once
+        for _ in range(times):
+            for index in indices:
+                a = copy.deepcopy(atoms)
+                newp = a.positions[[index]]
+                del a[index]
+                oldp = a.positions
+                if_too_close = self.check_X_too_close(a, newp, oldp, cutoff, mic=True)
+                if if_too_close:
+                    # print(f'deleting {index}')
+                    del_indices.append(index)
+                    break
+            indices = [i for i in indices if i not in del_indices]
+        atoms = atoms[indices]
+        atoms = self.sort_by_position(atoms)
         return atoms
     
     def remove_atoms_outside_cell(self, atoms):
@@ -896,8 +931,9 @@ class AdsorbateOperator(OffspringCreator):
             if all(abs(atoms[i].position - a2[i].position) < 0.0001):
                 indices.append(atoms[i].index)
         atoms = atoms[indices]
+        atoms = self.sort_by_position(atoms)
         return atoms
-    
+  
     def add_full_adsorbates(self, atoms, sites, adsorbate='X'):
         """Add adsorbates on given sites"""
         distance = 0.0
@@ -974,7 +1010,6 @@ class AdsorbateOperator(OffspringCreator):
         """Get adsorption sites for PdH(111) 2x2, and return adsorbates site atoms 
         and all site indices and corresponding occupied sites indices
         """
-        # atoms = atoms[[atom.index for atom in atoms if atom.z > 6.5 and atom.symbol != 'H' and atom.symbol != 'X']]
         atoms = atoms.copy()
         atoms_old = copy.deepcopy(atoms)
         atoms = atoms[[atom.index for atom in atoms if atom.tag==1]] # 1st layer Pd
@@ -991,6 +1026,7 @@ class AdsorbateOperator(OffspringCreator):
         atoms = self.add_full_adsorbates(atoms, sites['hollow'], adsorbate='X')
         all_possible_sites = [atom.index for atom in atoms if atom.symbol == 'X']
         atoms_X = atoms[all_possible_sites]
+        atoms_X = self.remove_too_close_X(atoms_X)
         all_sites, occupied_sites, occupied_adss = self.get_occupied_sites(atoms_old, atoms_X, mic=True)
         return atoms_X, all_sites, occupied_sites, occupied_adss
 
@@ -1000,14 +1036,17 @@ class AdsorbateSubstitution(AdsorbateOperator):
     def __init__(self, verbose=False, num_muts=1,
                  allowed_compositions=None,
                  ads_pools=None, # add adsorbate pools:)
-                 rng=np.random):
+                 rng=np.random,
+                 tc_cutoff=1.6):
         AdsorbateOperator.__init__(self, verbose, num_muts,
                               allowed_compositions,
                               ads_pools=ads_pools, # :)
-                              rng=rng)
+                              rng=rng,
+                              tc_cutoff=tc_cutoff)
 
         self.descriptor = 'AdsorbateSubstitution'
         self.ads_pools = ads_pools
+        self.tc_cutoff = tc_cutoff
 
     def get_new_individual(self, parents):
         f = parents[0]
@@ -1025,10 +1064,7 @@ class AdsorbateSubstitution(AdsorbateOperator):
                                                               self.descriptor)
         indi = self.initialize_individual(f, f)
         indi.info['data'] = f.info['data']
-        # indi.info = f.info
-        # indi.info['data']['parents'] = [i.info['confid'] for i in parents]
         indi.info['data']['parents'] = [f.info['confid']]
-        # print(indi.info['data'])
         try:
             _, _ = self.get_adsorbates_from_slab(indi)
         except:
@@ -1044,7 +1080,6 @@ class AdsorbateSubstitution(AdsorbateOperator):
         ads_indices, ads_symbols = [], []
         ads_indices, ads_symbols = self.get_adsorbates_from_slab(atoms)
         assert len(ads_indices) == len(ads_symbols)
-        # print('before permutation:', atoms)
         print('======start AdsorbateSubstitution======')
         for _ in range(self.num_muts):
             if ads_indices != [] and ads_symbols != []:
@@ -1056,8 +1091,6 @@ class AdsorbateSubstitution(AdsorbateOperator):
                 ads_indices, ads_symbols = self.get_adsorbates_from_slab(atoms)
             else:
                 print(f'failed due to empty adsorbate.')
-            # permute2(atoms, rng=self.rng)
-        # print('after permutation:', atoms, '\n')
         _, _ = self.get_adsorbates_from_slab(atoms)
         print('======end AdsorbateSubstitution======')
         return atoms
@@ -1067,14 +1100,17 @@ class AdsorbateAddition(AdsorbateOperator):
     def __init__(self, verbose=False, num_muts=1,
                  allowed_compositions=None,
                  ads_pools=None, # add adsorbate pools:)
-                 rng=np.random):
+                 rng=np.random,
+                 tc_cutoff=1.6):
         AdsorbateOperator.__init__(self, verbose, num_muts,
                               allowed_compositions,
                               ads_pools=ads_pools, # :)
-                              rng=rng)
+                              rng=rng,
+                              tc_cutoff=tc_cutoff)
 
         self.descriptor = 'AdsorbateAddition'
         self.ads_pools = ads_pools
+        self.tc_cutoff = tc_cutoff
 
     def get_new_individual(self, parents):
         f = parents[0]
@@ -1093,7 +1129,6 @@ class AdsorbateAddition(AdsorbateOperator):
         indi = self.initialize_individual(f, f)
         indi.info['data'] = f.info['data']
         indi.info['data']['parents'] = [f.info['confid']]
-        # print(indi.info['data'])
         try:
             _, _ = self.get_adsorbates_from_slab(indi)
         except:
@@ -1107,7 +1142,6 @@ class AdsorbateAddition(AdsorbateOperator):
         # Do the operation
         ads_indices, ads_symbols = self.get_adsorbates_from_slab(atoms)
         assert len(ads_indices) == len(ads_symbols)
-        # print('before permutation:', atoms)
         print('======start AdsorbateAddition======')
         for _ in range(self.num_muts):
             atoms_old = copy.deepcopy(atoms)
@@ -1124,14 +1158,9 @@ class AdsorbateAddition(AdsorbateOperator):
                 unoccupied_sites.remove(random_sites)
                 ads_symbol = random.choice(self.ads_pools)
                 site_pos = atoms_X[random_sites].position
-                atoms, if_too_close = self.add_adsorbate_onto_slab(atoms, site_pos, ads_symbol, cutoff=1.7)
+                atoms, if_too_close = self.add_adsorbate_onto_slab(atoms, site_pos, ads_symbol, cutoff=self.tc_cutoff)
                 _, _ = self.get_adsorbates_from_slab(atoms)
                 count -= 1
-                # if count == 0:
-                #     print(f'failed due to too many adsorbate already on slab. \n {atoms.info}')
-                #     break
-                
-        # print('after permutation:', atoms, '\n')
         print('======end AdsorbateAddition======')
         return atoms
     
@@ -1140,75 +1169,17 @@ class AdsorbateRemoval(AdsorbateOperator):
     def __init__(self, verbose=False, num_muts=1,
                  allowed_compositions=None,
                  ads_pools=None, # add adsorbate pools:)
-                 rng=np.random):
+                 rng=np.random,
+                 tc_cutoff=1.6):
         AdsorbateOperator.__init__(self, verbose, num_muts,
                               allowed_compositions,
                               ads_pools=ads_pools, # :)
-                              rng=rng)
+                              rng=rng,
+                              tc_cutoff=tc_cutoff)
 
         self.descriptor = 'AdsorbateRemoval'
         self.ads_pools = ads_pools
-
-    def get_new_individual(self, parents):
-        f = parents[0]
-        flag = 0
-        if bool(self.ads_pools):
-            list1 = [a.tag for a in f if a.tag < 0] # non ads for tag setting
-            if bool(list1):
-               flag = 1
-       # Permutation only makes sense if two different elements are present
-        if flag == 1:
-            f = parents[1]
-            list1 = [a.tag for a in f if a.tag < 0]
-            if not bool(list1):
-                return None, '{1} not possible in {0}'.format(f.info['confid'],
-                                                              self.descriptor)
-        indi = self.initialize_individual(f, f)
-        indi.info['data'] = f.info['data']
-        indi.info['data']['parents'] = [f.info['confid']]
-        # print(indi.info['data'])
-        try:
-            _, _ = self.get_adsorbates_from_slab(indi)
-        except:
-            view(indi)
-        indi = self.operate(indi)
-        parent_message = ': Parent {0}'.format(f.info['confid'])
-        return (self.finalize_individual(indi),
-                self.descriptor + parent_message)
-
-    def operate(self, atoms):
-        # Do the operation
-        ads_indices, ads_symbols = self.get_adsorbates_from_slab(atoms)
-        assert len(ads_indices) == len(ads_symbols)
-        # print('before permutation:', atoms)
-        print('======start AdsorbateRemoval======')
-        for _ in range(self.num_muts):
-            if ads_indices != [] and ads_symbols != []:
-                random.seed(random.randint(1,100000000))
-                random_index = random.choice(range(len(ads_indices)))
-                ads_index = ads_indices[random_index]
-                ads_symbol = ads_symbols[random_index]
-                atoms = self.remove_adsorbate_from_slab(atoms, ads_index, ads_symbol)
-                ads_indices, ads_symbols = self.get_adsorbates_from_slab(atoms)
-            else:
-                print(f'failed due to empty adsorbate.')
-        # print('after permutation:', atoms, '\n')
-        print('======end AdsorbateRemoval======')
-        return atoms
-
-class AdsorbateSwapOccupied(AdsorbateOperator):
-    """Adsorbate swap: swap two occupied adsorbates on a slab"""
-    def __init__(self, verbose=False, num_muts=1,
-                 allowed_compositions=None,
-                 ads_pools=None, # add adsorbate pools:)
-                 rng=np.random):
-        AdsorbateOperator.__init__(self, verbose, num_muts,
-                              allowed_compositions,
-                              ads_pools=ads_pools, # :)
-                              rng=rng)
-
-        self.descriptor = 'AdsorbateSwapOccupied'
-        self.ads_pools = ads_pools
+        self.tc_cutoff = tc_cutoff
 
     def get_new_individual(self, parents):
         f = parents[0]
@@ -1227,7 +1198,6 @@ class AdsorbateSwapOccupied(AdsorbateOperator):
         indi = self.initialize_individual(f, f)
         indi.info['data'] = f.info['data']
         indi.info['data']['parents'] = [f.info['confid']]
-        # print(indi.info['data'])
         try:
             _, _ = self.get_adsorbates_from_slab(indi)
         except:
@@ -1241,7 +1211,67 @@ class AdsorbateSwapOccupied(AdsorbateOperator):
         # Do the operation
         ads_indices, ads_symbols = self.get_adsorbates_from_slab(atoms)
         assert len(ads_indices) == len(ads_symbols)
-        # print('before permutation:', atoms)
+        print('======start AdsorbateRemoval======')
+        for _ in range(self.num_muts):
+            if ads_indices != [] and ads_symbols != []:
+                random.seed(random.randint(1,100000000))
+                random_index = random.choice(range(len(ads_indices)))
+                ads_index = ads_indices[random_index]
+                ads_symbol = ads_symbols[random_index]
+                atoms = self.remove_adsorbate_from_slab(atoms, ads_index, ads_symbol)
+                ads_indices, ads_symbols = self.get_adsorbates_from_slab(atoms)
+            else:
+                print(f'failed due to empty adsorbate.')
+        print('======end AdsorbateRemoval======')
+        return atoms
+
+class AdsorbateSwapOccupied(AdsorbateOperator):
+    """Adsorbate swap: swap two occupied adsorbates on a slab"""
+    def __init__(self, verbose=False, num_muts=1,
+                 allowed_compositions=None,
+                 ads_pools=None, # add adsorbate pools:)
+                 rng=np.random,
+                 tc_cutoff=1.6):
+        AdsorbateOperator.__init__(self, verbose, num_muts,
+                              allowed_compositions,
+                              ads_pools=ads_pools, # :)
+                              rng=rng,
+                              tc_cutoff=tc_cutoff)
+
+        self.descriptor = 'AdsorbateSwapOccupied'
+        self.ads_pools = ads_pools
+        self.tc_cutoff = tc_cutoff
+
+    def get_new_individual(self, parents):
+        f = parents[0]
+        flag = 0
+        if bool(self.ads_pools):
+            list1 = [a.tag for a in f if a.tag < 0] # non ads for tag setting
+            if bool(list1):
+               flag = 1
+       # Permutation only makes sense if two different elements are present
+        if flag == 0:
+            f = parents[1]
+            list1 = [a.tag for a in f if a.tag < 0]
+            if not bool(list1):
+                return None, '{1} not possible in {0}'.format(f.info['confid'],
+                                                              self.descriptor)
+        indi = self.initialize_individual(f, f)
+        indi.info['data'] = f.info['data']
+        indi.info['data']['parents'] = [f.info['confid']]
+        try:
+            _, _ = self.get_adsorbates_from_slab(indi)
+        except:
+            view(indi)
+        indi = self.operate(indi)
+        parent_message = ': Parent {0}'.format(f.info['confid'])
+        return (self.finalize_individual(indi),
+                self.descriptor + parent_message)
+
+    def operate(self, atoms):
+        # Do the operation
+        ads_indices, ads_symbols = self.get_adsorbates_from_slab(atoms)
+        assert len(ads_indices) == len(ads_symbols)
         print('======start Swap======')
         
         for _ in range(self.num_muts):
@@ -1266,12 +1296,11 @@ class AdsorbateSwapOccupied(AdsorbateOperator):
                 site_pos2 = self.get_ads_pos(atoms, ads_index2, ads_symbol2)
                 atoms = self.remove_adsorbate_from_slab(atoms, ads_index2, ads_symbol2)
                 _, _ = self.get_adsorbates_from_slab(atoms)
-                atoms, _ = self.add_adsorbate_onto_slab(atoms, site_pos1, ads_symbol2, cutoff=1.7)
-                atoms, _ = self.add_adsorbate_onto_slab(atoms, site_pos2, ads_symbol1, cutoff=1.7)
+                atoms, _ = self.add_adsorbate_onto_slab(atoms, site_pos1, ads_symbol2, cutoff=self.tc_cutoff)
+                atoms, _ = self.add_adsorbate_onto_slab(atoms, site_pos2, ads_symbol1, cutoff=self.tc_cutoff)
                 ads_indices, ads_symbols = self.get_adsorbates_from_slab(atoms)
         else:
             print(f'failed due to too less adsorbate.')
-        # print('after permutation:', atoms, '\n')
         print('======end Swap======')
         return atoms
     
@@ -1280,14 +1309,17 @@ class AdsorbateMoveToUnoccupied(AdsorbateOperator):
     def __init__(self, verbose=False, num_muts=1,
                  allowed_compositions=None,
                  ads_pools=None, # add adsorbate pools:)
-                 rng=np.random):
+                 rng=np.random,
+                 tc_cutoff=1.6):
         AdsorbateOperator.__init__(self, verbose, num_muts,
                               allowed_compositions,
                               ads_pools=ads_pools, # :)
-                              rng=rng)
+                              rng=rng,
+                              tc_cutoff=tc_cutoff)
 
         self.descriptor = 'AdsorbateMoveToUnoccupied'
         self.ads_pools = ads_pools
+        self.tc_cutoff = tc_cutoff
 
     def get_new_individual(self, parents):
         f = parents[0]
@@ -1306,7 +1338,6 @@ class AdsorbateMoveToUnoccupied(AdsorbateOperator):
         indi = self.initialize_individual(f, f)
         indi.info['data'] = f.info['data']
         indi.info['data']['parents'] = [f.info['confid']]
-        # print(indi.info['data'])
         try:
             _, _ = self.get_adsorbates_from_slab(indi)
         except:
@@ -1321,10 +1352,10 @@ class AdsorbateMoveToUnoccupied(AdsorbateOperator):
         # Do the operation
         ads_indices, ads_symbols = self.get_adsorbates_from_slab(atoms)
         assert len(ads_indices) == len(ads_symbols)
-        # print('before permutation:', atoms)
         print('======start MoveToUnoccupied======')
         for _ in range(self.num_muts):
             if ads_indices != []:
+                atoms = copy.deepcopy(atoms)
                 atoms_old = copy.deepcopy(atoms)
                 atoms_X, all_sites, occupied_sites, _ = self.get_sites(atoms_old)
                 unoccupied_sites = [site for site in all_sites if site not in occupied_sites]
@@ -1339,13 +1370,12 @@ class AdsorbateMoveToUnoccupied(AdsorbateOperator):
                     random.seed(random.randint(1,100000000))
                     random_sites = random.choice(unoccupied_sites)
                     site_pos = atoms_X[random_sites].position
-                    atoms, if_too_close = self.add_adsorbate_onto_slab(atoms, site_pos, ads_symbol, cutoff=1.7)
+                    atoms, if_too_close = self.add_adsorbate_onto_slab(atoms, site_pos, ads_symbol, cutoff=self.tc_cutoff)
                     _, _ = self.get_adsorbates_from_slab(atoms)
                     count -= 1
                     if count == 0:
                         print(f'failed due to too many adsorbate already on slab.')
                         break
-        # print('after permutation:', atoms, '\n')
         print('======end MoveToUnoccupied======')
         return atoms
 
@@ -1354,14 +1384,17 @@ class AdsorbateCutSpliceCrossover(AdsorbateOperator):
     def __init__(self, verbose=False, num_muts=1,
                  allowed_compositions=None,
                  ads_pools=None, # add adsorbate pools:)
-                 rng=np.random):
+                 rng=np.random,
+                 tc_cutoff=1.6):
         AdsorbateOperator.__init__(self, verbose, num_muts,
                               allowed_compositions,
                               ads_pools=ads_pools, # :)
-                              rng=rng)
+                              rng=rng,
+                              tc_cutoff=tc_cutoff)
 
         self.descriptor = 'AdsorbateCutSpliceCrossover'
         self.ads_pools = ads_pools
+        self.tc_cutoff = tc_cutoff
 
     def get_new_individual(self, parents):
         
@@ -1384,6 +1417,8 @@ class AdsorbateCutSpliceCrossover(AdsorbateOperator):
         indi = self.operate(indi1, indi2)
         parent_message = ': Parents {0} {1}'.format(f.info['confid'],
                                                     m.info['confid'])
+        if indi == None:
+            return None, self.descriptor + parent_message
         return (self.finalize_individual(indi),
                 self.descriptor + parent_message)
 
@@ -1391,7 +1426,6 @@ class AdsorbateCutSpliceCrossover(AdsorbateOperator):
         # Do the operation
         ads_indices1, ads_symbols1 = self.get_adsorbates_from_slab(atoms1)
         ads_indices2, ads_symbols2 = self.get_adsorbates_from_slab(atoms2)
-        # print('before permutation:', atoms)
         print('======start AdsorbateCutSpliceCrossover======')
         for _ in range(self.num_muts):
             atoms_old1 = copy.deepcopy(atoms1)
@@ -1399,6 +1433,8 @@ class AdsorbateCutSpliceCrossover(AdsorbateOperator):
             atoms_X1, all_sites1, occupied_sites1, occupied_adss1 = self.get_sites(atoms_old1)
             atoms_X2, all_sites2, occupied_sites2, occupied_adss2 = self.get_sites(atoms_old2)
             occupied_sites2_from_sites1, occupied_adss2_from_adss1 = [], []
+            # print(all_sites1, all_sites2)
+            assert len(all_sites1)==len(all_sites2)
             for occupied_site1, occupied_ads1 in zip(occupied_sites1, occupied_adss1):
                 if occupied_site1 in all_sites1:
                     occupied_index1 = all_sites1.index(occupied_site1)
@@ -1414,13 +1450,10 @@ class AdsorbateCutSpliceCrossover(AdsorbateOperator):
             for occupied_site, occupied_ads in zip(occupied_sites2_from_sites1, occupied_adss2_from_adss1):
                 site_pos = atoms_X2[occupied_site].position
                 ads_symbol = occupied_ads
-                atoms, if_too_close = self.add_adsorbate_onto_slab(atoms, site_pos, ads_symbol, cutoff=1.7)
+                atoms, if_too_close = self.add_adsorbate_onto_slab(atoms, site_pos, ads_symbol, cutoff=self.tc_cutoff)
                 if if_too_close:
-                    # print(f'failed due to too many adsorbate already on slab. \n {atoms.info}')
-                    # assert False
                     print('fail AdsorbateCutSpliceCrossover')
-                    return atoms1
-        # print('after permutation:', atoms, '\n')
+                    return None
         print('======end AdsorbateCutSpliceCrossover======')
         return atoms
     
@@ -1464,14 +1497,13 @@ class InteranlHydrogenOperator(OffspringCreator):
         print('---ads location---')
         for ads_index, ads_symbol in zip(ads_indices, ads_symbols):
             print(str(atoms[ads_index].symbols), ads_symbol)
-            # assert str(atoms[ads_index].symbols)==ads_symbol
             for i in ads_index:
                 s = atoms[i].symbol
                 assert (s in ads_symbol)
         print('===debug end===')
         return True
     
-    def get_adsorbates_from_slab(self, atoms, debug=True):
+    def get_adsorbates_from_slab(self, atoms, debug=False):
         """Get adsorbate information from atoms, including indices and symbols"""
         ads_indices = atoms.info['data']['ads_indices']
         ads_symbols = atoms.info['data']['ads_symbols']
@@ -1500,9 +1532,6 @@ class InteranlHydrogenOperator(OffspringCreator):
                 if update_ads_index != [] and len(update_ads_index)==len(ads_index_old):
                     update_ads_indices.append(update_ads_index)
                     update_ads_symbols.append(ads_symbol_old)
-                    # update_ads_symbols.append(str(atoms[update_ads_index].symbols))        
-        # print('update:', update_ads_indices)
-        # print('update:', update_ads_symbols)
         return update_ads_indices, update_ads_symbols
     
     def remove_atoms_outside_cell(self, atoms):
@@ -1674,7 +1703,7 @@ class InteranlHydrogenOperator(OffspringCreator):
         all_existed_Hs_indices = []
         for bilayer in bilayers:
             indices_existed_Hs = [atom.index for atom in atoms if atom.tag in [bilayer+4]] # ist bilayer H
-            all_existed_Hs_indices.append(indices_existed_Hs)
+            all_existed_Hs_indices += indices_existed_Hs
         return all_existed_Hs_indices
 
 
@@ -1698,7 +1727,6 @@ class InternalHydrogenAddition(InteranlHydrogenOperator):
         indi = self.initialize_individual(f, f)
         indi.info['data'] = f.info['data']
         indi.info['data']['parents'] = [f.info['confid']]
-        # print(indi.info['data'])
         try:
             _, _ = self.get_adsorbates_from_slab(indi)
         except:
@@ -1712,13 +1740,11 @@ class InternalHydrogenAddition(InteranlHydrogenOperator):
         # Do the operation
         ads_indices, ads_symbols = self.get_adsorbates_from_slab(atoms)
         assert len(ads_indices) == len(ads_symbols)
-        # print('before permutation:', atoms)
         print('======start HydrogenAddition======')
         for _ in range(self.num_muts):
+            atoms = copy.deepcopy(atoms)
             atoms_old = copy.deepcopy(atoms)
             atoms_vacancies = self.get_vacancies_Hs_atoms(atoms, bilayers=[2, 3])
-            # atoms.extend(atoms_vacancies)
-            # view(atoms)
             if len(atoms_vacancies)!=0:
                 indices_X = [atom.index for atom in atoms_vacancies]
                 random.seed(random.randint(1,100000000))
@@ -1729,7 +1755,6 @@ class InternalHydrogenAddition(InteranlHydrogenOperator):
                 atoms.extend(random_atom_X)
             else:
                 atoms = atoms_old
-        # print('after permutation:', atoms, '\n')
         print('======end HydrogenAddition======')
         return atoms
     
@@ -1753,7 +1778,6 @@ class InternalHydrogenRemoval(InteranlHydrogenOperator):
         indi = self.initialize_individual(f, f)
         indi.info['data'] = f.info['data']
         indi.info['data']['parents'] = [f.info['confid']]
-        # print(indi.info['data'])
         try:
             _, _ = self.get_adsorbates_from_slab(indi)
         except:
@@ -1768,9 +1792,9 @@ class InternalHydrogenRemoval(InteranlHydrogenOperator):
         # Do the operation
         ads_indices, ads_symbols = self.get_adsorbates_from_slab(atoms)
         assert len(ads_indices) == len(ads_symbols)
-        # print('before permutation:', atoms)
         print('======start InternalHydrogenRemoval======')
         for _ in range(self.num_muts):
+            atoms = copy.deepcopy(atoms)
             atoms_old = copy.deepcopy(atoms)
             all_existed_Hs_indices = self.get_existed_Hs_indices(atoms,  bilayers=[2, 3])
             if len(all_existed_Hs_indices)!=0:
@@ -1783,7 +1807,6 @@ class InternalHydrogenRemoval(InteranlHydrogenOperator):
                 print('removing one internal H')
             else:
                 atoms = atoms_old         
-        # print('after permutation:', atoms, '\n')
         print('======end InternalHydrogenRemoval======')
         return atoms
 
@@ -1807,7 +1830,6 @@ class InternalHydrogenMoveToUnoccupied(InteranlHydrogenOperator):
         indi = self.initialize_individual(f, f)
         indi.info['data'] = f.info['data']
         indi.info['data']['parents'] = [f.info['confid']]
-        # print(indi.info['data'])
         try:
             _, _ = self.get_adsorbates_from_slab(indi)
         except:
@@ -1822,9 +1844,9 @@ class InternalHydrogenMoveToUnoccupied(InteranlHydrogenOperator):
         # Do the operation
         ads_indices, ads_symbols = self.get_adsorbates_from_slab(atoms)
         assert len(ads_indices) == len(ads_symbols)
-        # print('before permutation:', atoms)
         print('======start InternalHydrogenMoveToUnoccupied======')
         for _ in range(self.num_muts):
+            atoms = copy.deepcopy(atoms)
             atoms_old = copy.deepcopy(atoms)
             all_existed_Hs_indices = self.get_existed_Hs_indices(atoms,  bilayers=[2, 3])
             atoms_vacancies = self.get_vacancies_Hs_atoms(atoms, bilayers=[2, 3])
@@ -1846,6 +1868,5 @@ class InternalHydrogenMoveToUnoccupied(InteranlHydrogenOperator):
                 atoms.extend(random_atom_X)
             else:
                 atoms = atoms_old         
-        # print('after permutation:', atoms, '\n')
         print('======end InternalHydrogenMoveToUnoccupied======')
         return atoms
