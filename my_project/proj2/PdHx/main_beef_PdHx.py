@@ -662,6 +662,9 @@ def plot_ens_scaling_relation(x, y, xls_name, sheet_selectivity, fig_dir):
         # plt.xticks(np.arange(-0.75,1.25, step=0.25))
         # plt.ylim([-0.75,1.25])
         # plt.plot([-1,1.5],[-1,1.5],'k--',lw=2)
+        if x=='E(*CO)' and y =='E(*H)':
+            ax.axvline(x=-0.579, color='black')
+            ax.axhline(y=-0.158, color='black')
         plt.grid(True)
     
     
@@ -874,12 +877,12 @@ if __name__ == '__main__':
         # plot_bar_H_distribution(save=False) # plot bar chart for each adsorbate
         
     if True:    
-        plot_ens_E_HOCO_E_H(xls_name, sheet_selectivity, fig_dir)
+        # plot_ens_E_HOCO_E_H(xls_name, sheet_selectivity, fig_dir)
         # plot_ens_scaling_relation('E(*HOCO)', 'E(*H)', xls_name, sheet_selectivity, fig_dir)
         # plot_ens_scaling_relation('E(*HOCO)', 'E(*CO)', xls_name, sheet_selectivity, fig_dir)
         # plot_ens_scaling_relation('E(*HOCO)', 'E(*OH)', xls_name, sheet_selectivity, fig_dir)
         # plot_ens_scaling_relation('E(*CO)', 'E(*OH)', xls_name, sheet_selectivity, fig_dir)
-        # plot_ens_scaling_relation('E(*CO)', 'E(*H)', xls_name, sheet_selectivity, fig_dir)
+        plot_ens_scaling_relation('E(*CO)', 'E(*H)', xls_name, sheet_selectivity, fig_dir)
         # plot_ens_scaling_relation('E(*OH)', 'E(*H)', xls_name, sheet_selectivity, fig_dir)
         
     # plot_line_H_distribution(save=False)

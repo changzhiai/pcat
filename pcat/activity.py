@@ -239,14 +239,16 @@ class Activity:
         k3 = self.get_k3(nu_c, Eb_CO, U, T=T, tc=tc0)
         return k1, K1, k2, K2, k3, K3
     
-    def plot_scaling_rev(self, Eb_CO_model, Eb_HOCO_model, xlim, ylim, tune_tex_pos=None):
+    def plot_scaling_rev(self, Eb_CO_model, Eb_HOCO_model, xlim, ylim, text=True, tune_tex_pos=None, scaling=False,ColorDict=ColorDict, **kwargs):
         """Plot scaling relation but slope is inverse in order to correspond to previous scaling relation
         tune_tex_pos = {'Pd64H31': [0.1, 0.2], 'Pd64H39': [0.3, 0.4]}"""
         
         Eb_CO_d = (self.df[self.descriper1]).values
         Eb_HOCO_d = (self.df[self.descriper2]).values
         obser_names = (self.df.index).values
-        
+        fontsize = 10
+        # default_bias = 0.05
+        default_bias = 0.02
         # xlim = [-1, 1]
         # ylim = [-2, 1]
         for i,obser_name in enumerate(obser_names):
@@ -254,14 +256,9 @@ class Activity:
                 if Eb_CO_d[i] >= min(xlim) and Eb_CO_d[i] <= max(xlim) and Eb_HOCO_d[i] >= min(ylim) and Eb_HOCO_d[i] <= max(ylim):
                     plt.plot(Eb_CO_d[i], Eb_HOCO_d[i], 'o', color=ColorDict[obser_name]) 
                     # plt.text would fail xlim and ylim 
-                    plt.text(Eb_CO_d[i], Eb_HOCO_d[i]+0.05, obser_name, fontsize=12, \
-                             horizontalalignment='center', verticalalignment='bottom', color=ColorDict[obser_name],zorder=10)
-            except:
-                if Eb_CO_d[i] >= min(xlim) and Eb_CO_d[i] <= max(xlim) and Eb_HOCO_d[i] >= min(ylim) and Eb_HOCO_d[i] <= max(ylim):
-                    plt.plot(Eb_CO_d[i], Eb_HOCO_d[i], 'o', color='white') 
                     if tune_tex_pos==None:
-                        plt.text(Eb_CO_d[i], Eb_HOCO_d[i]+0.05, obser_name, fontsize=12, \
-                                 horizontalalignment='center', verticalalignment='bottom', color='white')
+                        plt.text(Eb_CO_d[i], Eb_HOCO_d[i]+default_bias, obser_name, fontsize=fontsize, \
+                                 horizontalalignment='center', verticalalignment='bottom', color=ColorDict[obser_name],zorder=10)
                     else:
                         names = tune_tex_pos.keys()
                         if obser_name in names:
@@ -270,15 +267,38 @@ class Activity:
                             tune_y = pos_tune[1]
                         else:
                             tune_x, tune_y = 0, 0
-                        plt.text(Eb_CO_d[i]+tune_x, Eb_HOCO_d[i]+0.05+tune_y, obser_name, fontsize=12, \
-                                 horizontalalignment='center', verticalalignment='bottom', color='white')
-        
-        m, b = np.polyfit(Eb_HOCO_d, Eb_CO_d, 1)
-        plt.axline(( Eb_CO_d[0], Eb_CO_d[0]/m-b/m), slope=1/m, color='white')
-        # plt.plot(self.descriper2, m * self.descriper2 + b, linewidth=2, color=linecolor)   
+                        if tune_x == 0 and tune_y == 0:
+                            plt.text(Eb_CO_d[i]+tune_x, Eb_HOCO_d[i]+default_bias+tune_y, obser_name, fontsize=fontsize, \
+                                      horizontalalignment='center', verticalalignment='bottom', color=ColorDict[obser_name],zorder=10)
+                        else:
+                            plt.annotate(obser_name,xy=(Eb_CO_d[i], Eb_HOCO_d[i]), xycoords='data',
+                            xytext=(Eb_CO_d[i]+tune_x, Eb_HOCO_d[i]+default_bias+tune_y), textcoords='data', fontsize=fontsize,
+                            arrowprops=dict(arrowstyle="->", connectionstyle="arc3",color=ColorDict[obser_name]), color=ColorDict[obser_name])
+            except:
+                if Eb_CO_d[i] >= min(xlim) and Eb_CO_d[i] <= max(xlim) and Eb_HOCO_d[i] >= min(ylim) and Eb_HOCO_d[i] <= max(ylim):
+                    plt.plot(Eb_CO_d[i], Eb_HOCO_d[i], 'o', color='white')
+                    if text:
+                        if tune_tex_pos==None:
+                            plt.text(Eb_CO_d[i], Eb_HOCO_d[i]+default_bias, obser_name, fontsize=fontsize, \
+                                     horizontalalignment='center', verticalalignment='bottom', color='white')
+                        else:
+                            names = tune_tex_pos.keys()
+                            if obser_name in names:
+                                pos_tune = tune_tex_pos[obser_name]
+                                tune_x = pos_tune[0]
+                                tune_y = pos_tune[1]
+                            else:
+                                tune_x, tune_y = 0, 0
+                            plt.text(Eb_CO_d[i]+tune_x, Eb_HOCO_d[i]+default_bias+tune_y, obser_name, fontsize=12, \
+                                     horizontalalignment='center', verticalalignment='bottom', color='white')
+        if scaling:
+            m, b = np.polyfit(Eb_HOCO_d, Eb_CO_d, 1)
+            plt.axline(( Eb_CO_d[0], Eb_CO_d[0]/m-b/m), slope=1/m, color='white')
+            # plt.plot(self.descriper2, m * self.descriper2 + b, linewidth=2, color=linecolor)   
         
     
-    def plot(self, save=True, Eb_CO_d=None, Eb_HOCO_d=None, TOF_to_j=47.96, title='', subtitle='', xlim=None, ylim=None, tune_tex_pos=None):
+    def plot(self, save=True, Eb_CO_d=None, Eb_HOCO_d=None, TOF_to_j=47.96, title='', subtitle='', \
+             xlim=None, ylim=None, text=True, tune_tex_pos=None, ColorDict=ColorDict, **kwargs):
         """
         Set range, for example, Eb_CO_d=[-2,0.3], Eb_HOCO_d=[-1,1.3]
         """
@@ -370,7 +390,7 @@ class Activity:
             xlim = [min(Eb_CO_model), max(Eb_CO_model)]
         if ylim == None:
             ylim = [min(Eb_HOCO_model), max(Eb_HOCO_model)]
-        self.plot_scaling_rev(Eb_CO_model, Eb_HOCO_model, xlim, ylim, tune_tex_pos=tune_tex_pos)
+        self.plot_scaling_rev(Eb_CO_model, Eb_HOCO_model, xlim, ylim,text=text, tune_tex_pos=tune_tex_pos, ColorDict=ColorDict,)
         
         plt.tick_params(labelsize=12) # tick label font size
         plt.title(title, fontsize=14,)

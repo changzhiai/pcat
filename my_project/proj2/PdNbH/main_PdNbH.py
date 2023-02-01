@@ -1,14 +1,17 @@
 # -*- coding: utf-8 -*-
 """
-Created on Thu Apr 14 20:16:17 2022
+Created on Tue Jan  4 13:55:28 2022
 
 @author: changai
 """
+# import sys
+# sys.path.append("../../../")
 
 from pcat.preprocessing.db2xls import db2xls
 from ase.db import connect
 from pcat.lib.io import pd_read_excel
 from pcat.free_energy import CO2RRFED
+from pcat.free_energy import HERFED
 from pcat.scaling_relation import ScalingRelation
 import os
 from pcat.selectivity import Selectivity
@@ -17,11 +20,15 @@ from ase.visualize import view
 import matplotlib.pyplot as plt
 from pcat.pourbaix import PourbaixDiagram
 import numpy as np
-# from pcat.convex_hull import con_ele
-from scipy.spatial import ConvexHull, convex_hull_plot_2d
-import pandas as pd
-from pcat.lib.io import pd_read_excel
-import imageio
+import seaborn as sns
+from matplotlib.patches import Rectangle
+# rc = {'figure.figsize':(10,5),
+#   'axes.facecolor':'white',
+#   'axes.grid' : True,
+#   'grid.color': '.8',
+#   'font.family':'Times New Roman',
+#   'font.size' : 15}
+# plt.rcParams.update(rc)
 
 def concatenate_db(db_name1, db_name2, db_tot):
     """Contatenate two database into the total one"""
@@ -96,7 +103,7 @@ def views(formula, all_sites=False):
             r_origin_id = unique_id.split('_')[4]
             r_site = unique_id.split('_')[2]
             r_adsorbate = unique_id.split('_')[3]
-            if str(origin_id)==r_origin_id and site==r_site and adsorbate==r_adsorbate:
+            if str(origin_id)==r_origin_id and str(site)==r_site and adsorbate==r_adsorbate:
                 # db_temp.write(r)
                 # view(r.toatoms())
                 atoms_list.append(r.toatoms())
@@ -191,7 +198,7 @@ def plot_cons_as_layers(obj='H'):
         plt.ylim(0, 1.18)
         if obj == 'H':
             title = formula + ', H:' + str(round(con_tot, 3))
-            plt.text(0.05, 0.92, title, fontsize=8, horizontalalignment='left', \
+            plt.text(0.05, 0.92, title, fontsize=8, horizontalalignment='left', 
                      verticalalignment='center', transform=ax.transAxes, color='black', fontweight='bold')
             # plt.title(formula + ', H:' + str(round(con_tot, 3)), fontsize=8)
             if m2==0:
@@ -280,7 +287,7 @@ def plot_cons_as_layers_with_ads(obj='H'):
                     plt.ylim(0, 1.18)
                     if obj == 'H':
                         title = formula + ', H:' + str(round(con_tot, 3))
-                        plt.text(0.05, 0.92, title, fontsize=8, horizontalalignment='left', \
+                        plt.text(0.05, 0.92, title, fontsize=8, horizontalalignment='left', 
                                  verticalalignment='center', transform=ax.transAxes, color='black', fontweight='bold')
                         # plt.title(formula + ', H:' + str(round(con_tot, 3)), fontsize=8)
                         if m2==0:
@@ -308,10 +315,10 @@ def plot_BE_as_Hcons(xls_name, sheet_cons):
     E_H = df['E(*H)'].values
     E_OH = df['E(*OH)'].values
     plt.figure()
-    plt.plot(cons_H, E_HOCO, c='blue', label='*HOCO')
-    plt.plot(cons_H, E_CO, c='orange', label='*CO')
-    plt.plot(cons_H, E_H, c='green', label='*H')
-    plt.plot(cons_H, E_OH, c='brown', label='*OH')
+    plt.plot(cons_H, E_HOCO, '-o', c='blue', label='*HOCO')
+    plt.plot(cons_H, E_CO,'-o', c='orange', label='*CO')
+    plt.plot(cons_H, E_H,'-o', c='green', label='*H')
+    plt.plot(cons_H, E_OH,'-o', c='brown', label='*OH')
     plt.xlabel('Concentration of H', fontsize=12)
     plt.ylabel('Binding energy (eV)', fontsize=12)
     plt.legend()
@@ -336,25 +343,54 @@ def plot_free_enegy(xls_name, sheet_free_energy, fig_dir):
     Plot free energy
     """
     df = pd_read_excel(xls_name, sheet_free_energy)
-    # df.drop(['Pd16Ti48H8', 'Pd16Ti48H24'], inplace=True)
+    df.drop(['Nb32Pd32', 'Nb64H2'], inplace=True)
+    # obj_list = ['Pd64H64', 'Nb53Pd11H16', 'Nb64H20', 'Nb49Pd15H29', 'Nb52Pd12H56', 'Nb56Pd8H27', 'Nb28Pd36H33']
+    # df = df[df.index.isin(obj_list)]
+    
+    # df.drop(['Nb32Pd32', 'Nb64H2'], inplace=True)
     step_names = ['* + CO$_{2}$', 'HOCO*', 'CO*', '* + CO']  #reload step name for CO2RR
     df.set_axis(step_names, axis='columns', inplace=True)
     name_fig_FE = f'{fig_dir}/{system_name}_{sheet_free_energy}.jpg'
     fig = plt.figure(figsize=(8, 6), dpi = 300)
     ax = fig.add_subplot(111)
     CO2RR_FED = CO2RRFED(df, fig_name=name_fig_FE)
-    CO2RR_FED.plot(ax=ax, save=False, title='')
-    plt.legend(loc='upper center', bbox_to_anchor=(0.5, -0.12), fancybox=True, shadow=True, ncol=5)
+    pos0, _ = CO2RR_FED.plot(ax=ax, save=False, title='')
+    plt.legend(loc='upper center', bbox_to_anchor=(0.47, -0.12), fancybox=True, shadow=True, ncol=5, fontsize=8)
     # plt.legend(loc = "lower left", bbox_to_anchor=(0.00, -0.50, 0.8, 1.02), ncol=5, borderaxespad=0)
     plt.show()
     fig.savefig(name_fig_FE, dpi=300, bbox_inches='tight')
+
+def plot_HER_free_energy(xls_name, sheet_name_allFE, fig_dir):
+    """Plot free energy for HER"""
+    df = pd_read_excel(xls_name, sheet_name_allFE)
+    df.drop(['Nb32Pd32', 'Nb64H2'], inplace=True)
+    df['step1']=0
+    df['step3']=0
+    df = df[['step1', 'G(*H)', 'step3']]
+    step_names = ['* + $H^{+}$', 'H*', r'* + $\frac{1}{2}H_{2}$']
+    df.set_axis(step_names, axis='columns', inplace=True)
     
+    # obj_list = ['Pd64H64', 'Nb53Pd11H16', 'Nb64H20', 'Nb49Pd15H29', 'Nb52Pd12H56', 'Nb56Pd8H27', 'Nb28Pd36H33']
+    # df = df[df.index.isin(obj_list)]
+    
+    name_fig_FE = f'{fig_dir}/{system_name}_HER.jpg'
+    fig = plt.figure(figsize=(8, 6), dpi = 300)
+    ax = fig.add_subplot(111)
+    HER_FED = HERFED(df, fig_name=name_fig_FE)
+    pos0, _ = HER_FED.plot(ax=ax, save=False, title='')
+    print('initial x pos:', pos0)
+    plt.legend(loc='upper center', bbox_to_anchor=(pos0-0.30, -0.12), fancybox=True, shadow=True, ncol=5, fontsize=8)
+    # plt.legend(loc='upper center', bbox_to_anchor=(pos0+0.15, -0.12), fancybox=True, shadow=True, ncol=5, fontsize=8)
+    plt.show()
+    fig.savefig(name_fig_FE, dpi=300, bbox_inches='tight')
 
 def plot_scaling_relations(xls_name, sheet_binding_energy, fig_dir):
     """
     Plot scaling relation by binding energy
     """
     df = pd_read_excel(xls_name, sheet_binding_energy)
+    df.drop(['Nb32Pd32', 'Nb64H2'], inplace=True)
+    
     # df.drop(['Pd16Ti48H8', 'Pd16Ti48H24'], inplace=True)
     col1 = [2, 2, 2, 3, 3, 5] # column in excel
     col2 = [3, 5, 4, 5, 4, 4] # column in excel
@@ -376,7 +412,7 @@ def plot_scaling_relations(xls_name, sheet_binding_energy, fig_dir):
                     ylabel=descriper2, 
                     dot_color='red', 
                     line_color='red',
-                    annotate=True,)
+                    annotate=False,)
             i+=1
     plt.show()
     fig.savefig(name_fig_BE, dpi=300, bbox_inches='tight')
@@ -385,7 +421,7 @@ def plot_stability():
     """Plot convex hull by formation energy"""
     ''
 
-# def plot_dft_convex_hull():
+def plot_dft_convex_hull():
     """Plot convex hull using dft data"""
     
 def plot_chemical_potential(xls_name, sheet_name_origin):
@@ -413,14 +449,30 @@ def plot_selectivity(xls_name, sheet_selectivity, fig_dir):
     
     selectivity = Selectivity(df, fig_name=name_fig_select)
     selectivity.plot(save=True, title='', xlabel='Different surfaces', tune_tex_pos=1.5, legend=False)
-    
+
+def required_condition(df):
+    df = df[(df['E(*CO)']>-0.65) & (df['E(*CO)']<-0.)]
+    df = df[(df['E(*HOCO)']>-0.7) & (df['E(*HOCO)']<0.4)]
+    # df.drop(['Pd35Ti29H32', 'Pd19Ti45H63', 'Pd28Ti36H64', 'Pd2Ti62H64'], inplace=True)
+    # df.drop(['Pd9Ti55H20', 'Pd9Ti55H16', 'Pd4Ti60H21', 'Pd36Ti28H28'], inplace=True)
+    ColorDict = dict()
+    tune_tex_pos = dict()
+    for n in df.index:
+        ColorDict[n] = 'b'
+        tune_tex_pos[n] = [0., 0.]
+    print(ColorDict)
+    print(tune_tex_pos)
+    print(list(df.index))
+    return df
+
 def plot_activity(xls_name, sheet_binding_energy, fig_dir):
     """Plot activity of CO2RR"""
     df = pd_read_excel(filename=xls_name, sheet=sheet_binding_energy)
+    df = required_condition(df)
     # df.drop(['Pd16Ti48H8', 'Pd16Ti48H24'], inplace=True)
     name_fig_act = f'{fig_dir}/{system_name}_activity.jpg'
     activity = Activity(df, descriper1 = 'E(*CO)', descriper2 = 'E(*HOCO)', fig_name=name_fig_act,
-                        U0=-0.3, 
+                        U0=-0.5, 
                         T0=297.15, 
                         pCO2g = 1., 
                         pCOg=0.005562, 
@@ -429,9 +481,18 @@ def plot_activity(xls_name, sheet_binding_energy, fig_dir):
                         Gact=0.2, 
                         p_factor = 3.6 * 10**4)
     # activity.verify_BE2FE()
+    
+    ColorDict = {'Pd64H64': 'b', 'Nb53Pd11H16': 'red', 'Nb64H20': 'b', 'Nb49Pd15H29': 'b',
+               'Nb52Pd12H56': 'b', 'Nb56Pd8H27': 'b', 'Nb28Pd36H33': 'red'}
+    
+    tune_tex_pos = {'Pd64H64': [0.0, 0.0], 'Nb53Pd11H16': [0.0, 0.0], 'Nb64H20': [0.0, 0.0],
+                    'Nb49Pd15H29': [0.0, -0.06], 'Nb52Pd12H56': [0.03, -0.0], 'Nb56Pd8H27': [0.0, 0.0],
+                    'Nb28Pd36H33': [-0.1, 0.0]}
+    activity.plot(save=True, text=False, tune_tex_pos=tune_tex_pos, ColorDict=ColorDict)
     # activity.plot(save=True)
     # activity.plot(save=True, xlim=[-2.5, 2.5], ylim=[-2.5, 2.5])
-    activity.plot(save=True, xlim=[-1., 0], ylim=[-0.2, 1])
+    # activity.plot(save=True, xlim=[-1., 0], ylim=[-0.2, 1])
+    # activity.plot(save=True, xlim=[-0.9, 0.1], ylim=[-1, 1.1])
 
 def del_partial_db(db):
     """Delet uncomplete database"""
@@ -447,285 +508,233 @@ def del_partial_db(db):
     print(del_rows)
     return db
 
-def plot_2d_contour(pts, vertices=True):
-    ax = plt.figure()
-    # scat = plt.contourf(pts[:,0], pts[:,1], pts[:,2], cmap=plt.cm.jet)
-    # scat = plt.scatter(pts[:,0], pts[:,1], c=pts[:,2], marker='o', cmap="viridis")
-    scat = plt.scatter(pts[:,0], pts[:,1], c=pts[:,2], marker='o', cmap=plt.cm.jet)
-    bar = plt.colorbar(scat)
-    if vertices == True:
-        hull = ConvexHull(pts)
-        vertices = pts[hull.vertices]
-        plt.scatter(vertices[:,0], vertices[:,1], c='r', marker='.', zorder=2)
-        for s in hull.simplices:
-            s = np.append(s, s[0])  # Here we cycle back to the first coordinate
-            plt.plot(pts[s, 0], pts[s, 1], "r--", alpha=0.3, zorder=1)
-    bar.set_label(r'Formation energy (eV/atom)', fontsize=12,)
-    plt.title(str(pts.shape[0]) + ' data points')
-    plt.xlim([0, 1])
-    plt.ylim([0, 1])
-    plt.xlabel('Concentration of Pd')
-    plt.ylabel('Concentration of H')
+def add_generation_to_db(db):
+    """Add nth generation to database in order to identify Origin_id"""
+    for row in db.select():
+        path = row.get('path')
+        if '/mc/' in path:
+            new_uniqueid = row.uniqueid + 'r1'
+            db.update(row.id, uniqueid=new_uniqueid)
+        elif '/mc_second_round/' in path:
+            new_uniqueid = row.uniqueid + 'r2'
+            db.update(row.id, uniqueid=new_uniqueid)
+        elif '/mc_round3/' in path:
+            new_uniqueid = row.uniqueid + 'r3'
+            db.update(row.id, uniqueid=new_uniqueid)
+
+def binding_energy_distribution(ads='CO'):
+    """Analysis binding energy distribution"""
+    df = pd_read_excel(xls_name, sheet_name_origin)
+    df_sub = df.loc[df['Adsorbate'] == ads]
+    # df_sub = df_sub.set_index('Origin_id')
+    BE = df_sub['BE']
+    # print(BE)
+    sns.set_context("paper"); fontsize = 14
+    sns.displot(data=BE, kde=True, facet_kws=dict(despine=False))   
+    plt.xlabel('$\Delta E({})$'.format(str('*'+ads)), fontsize=fontsize)
+    plt.ylabel('Frequency', fontsize=fontsize)
+    plt.xticks(fontsize=fontsize)
+    plt.yticks(fontsize=fontsize)
+    plt.title(f'{len(df_sub.index)} datapoints', fontsize=fontsize)
+    plt.gcf().set_size_inches(8, 6)
+
+def plot_count_nn(ads='CO'):
+    """Count how many different types of atoms neibour near adsorbate"""
+    df = pd_read_excel(xls_name, sheet_name_origin)
+    df_sub = df.loc[df['Adsorbate'] == ads]
+    num_Pd_nn = df_sub['num_Pd_nn']
+    num_Ti_nn = df_sub[f'num_{ref_eles[1]}_nn']
+    num_H_nn = df_sub['num_H_nn']
+    BE = df_sub['BE']
+    colors = ('green', 'blue', 'orange', 'red', 'magenta'); fontsize = 14
+    alpha = 0.5; width = 0.05
+    plt.figure()
+    plt.bar(BE, num_Pd_nn, alpha=alpha, color=colors[0], width=width, label='Pd')
+    plt.bar(BE, num_Ti_nn, alpha=alpha, color=colors[1], width=width, label='Ti')
+    plt.bar(BE, num_H_nn, alpha=alpha, color=colors[2], width=width, label='H')
+    plt.xlabel('$\Delta E({})$'.format(str('*'+ads)), fontsize=fontsize)
+    plt.ylabel('Counts', fontsize=fontsize)
+    plt.xticks(fontsize=fontsize)
+    plt.yticks(fontsize=fontsize)
+    plt.legend(fontsize=fontsize)
+    plt.title(f'{len(df_sub.index)} datapoints', fontsize=fontsize)
+    # plt.gcf().set_size_inches(8, 6)
+    ax = plt.gca()
+    ymin, ymax = ax.get_ylim()
+    if ads == 'CO':
+        bestx1 = -0.8
+        bestx2 = 0.
+        x = np.arange(bestx1, bestx2, 0.01)
+        # ax.add_patch(Rectangle((bestx1, ymax-0.2), bestx2, ymax, facecolor = 'red', fill=True, lw=0))
+        plt.fill_between(x, ymin, ymax, 
+                color='black', alpha=0.2, transform=ax.get_xaxis_transform(), zorder=-1)
+    elif ads == 'HOCO':
+        bestx1 = -0.8
+        bestx2 = 0.4
+        x = np.arange(bestx1, bestx2, 0.01)
+        # ax.add_patch(Rectangle((bestx1, ymax-0.2), bestx2, ymax, facecolor = 'red', fill=True, lw=0))
+        plt.fill_between(x, ymin, ymax, 
+                color='black', alpha=0.2, transform=ax.get_xaxis_transform(), zorder=-1)
     plt.show()
-    ax.savefig('2d_contour.png')
-
-def num_ele(atoms, ele):
-    """Numbers calculation of object element"""
-    try:
-        num_ele = len(atoms[[atom.index for atom in atoms if atom.symbol==ele]])
-    except:
-        num_ele = 0
-    return num_ele
-
-def con_ele(atoms, ele, ref_eles=['Pd', 'Ti']):
-    """Concentration calculation of element
-    totally have three elements, such as, ele=='H', ref_eles=['Pd', 'Ti']
     
-    con = num_ele / num_ref_eles
-    
-    """
-    num_obj_ele = num_ele(atoms, ele)
-    num_ref_eles = 0
-    for ref_ele in set(ref_eles):
-        try:
-            num_ref_ele = num_ele(atoms, ref_ele)
-        except:
-            num_ref_ele = 0
-        num_ref_eles += num_ref_ele
-    con_ele = num_obj_ele / num_ref_eles
-    return con_ele, num_obj_ele
+def plot_count_nn_stack(ads='CO'):
+    """Count how many different types of atoms neibour near adsorbate"""
+    df = pd_read_excel(xls_name, sheet_name_origin)
+    df_sub = df.loc[df['Adsorbate'] == ads]
+    num_Pd_nn = df_sub['num_Pd_nn']
+    num_Ti_nn = df_sub[f'num_{ref_eles[1]}_nn']
+    num_H_nn = df_sub['num_H_nn']
+    BE = df_sub['BE']
+    colors = ('green', 'blue', 'orange', 'red', 'magenta'); fontsize = 14
+    alpha = 1; width = 0.01
+    plt.bar(BE, num_Pd_nn, alpha=alpha, color=colors[0], width=width, label='Pd')
+    plt.bar(BE, num_Ti_nn, bottom=num_Pd_nn, alpha=alpha, color=colors[1], width=width, label='Ti')
+    plt.bar(BE, num_H_nn, bottom=num_Pd_nn+num_Ti_nn, alpha=alpha, color=colors[2], width=width, label='H')
+    plt.xlabel('$\Delta E({})$'.format(str('*'+ads)), fontsize=fontsize)
+    plt.ylabel('Counts', fontsize=fontsize)
+    plt.xticks(fontsize=fontsize)
+    plt.yticks(fontsize=fontsize)
+    plt.legend(fontsize=fontsize)
+    plt.title(f'{len(df_sub.index)} datapoints', fontsize=fontsize)
+    plt.gcf().set_size_inches(8, 6)
+    ax = plt.gca()
+    ymin, ymax = ax.get_ylim()
+    if ads == 'CO':
+        bestx1 = -0.8
+        bestx2 = 0.
+        x = np.arange(bestx1, bestx2, 0.01)
+        plt.fill_between(x, ymin, ymax, 
+                color='black', alpha=0.2, transform=ax.get_xaxis_transform(), zorder=-1)
+    elif ads == 'HOCO':
+        bestx1 = -0.8
+        bestx2 = 0.4
+        x = np.arange(bestx1, bestx2, 0.01)
+        plt.fill_between(x, ymin, ymax, 
+                color='black', alpha=0.2, transform=ax.get_xaxis_transform(), zorder=-1)
 
-def formation_energy_ref_metals(atoms, energy_tot, energy_ref_eles):
-    """Formation energy calculation references pure metal and H2 gas
-    
-    For exmaple: energy_ref_eles={'Pd':-1.951, 'Ti':-5.858, 'H': -7.158*0.5}
-    Pure bulk Pd: -1.951 eV/atom
-    Pure bulk Ti: -5.858 eV/atom
-    H2 gas: -7.158 eV
-    """
-    energies_ref_eles = 0
-    num_eles_tot = 0
-    for ele, energy_ref_ele in energy_ref_eles.items():
-        num_ref_ele = num_ele(atoms, ele)
-        energies_ref_eles += num_ref_ele * energy_ref_ele
-        num_eles_tot += num_ref_ele
-        
-    form_e_ref_metals = energy_tot - energies_ref_eles
-    form_e_ref_metals_per_atom = form_e_ref_metals / num_eles_tot
-    return form_e_ref_metals_per_atom
+def plot_count_nn_hist(ads='CO'):
+    """Plot histogram of statistics of atoms"""
+    df = pd_read_excel(xls_name, sheet_name_origin)
+    df_sub = df.loc[df['Adsorbate'] == ads]
+    hist_Pd_nn = []
+    hist_Ti_nn = []
+    hist_H_nn = []
+    fig, ax = plt.subplots()
+    for i, row in df_sub.iterrows():
+        num_Pd_nn = row['num_Pd_nn']
+        num_Ti_nn = row[f'num_{ref_eles[1]}_nn']
+        num_H_nn = row['num_H_nn']
+        BE = row['BE']
+        if int(num_Pd_nn) != 0:
+            for _ in range(int(num_Pd_nn)):
+                hist_Pd_nn.append(BE)
+        if int(num_Ti_nn) != 0:
+            for _ in range(int(num_Ti_nn)):
+                hist_Ti_nn.append(BE)
+        if int(num_H_nn) != 0:
+            for _ in range(int(num_H_nn)):
+                hist_H_nn.append(BE)
+    start, stop, spacing = -3.5, 2, 0.075
+    bins = np.arange(start, stop, spacing)
+    colors = ('green', 'blue', 'orange', 'red', 'magenta'); fontsize = 14
+    zorders=[3, 2, 1]
+    plt.hist(hist_Pd_nn, bins, facecolor=colors[0], ec='black', alpha=0.75, histtype='stepfilled', zorder=zorders[0], label='Pd')
+    plt.hist(hist_Ti_nn, bins, facecolor=colors[1], ec='black', alpha=0.75, histtype='stepfilled', zorder=zorders[1], label='Nb')
+    plt.hist(hist_H_nn, bins, facecolor=colors[2], ec='black', alpha=0.75, histtype='stepfilled', zorder=zorders[2], label='H')
+    plt.hist(hist_Pd_nn + hist_Ti_nn + hist_H_nn, bins, facecolor='grey', ec='black', alpha=0.75, histtype='stepfilled', zorder=0, label='total')
+    plt.xlim([start, stop])
+    plt.xlabel('$\Delta E({})$'.format(ads+str('*')), fontsize=fontsize)
+    plt.ylabel('Frequency', fontsize=fontsize)
+    plt.xticks(fontsize=fontsize)
+    plt.yticks(fontsize=fontsize)
+    # plt.title(f'{len(df_sub.index)} datapoints', fontsize=fontsize)
+    plt.legend()
+    plt.gcf().set_size_inches(8, 6)
+    ax = plt.gca()
+    ymin, ymax = ax.get_ylim()
+    if ads == 'CO':
+        bestx1 = -0.8
+        bestx2 = 0.
+        x = np.arange(bestx1, bestx2, 0.01)
+        plt.fill_between(x, ymin, ymax, 
+                color='black', alpha=0.2, transform=ax.get_xaxis_transform(), zorder=-1)
+        plt.xlim([-2., 1.])
+    elif ads == 'HOCO':
+        bestx1 = -0.8
+        bestx2 = 0.4
+        x = np.arange(bestx1, bestx2, 0.01)
+        plt.fill_between(x, ymin, ymax, 
+                color='black', alpha=0.2, transform=ax.get_xaxis_transform(), zorder=-1)
+        plt.xlim([-2., 2.])
+    elif ads == 'OH':
+        plt.xlim([-2., 2.])
+    elif ads == 'H':
+        plt.xlim([-1., 2.])
+    plt.show()
 
-def formation_energy_ref_hyd_and_metals(atoms, energy_tot, energy_ref_eles):
-    """Formation energy calculation references pure metal and H2 gas
-    
-    E_form_e = PdxTi(64-x)Hy - y*PdH + (y-x)*Pd - (64-x)*Ti
-    Pure slab PdH: -5.22219 eV/atom
-    Pure slab Pd: -1.59002 ev/atom
-    Pure slab Ti: -5.32613 eV/atom
-    """
-    # energies_ref_eles = 0
-    # num_eles_tot = 0
-    # for ele, energy_ref_ele in energy_ref_eles.items():
-    #     num_ref_ele = num_ele(atoms, ele)
-    #     energies_ref_eles += num_ref_ele * energy_ref_ele
-    #     num_eles_tot += num_ref_ele
-    num_H = num_ele(atoms, 'H')
-    num_Pd = num_ele(atoms, 'Pd')
-    num_eles_tot = 64 + num_H
-    
-    form_e_ref_metals = energy_tot - num_H*(-5.22219) + (num_H-num_Pd)*(-1.59002) - (64-num_H)*(-5.32613)
-    form_e_ref_metals_per_atom = form_e_ref_metals / num_eles_tot
-    return form_e_ref_metals_per_atom
-
-def db2xls_dft(system_name, xls_name, sheet_convex_hull, energy_ref_eles):
-    """Convert database to excel using dft data for PdTiH"""
-    row_ids = []
-    uniqueids = []
-    formulas = []
-    con_Pds = []
-    con_Hs = []
-    num_Pds = []
-    num_Hs = []
-    energy_tots = []
-    form_es = []
-    for row in db.select(struct_type='final'):
-        row_id = row.id
-        uniqueid = row.name
-        formula = row.formula
-        con_Pd, num_Pd = con_ele(row.toatoms(), ele='Pd', ref_eles=ref_eles) 
-        con_H, num_H = con_ele(row.toatoms(), ele='H', ref_eles=ref_eles)
-        atoms = row.toatoms()
-        energy_tot = row.energy
-        form_e = formation_energy_ref_metals(atoms, energy_tot, energy_ref_eles)
-        # form_e = formation_energy_ref_hyd_and_metals(atoms, energy_tot, energy_ref_eles)
-        
-        row_ids.append(row_id)
-        uniqueids.append(uniqueid)
-        formulas.append(formula)
-        con_Pds.append(con_Pd)
-        con_Hs.append(con_H)
-        num_Pds.append(num_Pd)
-        num_Hs.append(num_H)
-        energy_tots.append(energy_tot)
-        form_es.append(form_e)
-        
-    tuples = {'Id': row_ids,
-              'Unique_id': uniqueids,
-              'Surface': formulas,
-              'Cons_Pd': con_Pds,
-              'Cons_H': con_Hs,
-              'Num_Pd': num_Pds,
-              'Num_H': num_Hs,
-              'Energy': energy_tots,
-              'Form_e': form_es,
-             }
-    df = pd.DataFrame(tuples)
-    df.to_excel(xls_name, sheet_convex_hull, float_format='%.3f')
-
-def get_candidates(ids):
-    """Get DFT candidates from convex hull"""
-    candidates_db_name = 'candidates_dft_{}.db'.format(system_name)
-    if os.path.exists(candidates_db_name):
-        os.remove(candidates_db_name)
-    db_candidates = connect(candidates_db_name)
-    for id in ids:
-        row = db.get(id=id)
-        atoms = row.toatoms()
-        try:
-            num_Pd = len(atoms[[atom.index for atom in atoms if atom.symbol=='Pd']])
-        except:
-            num_Pd = 0
-        if num_Pd != 64 and num_Pd != 0:
-            db_candidates.write(row)
-    return db_candidates
-
-def get_initial_and_final_candidates(ids):
-    """Get DFT candidates from convex hull"""
-    candidates_db_name = 'candidates_initial_and_final_{}.db'.format(system_name)
-    if os.path.exists(candidates_db_name):
-        os.remove(candidates_db_name)
-    db_candidates = connect(candidates_db_name)
-    for id in ids:
-        row_initial = db.get(final_struct_id=id)
-        row_final = db.get(id=id)
-        db_candidates.write(row_initial)
-        db_candidates.write(row_final)
-    return db_candidates
-
-def plot_dft_convex_hull(xls_name, sheet_convex_hull, candidates=False, round=1):
-    """Plot convex hull using DFT data"""
-    df = pd_read_excel(filename=xls_name, sheet=sheet_convex_hull)
-    x = df['Cons_Pd']
-    y = df['Cons_H']
-    z = df['Form_e']
-    id = df['Id']
-    
-    fig, ax = plt.subplots(dpi=300)
-    # ax = plt.figure()
-    scat = plt.scatter(x, y, c=z, marker='o', cmap=plt.cm.jet, s=5)
-    bar = plt.colorbar(scat)
-    
-    pts = np.column_stack((x, y, z, id))
-    hull = ConvexHull(pts[:,:3])
-    vertices = pts[hull.vertices]
-    plt.scatter(vertices[:,0], vertices[:,1], c='r', marker='.', zorder=2)
-    if candidates:
-        only_final_candidates = False
-        if only_final_candidates: # only final (DFT) structures
-            db_candidates = get_candidates(ids=vertices[:,3])
-            print(f'candidates of {system_name}:', len(db_candidates))
-        else:
-            db_candidates = get_initial_and_final_candidates(ids=vertices[:,3])
-            print(f'candidates of {system_name}:', len(db_candidates)/2.)
-    for s in hull.simplices:
-        s = np.append(s, s[0])  # Here we cycle back to the first coordinate
-        plt.plot(pts[s, 0], pts[s, 1], "r--", alpha=0.3, zorder=1)
-    bar.set_label(r'Formation energy (eV/atom)', fontsize=12,)
-    # plt.title(f'Convex hull {round} of PdTiH ({len(id)} DFT data points)')
-    
-    plt.xlim([0, 1])
-    # ticks = []
-    # set ticks
-    # for each in range(65):
-    #     a = round(each/64, 2)
-    #     b = each
-    #     if each%2 == 0:
-    #         ticks.append(format(a,'.2f')+' ('+str(b)+')')
-    # plt.xticks(np.arange(0, 65, 2)/64, ticks, rotation ='vertical')
-    # plt.yticks(np.arange(0, 65, 2)/64, ticks)
-    plt.ylim([0, 1])
-    plt.xlabel('Concentration of Pd', fontsize=12,)
-    plt.ylabel('Concentration of H', fontsize=12,)
-    # ax.tight_layout()
-    # plt.show()
-    # ax.savefig('2d_contour.png')
-    return fig, ax
-
-def plot_animate(i):
-    global system_name, metal_obj, ref_eles, db_name, xls_name, fig_dir, sheet_name_convex_hull
-    system_name = 'PdTiH_surf_r{}'.format(i)
-    metal_obj = 'Ti'
-    ref_eles=['Pd', 'Ti']
-    db_name = f'./data/{system_name}.db' # the only one needed
-    xls_name = f'./data/{system_name}.xlsx'
-    fig_dir = '../figures'
-    sheet_name_convex_hull = 'convex_hull'
-    fig, ax = plot_dft_convex_hull(xls_name, sheet_convex_hull, candidates=False, round=i)
-    fig.canvas.draw()       # draw the canvas, cache the renderer
-    image = np.frombuffer(fig.canvas.tostring_rgb(), dtype='uint8')
-    image  = image.reshape(fig.canvas.get_width_height()[::-1] + (3,))
-    return image
 
 if __name__ == '__main__':
-    # if False:
-    #     db_tot = '../data/collect_vasp_PdHy_and_insert.db'
-    #     concatenate_db('../data/collect_vasp_PdHy_v3.db', '../data/collect_vasp_insert_PdHy.db', db_tot)
+
+    system_name = 'collect_vasp_candidates_PdNbH_all_sites'
+
+    ref_eles=['Pd', 'Nb']
+    db_name = f'./data/{system_name}.db' # the only one needed
+    xls_name = f'./data/{system_name}.xlsx'
+    fig_dir = './figures'
     
-    for i in [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]:
-    # for i in [12]:
-    # for i in [150, 200, 250, 450]:
-        # system_name = 'PdTiH_{}'.format(i) # only CE and DFT surface data
-        # system_name = 'PdTiH_150' # only CE and DFT surface data
-        # system_name = 'PdTiH_surf_r5'
-        # system_name = 'PdTiH_surf_r10plus'
-        system_name = 'PdTiH_surf_r{}'.format(i)
-        
-        metal_obj = 'Ti'
-        ref_eles=['Pd', 'Ti']
-        db_name = f'./data/{system_name}.db' # the only one needed
-        xls_name = f'./data/{system_name}.xlsx'
-        fig_dir = '../figures'
-        
-        sheet_name_origin='Origin'
-        sheet_name_stable='Ori_Stable'
-        sheet_free_energy = 'CO2RR_FE'
-        sheet_binding_energy = 'CO2RR_BE'
-        sheet_cons = 'Cons_BE'
-        sheet_name_allFE ='All_FE'
-        sheet_selectivity = 'Selectivity'
-        sheet_name_dGs = 'dGs'
-        sheet_convex_hull = 'Convex_hull'
-        
-        db = connect(db_name)
-        if False: # database to excel
-            # db = del_partial_db(db)
-            Ti_energy_ref_eles={'Pd':-1.951, metal_obj:-5.858, 'H': -7.158*0.5}
-            db2xls_dft(system_name, xls_name, sheet_convex_hull, Ti_energy_ref_eles)
-        
-        if True:
-            plot_dft_convex_hull(xls_name, sheet_convex_hull, candidates=False, round=i)
-        
-        if False: # plot
-            plot_free_enegy(xls_name, sheet_free_energy, fig_dir)
-            plot_scaling_relations(xls_name, sheet_binding_energy, fig_dir)
-            plot_selectivity(xls_name, sheet_selectivity, fig_dir)
-            plot_activity(xls_name, sheet_binding_energy, fig_dir)
-        
+    sheet_name_origin='Origin'
+    sheet_name_stable='Ori_Stable'
+    sheet_free_energy = 'CO2RR_FE'
+    sheet_binding_energy = 'CO2RR_BE'
+    sheet_cons = 'Cons_BE'
+    sheet_name_allFE ='All_FE'
+    sheet_selectivity = 'Selectivity'
+    sheet_name_dGs = 'dGs'
+    # cutoff = 4.5
+    
+    db = connect(db_name)
+    if False: # database to excel
+        # db = del_partial_db(db)
+        db2xls(system_name, xls_name, db, ref_eles, 
+               sheet_name_origin, sheet_name_stable, sheet_free_energy, sheet_binding_energy, sheet_cons,
+               sheet_name_allFE, sheet_selectivity, sheet_name_dGs,
+               cutoff=2.8)
+    
+    if False: # plot
+        plot_free_enegy(xls_name, sheet_free_energy, fig_dir)
+        plot_scaling_relations(xls_name, sheet_binding_energy, fig_dir)
+        # plot_selectivity(xls_name, sheet_selectivity, fig_dir)
+        plot_activity(xls_name, sheet_binding_energy, fig_dir)
+    
+    if False: # cutoff=4.5
+        binding_energy_distribution(ads='HOCO')
+        binding_energy_distribution(ads='CO')
+        binding_energy_distribution(ads='OH')
+        binding_energy_distribution(ads='H')
+    
+    if False:
+        for ads in ['HOCO', 'CO', 'OH', 'H']:
+            plot_count_nn(ads=ads)
+            plot_count_nn_stack(ads=ads)
+        # plot_count_nn(ads='CO')
+        # plot_count_nn_stack(ads='CO')
+    
+    if True:
+        for ads in ['HOCO', 'CO', 'OH', 'H']:
+            plot_count_nn_hist(ads=ads)
+            
+    # add_generation_to_db(db)
+    # plot_BE_as_Hcons(xls_name, sheet_cons)
+    
     # plot_free_enegy(xls_name, sheet_free_energy, fig_dir)
+    # plot_HER_free_energy(xls_name, sheet_name_allFE, fig_dir)
     # plot_scaling_relations(xls_name, sheet_binding_energy, fig_dir)
     # plot_activity(xls_name, sheet_binding_energy, fig_dir)
+    
+    
     # views(formula='Pd51Ti13H59', all_sites=True)
     # view(db_name)
-    # plot_BE_as_Hcons(xls_name, sheet_cons)
+    
     # plot_pourbaix_diagram(xls_name, sheet_name_dGs)
     # plot_chemical_potential(xls_name, sheet_name_origin)
     # view_ads('CO')
@@ -736,6 +745,3 @@ if __name__ == '__main__':
     # plot_cons_as_layers(obj='H')
     
     # plot_cons_as_layers_with_ads(obj='H')
-    
-    # kwargs_write = {'fps':1.0, 'quantizer':'nq'}
-    # imageio.mimsave('./convex_hull_PdTiH.gif', [plot_animate(i) for i in [1, 2, 3, 4, 5, 6, 7, 8, ]], fps=1)

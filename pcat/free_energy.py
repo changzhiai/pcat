@@ -48,12 +48,10 @@ class CO2RRFEDplot:
         # self.figFree = None
         self.ColorDict = ColorDict
         self.DefaultColor=cm.rainbow(np.linspace(0,1,len(self.obser_names)))
-        
         if info == True:
             logging.debug(f'loaded step_names:\n {self.step_names}')
             logging.debug(f'loaded obser_names:\n {self.obser_names}')
             logging.debug(f'loaded data:\n {self.X}')
-        
         self.diagram = FED()
         count = 0
         for i, specis in enumerate(self.obser_names):
@@ -84,17 +82,14 @@ class CO2RRFEDplot:
         if start_id != None and end_id != None:
             self.diagram.remove_link(start_id, end_id)
     
-    def plot(self, ax: plt.Axes = None, title='', save = False, legend=True, legendSize = 14, text='', ratio=1.6181, ymin=None, ymax=None):
+    def plot(self, ax: plt.Axes = None, title='', save = False, legend=True, legendSize=14, text='', ratio=1.6181, ymin=None, ymax=None):
         """Plot free energy diagram without energy barrier"""
         if not ax:
             figFree = plt.figure(figsize=(8, 6), dpi = 300)
             axFree = figFree.add_subplot(111)
-        # Otherwise register the axes and figure the user passed.
         else:
             axFree = ax
             # self.fig = ax.figure
-           
-        # diagram.add_barrier(start_level_id=1, barrier=1, end_level_id=2) # add energy barriers
         pos = self.diagram.plot(xtickslabel = self.step_names, stepLens=len(self.step_names), ax=axFree, ratio=ratio, ymin=ymin, ymax=ymax) # this is the default ylabel
         # axFree.set_zorder(ax2.get_zorder()+1)
         if ymin != None and ymax != None:
@@ -110,15 +105,15 @@ class CO2RRFEDplot:
             plt.legend(fontsize=legendSize)
         plt.title(title, fontsize=14)
         plt.text(0.04, 0.93, text, horizontalalignment='left', verticalalignment='center', transform=axFree.transAxes, fontsize=14, fontweight='bold')        
-        axFree.yaxis.set_label_coords(-0.1, 0.5)
-        axFree.yaxis.set_major_formatter(FormatStrFormatter('%.1f'))
+        axFree.yaxis.set_label_coords(-0.1, 0.6)
+        axFree.yaxis.set_major_formatter(FormatStrFormatter('%.2f'))
         # save figure
         if save == True: 
             plt.show()
             figFree.savefig(self.fig_name, dpi=300, bbox_inches='tight')
-        # print('test:', pos[0])
+        # print('initial x pos:', pos[0])
         # return figFree
-        # return pos[0], pos[-1]
+        return pos[0], pos[-1]
         
 class CO2RRFED(CO2RRFEDplot):
     """New version of CO2RR free energy diagram using panda, and thus less varalbe would be used"""
@@ -130,7 +125,7 @@ class CO2RRFED(CO2RRFEDplot):
         super().__init__(self.step_names, self.obser_names, self.X, self.fig_name, info=False)
         logging.debug(f'Loaded free energy table: \n {df}')
 
-class HERFED:
+class HERFEDplot:
     """Class for HER free energy diagram without TS data
     
     Parameters:
@@ -144,55 +139,74 @@ class HERFED:
     fig_name: str
         figure name
     """
-    def __init__(self, step_names, obser_names, X, fig_name):
+    def __init__(self, step_names, obser_names, X, fig_name, info=True):
         # plot parameters
         self.step_names = step_names
         self.obser_names = obser_names
         self.X = X
         self.fig_name = fig_name
-        
-    def plot(self, title=''):
-        print('auto loaded step_names: ', self.step_names)
-        print('auto loaded obser_names: ', self.obser_names)
-        print('auto loaded data: \n', self.X)
-        
-        ColorDict = ['k', 'lime', 'r', 'b', 'darkcyan', 'cyan', 'olive', 'magenta', 'pink', 'gray', 'orange', 'purple', 'g']
-        # ColorDict = ['gray', 'brown', 'orange', 'olive', 'green', 'cyan', 'blue', 'purple', 'pink', 'red']
-        # ColorDict = ['k', 'g', 'r', 'b', 'c', 'm', 'y', 'brown', 'pink', 'gray', 'orange', 'purple', 'olive']
-        # self.step_names = ['* + CO2', '*HOCO', '*CO', '* + CO']  #reload step name for CO2RR
-        # self.step_names = ['* + $H^+$', '*H', '* + 1/2$H_2$',]  #reload step name for HER
-        # self.obser_names = ["Pure", "Ni", "Co", "V", "Cr", "Mn", "Fe", "Pt"]  #reload specis name
-        print('reload:', self.step_names)
-        print('reload:', self.obser_names, '\n')
-        
-        
-        diagram = FED()
+        self.ColorDict = ColorDict
+        self.DefaultColor=cm.rainbow(np.linspace(0,1,len(self.obser_names)))
+        self.diagram = FED()
+        if info == True:
+            logging.debug(f'loaded step_names:\n {self.step_names}')
+            logging.debug(f'loaded obser_names:\n {self.obser_names}')
+            logging.debug(f'loaded data:\n {self.X}')
         count = 0
-        for specis in range(len(self.obser_names)):
+        for i, specis in enumerate(self.obser_names):
             for step in range(len(self.step_names)):
                 count += 1
                 if step == 0:
-                    diagram.pos_number = 0
-                    
-                diagram.add_level(self.X[specis][step], color = ColorDict[specis])
+                    self.diagram.pos_number = 0
+                try:
+                    self.diagram.add_level(self.X[i][step], color = self.ColorDict[specis])
+                except:
+                    self.diagram.add_level(self.X[i][step], color = self.DefaultColor[i])
         
                 if count % (len(self.step_names)) != 0:
-                    diagram.add_link(count-1, count, color = ColorDict[specis])
-                
-        figFree = plt.figure(figsize=(8,6), dpi = 300)
-        axFree = figFree.add_subplot(111)
-                
-        # diagram.add_barrier(start_level_id=1, barrier=1, end_level_id=2) # add energy barriers
-        pos = diagram.plot(xtickslabel = self.step_names, stepLens=len(self.step_names), ax=axFree) # this is the default ylabel
+                    try:
+                        self.diagram.add_link(count-1, count, color = self.ColorDict[specis])
+                    except:
+                        self.diagram.add_link(count-1, count, color = self.DefaultColor[i])
         
-        # add legend
-        for specis in range(len(self.obser_names)):
-            plt.hlines(0.1, pos[0], pos[0], color=ColorDict[specis], label= self.obser_names[specis])
-        plt.legend(fontsize=12)
+    def plot(self, ax: plt.Axes = None, title='', save=False, legend=True, legendSize=14,text='', ratio=1.6181, **kwargs):
+        if not ax:
+            figFree = plt.figure(figsize=(8, 6), dpi=300)
+            axFree = figFree.add_subplot(111)
+        else:
+            axFree = ax
+            
+        pos = self.diagram.plot(xtickslabel = self.step_names, stepLens=len(self.step_names), ax=axFree, ratio=ratio) 
+        
+        # add legend    
+        for i, specis in enumerate(self.obser_names):
+            try:
+                plt.hlines(0.1, pos[0], pos[0], color=self.ColorDict[specis], label=specis)
+            except:
+                plt.hlines(0.1, pos[0], pos[0], color=self.DefaultColor[i], label=specis)
+        if legend == True:
+            plt.legend(fontsize=legendSize)
         plt.title(title, fontsize=14)
+        plt.text(0.04, 0.93, text, horizontalalignment='left', verticalalignment='center', transform=axFree.transAxes, fontsize=14, fontweight='bold')        
+        axFree.yaxis.set_label_coords(-0.1, 0.5)
+        axFree.yaxis.set_major_formatter(FormatStrFormatter('%.1f'))
         
-        plt.show()
-        figFree.savefig(self.fig_name, dpi=300, bbox_inches='tight')
+        if save:
+            plt.show()
+            figFree.savefig(self.fig_name, dpi=300, bbox_inches='tight')
+        # print('initial x pos:', pos[0])
+        # return figFree
+        return pos[0], pos[-1]
+
+class HERFED(HERFEDplot):
+    """New version of HER free energy diagram using panda, and thus less varalbe would be used"""
+    def __init__(self, df, fig_name):
+        self.step_names = df.columns
+        self.obser_names = df.index
+        self.X = df.values
+        self.fig_name = fig_name
+        super().__init__(self.step_names, self.obser_names, self.X, self.fig_name, info=False)
+        logging.debug(f'Loaded free energy table: \n {df}')
         
 class CO2RRFED_with_TS:
     """Class for CO2RR free energy diagram with TS data

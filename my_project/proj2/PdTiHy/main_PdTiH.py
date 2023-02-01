@@ -11,6 +11,7 @@ from pcat.preprocessing.db2xls import db2xls
 from ase.db import connect
 from pcat.lib.io import pd_read_excel
 from pcat.free_energy import CO2RRFED
+from pcat.free_energy import HERFED
 from pcat.scaling_relation import ScalingRelation
 import os
 from pcat.selectivity import Selectivity
@@ -20,7 +21,8 @@ import matplotlib.pyplot as plt
 from pcat.pourbaix import PourbaixDiagram
 import numpy as np
 import seaborn as sns
-from matplotlib.patches import Rectangle
+# from matplotlib.patches import Rectangle
+# from ase.io import write
 # rc = {'figure.figsize':(10,5),
 #   'axes.facecolor':'white',
 #   'axes.grid' : True,
@@ -99,13 +101,15 @@ def views(formula, all_sites=False):
         adsorbate = row['Adsorbate']
         for r in db.select():
             unique_id = r.uniqueid
+            # print(unique_id)
             r_origin_id = unique_id.split('_')[4]
             r_site = unique_id.split('_')[2]
             r_adsorbate = unique_id.split('_')[3]
-            if str(origin_id)==r_origin_id and site==r_site and adsorbate==r_adsorbate:
+            if str(origin_id)==r_origin_id and str(site)==r_site and adsorbate==r_adsorbate:
                 # db_temp.write(r)
                 # view(r.toatoms())
                 atoms_list.append(r.toatoms())
+    # write('Pd31Ti33H34.traj', atoms_list)
     view(atoms_list)
     
         
@@ -197,7 +201,8 @@ def plot_cons_as_layers(obj='H'):
         plt.ylim(0, 1.18)
         if obj == 'H':
             title = formula + ', H:' + str(round(con_tot, 3))
-            plt.text(0.05, 0.92, title, fontsize=8, horizontalalignment='left', verticalalignment='center', transform=ax.transAxes, color='black', fontweight='bold')
+            plt.text(0.05, 0.92, title, fontsize=8, horizontalalignment='left', 
+                     verticalalignment='center', transform=ax.transAxes, color='black', fontweight='bold')
             # plt.title(formula + ', H:' + str(round(con_tot, 3)), fontsize=8)
             if m2==0:
                 plt.ylabel('Concentration of H', fontsize=10)
@@ -285,7 +290,8 @@ def plot_cons_as_layers_with_ads(obj='H'):
                     plt.ylim(0, 1.18)
                     if obj == 'H':
                         title = formula + ', H:' + str(round(con_tot, 3))
-                        plt.text(0.05, 0.92, title, fontsize=8, horizontalalignment='left', verticalalignment='center', transform=ax.transAxes, color='black', fontweight='bold')
+                        plt.text(0.05, 0.92, title, fontsize=8, horizontalalignment='left', 
+                                 verticalalignment='center', transform=ax.transAxes, color='black', fontweight='bold')
                         # plt.title(formula + ', H:' + str(round(con_tot, 3)), fontsize=8)
                         if m2==0:
                             plt.ylabel('Concentration of H', fontsize=10)
@@ -337,9 +343,16 @@ def plot_pourbaix_diagram(xls_name, sheet_name_dGs):
 
 def plot_free_enegy(xls_name, sheet_free_energy, fig_dir):
     """
-    Plot free energy
+    Plot free energy for CO2RR
     """
     df = pd_read_excel(xls_name, sheet_free_energy)
+    obj_list = ['Pd64H64', 'Pd16Ti48H60', 'Pd15Ti49H64', 'Pd12Ti52H56', 'Pd9Ti55H64',
+            'Pd4Ti60H64', 'Pd18Ti46H62', 'Pd8Ti56H62', 'Pd12Ti52H60', 'Pd6Ti58H58',
+            'Pd10Ti54H52', 'Pd9Ti55H52', 'Pd9Ti55H50', 'Pd17Ti47H40', 'Pd10Ti54H55',
+            'Pd10Ti54H56', 'Ti64H61', 'Pd2Ti62H63', 'Pd9Ti55H51', 'Pd11Ti53H55',
+            'Pd14Ti50H60', 'Pd31Ti33H34', 'Pd13Ti51H48', 'Pd5Ti59H59', 'Pd13Ti51H45']
+    df = df[df.index.isin(obj_list)]
+    
     # df.drop(['Pd16Ti48H8', 'Pd16Ti48H24'], inplace=True)
     step_names = ['* + CO$_{2}$', 'HOCO*', 'CO*', '* + CO']  #reload step name for CO2RR
     df.set_axis(step_names, axis='columns', inplace=True)
@@ -347,9 +360,39 @@ def plot_free_enegy(xls_name, sheet_free_energy, fig_dir):
     fig = plt.figure(figsize=(8, 6), dpi = 300)
     ax = fig.add_subplot(111)
     CO2RR_FED = CO2RRFED(df, fig_name=name_fig_FE)
-    CO2RR_FED.plot(ax=ax, save=False, title='')
-    plt.legend(loc='upper center', bbox_to_anchor=(0.5, -0.12), fancybox=True, shadow=True, ncol=5)
+    pos0, _ = CO2RR_FED.plot(ax=ax, save=False, title='',)
+    print('initial x pos:', pos0)
+    plt.legend(loc='upper center', bbox_to_anchor=(0.48, -0.12), fancybox=True, shadow=True, ncol=5, fontsize=8)
+    # plt.legend(loc='upper center', bbox_to_anchor=(0.45, -0.12), fancybox=True, shadow=True, ncol=5, fontsize=8)
     # plt.legend(loc = "lower left", bbox_to_anchor=(0.00, -0.50, 0.8, 1.02), ncol=5, borderaxespad=0)
+    plt.show()
+    fig.savefig(name_fig_FE, dpi=300, bbox_inches='tight')
+    
+
+def plot_HER_free_energy(xls_name, sheet_name_allFE, fig_dir):
+    """Plot free energy for HER"""
+    df = pd_read_excel(xls_name, sheet_name_allFE)
+    df['step1']=0
+    df['step3']=0
+    df = df[['step1', 'G(*H)', 'step3']]
+    step_names = ['* + $H^{+}$', 'H*', r'* + $\frac{1}{2}H_{2}$']
+    df.set_axis(step_names, axis='columns', inplace=True)
+    
+    obj_list = ['Pd64H64', 'Pd16Ti48H60', 'Pd15Ti49H64', 'Pd12Ti52H56', 'Pd9Ti55H64',
+            'Pd4Ti60H64', 'Pd18Ti46H62', 'Pd8Ti56H62', 'Pd12Ti52H60', 'Pd6Ti58H58',
+            'Pd10Ti54H52', 'Pd9Ti55H52', 'Pd9Ti55H50', 'Pd17Ti47H40', 'Pd10Ti54H55',
+            'Pd10Ti54H56', 'Ti64H61', 'Pd2Ti62H63', 'Pd9Ti55H51', 'Pd11Ti53H55',
+            'Pd14Ti50H60', 'Pd31Ti33H34', 'Pd13Ti51H48', 'Pd5Ti59H59', 'Pd13Ti51H45']
+    df = df[df.index.isin(obj_list)]
+    
+    name_fig_FE = f'{fig_dir}/{system_name}_HER.jpg'
+    fig = plt.figure(figsize=(8, 6), dpi = 300)
+    ax = fig.add_subplot(111)
+    HER_FED = HERFED(df, fig_name=name_fig_FE)
+    pos0, _ = HER_FED.plot(ax=ax, save=False, title='',)
+    print('initial x pos:', pos0)
+    # plt.legend(loc='upper center', bbox_to_anchor=(pos0-0.25, -0.12), fancybox=True, shadow=True, ncol=5, fontsize=8)
+    plt.legend(loc='upper center', bbox_to_anchor=(pos0+0.15, -0.12), fancybox=True, shadow=True, ncol=5, fontsize=8)
     plt.show()
     fig.savefig(name_fig_FE, dpi=300, bbox_inches='tight')
     
@@ -359,6 +402,8 @@ def plot_scaling_relations(xls_name, sheet_binding_energy, fig_dir):
     Plot scaling relation by binding energy
     """
     df = pd_read_excel(xls_name, sheet_binding_energy)
+    # df.drop(['Pd9Ti55H20', 'Pd9Ti55H16', 'Pd4Ti60H21', 'Pd36Ti28H28'], inplace=True)
+    
     # df.drop(['Pd16Ti48H8', 'Pd16Ti48H24'], inplace=True)
     col1 = [2, 2, 2, 3, 3, 5] # column in excel
     col2 = [3, 5, 4, 5, 4, 4] # column in excel
@@ -380,7 +425,7 @@ def plot_scaling_relations(xls_name, sheet_binding_energy, fig_dir):
                     ylabel=descriper2, 
                     dot_color='red', 
                     line_color='red',
-                    annotate=True,)
+                    annotate=False,)
             i+=1
     plt.show()
     fig.savefig(name_fig_BE, dpi=300, bbox_inches='tight')
@@ -417,10 +462,27 @@ def plot_selectivity(xls_name, sheet_selectivity, fig_dir):
     
     selectivity = Selectivity(df, fig_name=name_fig_select)
     selectivity.plot(save=True, title='', xlabel='Different surfaces', tune_tex_pos=1.5, legend=False)
-    
+
+def required_condition(df):
+    df = df[(df['E(*CO)']>-0.65) & (df['E(*CO)']<-0.)]
+    df = df[(df['E(*HOCO)']>-0.7) & (df['E(*HOCO)']<0.4)]
+    df.drop(['Pd35Ti29H32', 'Pd19Ti45H63', 'Pd28Ti36H64', 'Pd2Ti62H64'], inplace=True)
+    df.drop(['Pd9Ti55H20', 'Pd9Ti55H16', 'Pd4Ti60H21', 'Pd36Ti28H28'], inplace=True)
+    ColorDict = dict()
+    tune_tex_pos = dict()
+    for n in df.index:
+        ColorDict[n] = 'b'
+        tune_tex_pos[n] = [0., 0.]
+    print(ColorDict)
+    print(tune_tex_pos)
+    print(list(df.index))
+    return df
+
 def plot_activity(xls_name, sheet_binding_energy, fig_dir):
     """Plot activity of CO2RR"""
     df = pd_read_excel(filename=xls_name, sheet=sheet_binding_energy)
+    df = required_condition(df)
+    
     # df.drop(['Pd16Ti48H8', 'Pd16Ti48H24'], inplace=True)
     name_fig_act = f'{fig_dir}/{system_name}_activity.jpg'
     activity = Activity(df, descriper1 = 'E(*CO)', descriper2 = 'E(*HOCO)', fig_name=name_fig_act,
@@ -433,10 +495,37 @@ def plot_activity(xls_name, sheet_binding_energy, fig_dir):
                         Gact=0.2, 
                         p_factor = 3.6 * 10**4)
     # activity.verify_BE2FE()
-    # activity.plot(save=True)
+    c1 = 'black'
+    c2 = 'yellow'
+    c3 = 'red'
+    ColorDict= {'Pd64H64': 'b', 'Pd16Ti48H60': 'b', 'Pd15Ti49H64': c1, 'Pd2Ti62H64': 'b', 'Pd12Ti52H56': c2,
+                'Pd9Ti55H20': c1, 'Pd9Ti55H16': c1, 'Pd9Ti55H64': c2, 'Pd4Ti60H64': 'b', 'Pd18Ti46H62': c3, 
+                'Pd8Ti56H62': c3, 'Pd12Ti52H60': c1, 'Pd6Ti58H58': 'b', 'Pd10Ti54H52': c2, 'Pd9Ti55H52': 'b',
+                'Pd9Ti55H50': 'b', 'Pd4Ti60H21': c1, 'Pd17Ti47H40': 'b', 'Pd10Ti54H55': c2, 'Pd10Ti54H56': c3,
+                'Ti64H61': 'b', 'Pd2Ti62H63': 'b', 'Pd9Ti55H51': 'b', 'Pd11Ti53H55': c2, 'Pd14Ti50H60': c3, 
+                'Pd31Ti33H34': 'b', 'Pd36Ti28H28': 'b', 'Pd13Ti51H48': c2, 'Pd5Ti59H59': 'b', 'Pd13Ti51H45': c3}
+    
+    # tune_tex_pos = {'Pd64H64': [0.0, -0.0], 'Pd16Ti48H60': [0.1, -0.1], 'Pd15Ti49H64': [0.1, -0.2], 'Pd2Ti62H64': [-0.1, 0.1], 
+    #  'Pd12Ti52H56': [0.0, -0.2], 'Pd9Ti55H20': [0.0, 0.0], 'Pd9Ti55H16': [0.025, 0.0], 'Pd9Ti55H64': [0.03, -0.08], 
+    #  'Pd4Ti60H64': [-0.08, 0.05], 'Pd18Ti46H62': [0.0, 0.0], 'Pd8Ti56H62': [-0.08, 0.0], 'Pd12Ti52H60': [0.1, -0.2],# 45d
+    #  'Pd6Ti58H58': [-0.15, 0.08], 'Pd10Ti54H52': [0.06, -0.15], 'Pd9Ti55H52': [0.1, 0.0], 'Pd9Ti55H50': [0.1, 0.05], 
+    #  'Pd4Ti60H21': [0.0, 0.0], 'Pd17Ti47H40': [-0.1, 0.02], 'Pd10Ti54H55': [0.01, -0.10], 'Pd10Ti54H56': [0.04, -0.02], 
+    #  'Ti64H61': [0.0, 0.1], 'Pd2Ti62H63': [0.0, 0.08], 'Pd9Ti55H51': [-0.1, 0.1], 'Pd11Ti53H55': [-0.05, -0.2],
+    #  'Pd14Ti50H60': [-0.06, -0.08], 'Pd31Ti33H34': [-0.1, 0.05], 'Pd36Ti28H28': [0.0, 0.0], 'Pd13Ti51H48': [0.08, -0.16], 
+    #  'Pd5Ti59H59': [0.05, 0.0], 'Pd13Ti51H45': [0.08, 0.0]}
+    tune_tex_pos = {'Pd64H64': [0.0, -0.01], 'Pd16Ti48H60': [0.1, -0.02], 'Pd15Ti49H64': [0., -0.06], 'Pd2Ti62H64': [-0.1, 0.1], 
+     'Pd12Ti52H56': [-0.02, -0.07], 'Pd9Ti55H20': [0.0, 0.0], 'Pd9Ti55H16': [0.025, 0.0], 'Pd9Ti55H64': [0.03, -0.03], 
+     'Pd4Ti60H64': [-0.08, 0.02], 'Pd18Ti46H62': [0.03, -0.01], 'Pd8Ti56H62': [-0.06, 0.0], 'Pd12Ti52H60': [0., -0.04],# 45d
+     'Pd6Ti58H58': [-0.10, -0.01], 'Pd10Ti54H52': [0.03, -0.02], 'Pd9Ti55H52': [-0.1, -0.03], 'Pd9Ti55H50': [0.02, -0.01], 
+     'Pd4Ti60H21': [0.0, 0.0], 'Pd17Ti47H40': [-0.1, -0.02], 'Pd10Ti54H55': [-0.065, -0.055], 'Pd10Ti54H56': [0.04, -0.02], 
+     'Ti64H61': [0.04, 0.02], 'Pd2Ti62H63': [0.03, -0.03], 'Pd9Ti55H51': [0.05, -0.03], 'Pd11Ti53H55': [0.05, -0.02],
+     'Pd14Ti50H60': [-0.05, 0.02], 'Pd31Ti33H34': [-0.1, 0.01], 'Pd36Ti28H28': [0.0, 0.0], 'Pd13Ti51H48': [0.0, -0.04], 
+     'Pd5Ti59H59': [-0.05, 0.03], 'Pd13Ti51H45': [0.01, 0.0]}
+    activity.plot(save=True, text=False, tune_tex_pos=tune_tex_pos, ColorDict=ColorDict)
+    # activity.plot(save=True,)
     # activity.plot(save=True, xlim=[-2.5, 2.5], ylim=[-2.5, 2.5])
-    # activity.plot(save=True, xlim=[-1., 0], ylim=[-0.2, 1])
-    activity.plot(save=True, xlim=[-2.5, 1.0], ylim=[-2.5, 1])
+    # activity.plot(save=True, xlim=[-1., 0], ylim=[-0., 1])
+    # activity.plot(save=True, xlim=[-2.5, 1.0], ylim=[-2.5, 1])
 
 def del_partial_db(db):
     """Delet uncomplete database"""
@@ -587,11 +676,11 @@ def plot_count_nn_hist(ads='CO'):
     plt.hist(hist_H_nn, bins, facecolor=colors[2], ec='black', alpha=0.75, histtype='stepfilled', zorder=zorders[2], label='H')
     plt.hist(hist_Pd_nn + hist_Ti_nn + hist_H_nn, bins, facecolor='grey', ec='black', alpha=0.75, histtype='stepfilled', zorder=0, label='total')
     plt.xlim([start, stop])
-    plt.xlabel('$\Delta E({})$'.format(str('*'+ads)), fontsize=fontsize)
+    plt.xlabel('$\Delta E({})$'.format(str(ads+'*')), fontsize=fontsize)
     plt.ylabel('Frequency', fontsize=fontsize)
     plt.xticks(fontsize=fontsize)
     plt.yticks(fontsize=fontsize)
-    plt.title(f'{len(df_sub.index)} datapoints', fontsize=fontsize)
+    # plt.title(f'{len(df_sub.index)} datapoints', fontsize=fontsize)
     plt.legend()
     plt.gcf().set_size_inches(8, 6)
     ax = plt.gca()
@@ -602,12 +691,18 @@ def plot_count_nn_hist(ads='CO'):
         x = np.arange(bestx1, bestx2, 0.01)
         plt.fill_between(x, ymin, ymax, 
                 color='black', alpha=0.2, transform=ax.get_xaxis_transform(), zorder=-1)
+        plt.xlim([-2., 1.])
     elif ads == 'HOCO':
         bestx1 = -0.8
         bestx2 = 0.4
         x = np.arange(bestx1, bestx2, 0.01)
         plt.fill_between(x, ymin, ymax, 
                 color='black', alpha=0.2, transform=ax.get_xaxis_transform(), zorder=-1)
+        plt.xlim([-2., 2.])
+    elif ads == 'OH':
+        plt.xlim([-2., 2.])
+    elif ads == 'H':
+        plt.xlim([-1., 2.])
     plt.show()
 
 
@@ -615,7 +710,6 @@ if __name__ == '__main__':
     # if False:
     #     db_tot = './data/collect_vasp_PdHy_and_insert.db'
     #     concatenate_db('./data/collect_vasp_PdHy_v3.db', './data/collect_vasp_insert_PdHy.db', db_tot)
-    
     # system_name = 'collect_vasp_test_m'
     # system_name = 'collect_vasp_Pd0Hy'
     # system_name = 'collect_vasp_layers_H' # important
@@ -631,7 +725,7 @@ if __name__ == '__main__':
     # system_name = 'collect_ce_candidates_vasp_for_surface'
     # system_name = 'collect_vasp_layers_H_fix_bot'
     # system_name = 'vasp_122'
-    system_name = 'PdTiH_vasp_200_r3' # 9 rows for each surface including top and hollow sites of HOCO, CO, OH, H
+    # system_name = 'PdTiH_vasp_200_r3' # 9 rows for each surface including top and hollow sites of HOCO, CO, OH, H
     
     # system_name = 'collect_vasp_PdHy_v3'
     # system_name = 'collect_vasp_Pd32Hy'
@@ -643,6 +737,8 @@ if __name__ == '__main__':
     # system_name = 'collect_vasp_PdHy_and_Pd16Hy_and_Pd32Hy'
     # system_name = 'collect_vasp_PdHy_and_Pd16Hy_and_Pd32Hy_and_Pd48Hy'
     # system_name = 'collect_vasp_PdHy_and_Pd16Hy_and_Pd32Hy_and_Pd48Hy_and_Pd51Hy'
+    system_name = 'collect_vasp_candidates_PdTiH_all_sites'
+
     ref_eles=['Pd', 'Ti']
     db_name = f'./data/{system_name}.db' # the only one needed
     xls_name = f'./data/{system_name}.xlsx'
@@ -665,11 +761,13 @@ if __name__ == '__main__':
                sheet_name_origin, sheet_name_stable, sheet_free_energy, sheet_binding_energy, sheet_cons,
                sheet_name_allFE, sheet_selectivity, sheet_name_dGs,
                cutoff=2.8)
+        print('Generating data done!')
     
     if False: # plot
         plot_free_enegy(xls_name, sheet_free_energy, fig_dir)
+        plot_HER_free_energy(xls_name, sheet_name_allFE, fig_dir)
         plot_scaling_relations(xls_name, sheet_binding_energy, fig_dir)
-        plot_selectivity(xls_name, sheet_selectivity, fig_dir)
+        # plot_selectivity(xls_name, sheet_selectivity, fig_dir)
         plot_activity(xls_name, sheet_binding_energy, fig_dir)
     
     if False: # cutoff=4.5
@@ -685,7 +783,7 @@ if __name__ == '__main__':
         # plot_count_nn(ads='CO')
         # plot_count_nn_stack(ads='CO')
     
-    if False:
+    if True:
         for ads in ['HOCO', 'CO', 'OH', 'H']:
             plot_count_nn_hist(ads=ads)
             
@@ -693,9 +791,13 @@ if __name__ == '__main__':
     # plot_BE_as_Hcons(xls_name, sheet_cons)
     
     # plot_free_enegy(xls_name, sheet_free_energy, fig_dir)
+    # plot_HER_free_energy(xls_name, sheet_name_allFE, fig_dir)
     # plot_scaling_relations(xls_name, sheet_binding_energy, fig_dir)
-    plot_activity(xls_name, sheet_binding_energy, fig_dir)
-    # views(formula='Pd51Ti13H59', all_sites=True)
+    # plot_activity(xls_name, sheet_binding_energy, fig_dir)
+    
+    
+    # views(formula='Pd9Ti55H20', all_sites=True)
+    # views(formula='Pd31Ti33H34', all_sites=True)
     # view(db_name)
     
     # plot_pourbaix_diagram(xls_name, sheet_name_dGs)

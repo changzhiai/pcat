@@ -137,10 +137,10 @@ def db2xls(system_name,
         uniqueid = row.uniqueid
         items = uniqueid.split('_')
         id = items[0]
-        # formula = items[1]
+        formula = items[1]
         # i_X = formula.find('X')
         # formula = formula[:i_X] + formula[i_X+4:] # remove Xxxx
-        formula = row.formula
+        # formula = row.formula
         site = items[2]
         adsor = items[3]
         ori_id = items[4]

@@ -372,7 +372,8 @@ def plot_cons_as_layers_with_ads(obj='H'):
                     plt.ylim(0, 1.18)
                     if obj == 'H':
                         title = formula + ', H:' + str(round(con_tot, 3))
-                        plt.text(0.05, 0.92, title, fontsize=8, horizontalalignment='left', verticalalignment='center', transform=ax.transAxes, color='black', fontweight='bold')
+                        plt.text(0.05, 0.92, title, fontsize=8, horizontalalignment='left', 
+                                 verticalalignment='center', transform=ax.transAxes, color='black', fontweight='bold')
                         # plt.title(formula + ', H:' + str(round(con_tot, 3)), fontsize=8)
                         if m2==0:
                             plt.ylabel('Concentration of H', fontsize=10)

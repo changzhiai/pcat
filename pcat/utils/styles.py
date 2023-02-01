@@ -18,7 +18,8 @@ Created on Sun Oct 10 12:32:08 2021
 #               'Pd51Ti13H59': 'black',
 #               }
 
-ColorDict = {'Pd64H64': 'red', 'Pd64H39': 'red', 'Pd64H63': 'red',}
+# ColorDict = {'Pd64H64': 'red', 'Pd64H39': 'red', 'Pd64H63': 'red',}
+ColorDict = {'Pd64H64': 'black',}
 
 ColorDict_proj1 = {'Pd64H64': 'black','PdH': 'black', 'Pure': 'black', 'Ti': 'red', 'Pd': 'black', 'Sc': 'blue', 'V': 'orange', 'Cr': 'wheat', 'Mn': 'green', \
                           'Fe': 'lightgray', 'Co': 'deepskyblue', 'Ni': 'pink', 'Cu': 'purple', 'Zn': 'olive', 'Y': 'cyan', 'Zr': 'lime', \
