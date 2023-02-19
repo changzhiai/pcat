@@ -40,7 +40,7 @@ from acat.ga.adsorbate_comparators import AdsorptionSitesComparator
 from ase.ga.utilities import get_nnmat
 from ase.ga.utilities import get_nnmat_string
 from ase.db import connect
-from ase.constraints import UnitCellFilter
+# from ase.constraints import UnitCellFilter
 from ase.optimize import BFGS
 # import json
 # import sys
