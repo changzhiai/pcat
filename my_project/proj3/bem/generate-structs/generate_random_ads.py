@@ -685,7 +685,7 @@ if __name__ == "__main__":
     print(get_atoms_with_n_ads_data(images))
     # view(images)
     name = '../random50_adss.traj'
-    write(name, images)
+    # write(name, images)
     
     check_db(name)
     print('done')
