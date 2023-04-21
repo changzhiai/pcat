@@ -4,6 +4,7 @@ import pandas as pd
 import copy
 import numpy as np
 import matplotlib.pyplot as plt
+import pcat.utils.constants as const
 
 def generate_tasks(save_to_files=False):
     """Get reaction conditions"""
@@ -43,10 +44,17 @@ def generate_csv(fittest_images, save_to_csv=False):
 
 def basic_plot(x, y, xlabel, c='C1', lable='image0', ft_sz=12):
     # plt.figure()
+    # ax = plt.gca()
+    # print(x, y)
+    # x = x.values
+    # y = y.values
+    # ax.axline((x[0], y[0]), slope=(y[1]-y[0])/(x[1]-x[0]), c=c, label=lable)
     plt.plot(x, y, '-', c=c, label=lable)
     plt.xlabel(xlabel, fontsize=ft_sz)
     plt.ylabel('Fitness function', fontsize=ft_sz)
     plt.legend()
+    # plt.xlim([-1, 1])
+    # plt.ylim([-0.5, 0])
     # plt.show()
 
 def plot_scores_vs_U(df, i, target_pH):
@@ -56,6 +64,7 @@ def plot_scores_vs_U(df, i, target_pH):
     # print(df)
     x_col = 'U'
     x = df[x_col]
+    x += const.kB * df['T'] * target_pH * np.log(10)
     y = -df['raw_scores']
     basic_plot(x, y, x_col, c=f"C{i}", lable=f'image{i}', ft_sz=12)
     
