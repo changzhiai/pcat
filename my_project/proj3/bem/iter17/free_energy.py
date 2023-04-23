@@ -14,7 +14,8 @@ def free_energy_pd():
     df = pd_read_excel(filename='./data/ads.xlsx', sheet='free_energy')
     
     ColorDict = {'image0': 'C0', 'image1': 'C1', 'image2': 'C2', 'image3': 'C3', 'image4': 'C4', }
-    CO2RR_FED = CO2RRFEDplot(df.columns, df.index,df.values, fig_name='./CO2RR_FED.jpg', ColorDict=ColorDict)
+    stepsNames = ['* + CO$_{2}$', 'HOCO*', 'CO*', '* + CO']
+    CO2RR_FED = CO2RRFEDplot(stepsNames, df.index,df.values, fig_name='./CO2RR_FED.jpg', ColorDict=ColorDict)
     CO2RR_FED.plot(save=True, title='')
     
 if __name__ == '__main__':
