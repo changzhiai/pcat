@@ -114,7 +114,8 @@ def plot_scores_vs_pH_with_Us(dfs):
 if __name__ == '__main__':
     kappa = np.array([0, 1, 2])
     fittest_images = read('fittest_images_critr5.traj', ':')
-    # fittest_images = read('fittest_images_1_6.traj', ':')
+    fittest_images2 = read('fittest_images_1_6.traj', ':')
+    fittest_images += fittest_images2
     # fittest_images = fittest_images[:3] + fittest_images[4:]
     # fittest_images = fittest_images[3]
     dfs = generate_csv(fittest_images, save_to_csv=True)
