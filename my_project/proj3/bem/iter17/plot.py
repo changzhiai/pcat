@@ -23,8 +23,7 @@ def generate_tasks(save_to_files=False):
         df.to_csv('em_tasks.csv')
     return df
 
-def generate_csv(fittest_images, save_to_csv=False):
-    raw_niches = pd.read_pickle('em_tasks.pkl')
+def generate_csv(fittest_images, raw_niches, save_to_csv=False):
     dfs = []
     for i, atoms in enumerate(fittest_images):
         niches = atoms.info['data']['niches']
@@ -42,22 +41,28 @@ def generate_csv(fittest_images, save_to_csv=False):
         dfs.append(data)
     return dfs
 
-def basic_plot(x, y, xlabel, c='C1', lable='image0', ft_sz=12):
+def basic_plot(x, y, xlabel, c='C1', lable='image0', ft_sz=12, **kwargs):
     # plt.figure()
     # ax = plt.gca()
     # print(x, y)
     # x = x.values
     # y = y.values
     # ax.axline((x[0], y[0]), slope=(y[1]-y[0])/(x[1]-x[0]), c=c, label=lable)
-    plt.plot(x, y, '-', c=c, label=lable)
+    print(kwargs)
+    if 'plot_all' in kwargs and kwargs['plot_all'] == True:
+        plt.plot(x, y, '-', c='grey', label=lable, linewidth=0.5)
+    else:
+        plt.plot(x, y, '-', c=c, label=lable, linewidth=1)
+        # plt.legend()
     plt.xlabel(xlabel, fontsize=ft_sz)
-    plt.ylabel('Fitness function', fontsize=ft_sz)
-    plt.legend()
-    # plt.xlim([-1, 1])
+    plt.ylabel('Surface free energy', fontsize=ft_sz)
+    # plt.legend()
+    plt.xlim([-0.8, 0.])
     # plt.ylim([-0.5, 0])
+    plt.ylim([-0.35, -0.15])
     # plt.show()
 
-def plot_scores_vs_U(df, i, target_pH):
+def plot_scores_vs_U(df, i, target_pH, **kwargs):
     # df = df[(df['pH']==target_pH)]
     # df = df[(df['T']==T[0]) & (df['kappa']==kappa[1]) & (df['pH']==pH[0])]
     df = df[(df['kappa']==kappa[0]) & (df['pH']==target_pH)]
@@ -66,40 +71,43 @@ def plot_scores_vs_U(df, i, target_pH):
     x = df[x_col]
     x += const.kB * df['T'] * target_pH * np.log(10)
     y = -df['raw_scores']
-    basic_plot(x, y, x_col, c=f"C{i}", lable=f'image{i}', ft_sz=12)
+    basic_plot(x, y, x_col, c=f"C{i}", lable=f'image{i}', ft_sz=12, **kwargs)
     
-def plot_multi_scores_vs_U(dfs, target_pH):
-    plt.figure(dpi=300)
+def plot_multi_scores_vs_U(dfs, target_pH, **kwargs):
+    # plt.figure(dpi=300)
     plt.title(f'pH value: {target_pH}',)
     for i in range(len(dfs)):
         df = dfs[i]
-        plot_scores_vs_U(df, i, target_pH)
+        plot_scores_vs_U(df, i, target_pH, **kwargs)
         # plot_scores_vs_pH(df)
-    plt.show()
+    # plt.show()
     
-def plot_scores_vs_U_with_pHs(dfs):
+def plot_scores_vs_U_with_pHs(dfs, **kwargs):
     """fix pH, plot scores vs. U"""
     pH = np.array([0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14]).tolist()
+    only_pH_0 = True
     for target_pH in pH:
     # target_pH = pH[0]
-        plot_multi_scores_vs_U(dfs, target_pH)
+        plot_multi_scores_vs_U(dfs, target_pH, **kwargs)
+        if only_pH_0:
+            break
     
     
-def plot_scores_vs_pH(df, i, target_U):
+def plot_scores_vs_pH(df, i, target_U, plot_all):
     # df = df[(df['T']==T[0]) & (df['kappa']==kappa[1]) & (df['U']==pH[0])]
     # print(df)
     df = df[(df['U']==target_U)]
     x_col = 'pH'
     x = df[x_col]
     y = -df['raw_scores']
-    basic_plot(x, y, x_col, c=f"C{i}", lable=f'image{i}', ft_sz=12)
+    basic_plot(x, y, x_col, plot_all, c=f"C{i}", lable=f'image{i}', ft_sz=12)
     
-def plot_multi_scores_vs_pH(dfs, target_U):
+def plot_multi_scores_vs_pH(dfs, target_U, plot_all=False):
     plt.figure(dpi=300)
     plt.title(f'U value: {target_U}',)
     for i in range(len(dfs)):
         df = dfs[i]
-        plot_scores_vs_pH(df, i, target_U)
+        plot_scores_vs_pH(df, i, target_U, plot_all)
         # plot_scores_vs_pH(df)
     plt.show()
     
@@ -110,17 +118,33 @@ def plot_scores_vs_pH_with_Us(dfs):
     # target_pH = pH[0]
         plot_multi_scores_vs_pH(dfs, target_U)
     
+def plot_all_structs():
+    fittest_images = read('fittest_images_critr5.traj', ':')
+    fittest_images2 = read('fittest_images_1_6.traj', ':')
+    fittest_images3 = read('last_1000.traj', ':')
+    fittest_images += fittest_images2
+    fittest_images += fittest_images3
+    dfs = generate_csv(fittest_images, raw_niches, save_to_csv=False)
+    plot_scores_vs_U_with_pHs(dfs, **{'plot_all': True})
         
 if __name__ == '__main__':
     kappa = np.array([0, 1, 2])
+    raw_niches = pd.read_pickle('em_tasks.pkl')
+    plt.figure(dpi=300)
     fittest_images = read('fittest_images_critr5.traj', ':')
     fittest_images2 = read('fittest_images_1_6.traj', ':')
     fittest_images += fittest_images2
+    
+    fittest_images = [atoms for i, atoms in enumerate(fittest_images) if i in [0, 2, 7, 8, 9, 10]]
+    
+    # raw_niches = pd.read_csv('em_tasks_all_conditions.csv')
+    # fittest_images = read('fittest_images_all_contitions.traj', ':')
     # fittest_images = fittest_images[:3] + fittest_images[4:]
     # fittest_images = fittest_images[3]
-    dfs = generate_csv(fittest_images, save_to_csv=True)
+    plot_all_structs()
+    dfs = generate_csv(fittest_images, raw_niches, save_to_csv=False)
     plot_scores_vs_U_with_pHs(dfs)
     # plot_scores_vs_pH_with_Us(dfs)
-    
+    plt.show()
     
     
