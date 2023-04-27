@@ -141,7 +141,7 @@ if __name__ == '__main__':
     # fittest_images = read('fittest_images_all_contitions.traj', ':')
     # fittest_images = fittest_images[:3] + fittest_images[4:]
     # fittest_images = fittest_images[3]
-    plot_all_structs()
+    # plot_all_structs()
     dfs = generate_csv(fittest_images, raw_niches, save_to_csv=False)
     plot_scores_vs_U_with_pHs(dfs)
     # plot_scores_vs_pH_with_Us(dfs)
