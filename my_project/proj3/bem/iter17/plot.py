@@ -136,7 +136,6 @@ if __name__ == '__main__':
     fittest_images += fittest_images2
     
     fittest_images = [atoms for i, atoms in enumerate(fittest_images) if i in [0, 2, 7, 8, 9, 10]]
-    
     # raw_niches = pd.read_csv('em_tasks_all_conditions.csv')
     # fittest_images = read('fittest_images_all_contitions.traj', ':')
     # fittest_images = fittest_images[:3] + fittest_images[4:]

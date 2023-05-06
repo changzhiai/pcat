@@ -19,9 +19,10 @@ rmse_e2 = [14.502, 14.805, 12.502, 10.925, 9.950, 9.260, 8.461, 8.604, 9.058, 8.
 
 rmse_e3 = [1.306, 5.019, 8.416, 7.626, 7.365, 6.086, 6.382, 6.130, 5.871, 5.563,
            5.521, 5.805, 5.541, 5.708, 5.575, 5.566, 4.971]
-plt.plot(lens, rmse_e, '-o')
-plt.plot(lens[1:], rmse_e3[1:], '-o')
+plt.plot(lens, rmse_e, '-o', label='Totol active learning')
+plt.plot(lens[1:], rmse_e3[1:], '-o', label='Remove first generation')
 # plt.ylim([0, 50])
 plt.xlabel('The number of structures')
 plt.ylabel('Energy RMSE (eV/atom)')
+plt.legend()
 plt.show()
