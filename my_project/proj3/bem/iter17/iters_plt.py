@@ -6,7 +6,7 @@ Created on Mon May  1 16:19:47 2023
 """
 import matplotlib.pyplot as plt 
 
-plt.figure(dpi=300)
+fig, ax = plt.subplots(dpi=300)
 iters = ['iter1', 'iter2','iter3','iter4','iter5','iter6','iter7','iter8','iter9','iter10',
          'iter11','iter12','iter13','iter14','iter15','iter16','iter17']
 lens = [103, 129, 154, 180, 209, 236, 265, 284, 308, 328,
@@ -21,8 +21,9 @@ rmse_e3 = [1.306, 5.019, 8.416, 7.626, 7.365, 6.086, 6.382, 6.130, 5.871, 5.563,
            5.521, 5.805, 5.541, 5.708, 5.575, 5.566, 4.971]
 plt.plot(lens, rmse_e, '-o', label='Totol active learning')
 plt.plot(lens[1:], rmse_e3[1:], '-o', label='Remove first generation')
-# plt.ylim([0, 50])
+plt.ylim([0, 50])
 plt.xlabel('The number of structures')
-plt.ylabel('Energy RMSE (eV/atom)')
+plt.ylabel('Energy RMSE (meV/atom)')
 plt.legend()
 plt.show()
+# fig.savefig('RMSE_gens.png', dpi=300)

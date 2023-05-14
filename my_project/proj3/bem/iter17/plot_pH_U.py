@@ -19,8 +19,8 @@ def generate_tasks(save_to_files=False):
     cond_grid = np.array(np.meshgrid(T, U, pH, P_H2, P_CO2, P_H2O, P_CO, kappa)).T.reshape(-1, 8)
     df = pd.DataFrame(cond_grid, columns=['T', 'U', 'pH', 'P_H2', 'P_CO2', 'P_H2O', 'P_CO', 'kappa'])
     if save_to_files:
-        df.to_pickle('em_tasks.pkl')
-        df.to_csv('em_tasks.csv')
+        df.to_pickle('./data/em_tasks.pkl')
+        df.to_csv('./data/em_tasks.csv')
     return df
 
 def generate_csv(fittest_images, raw_niches, save_to_csv=False):
@@ -119,9 +119,9 @@ def plot_scores_vs_pH_with_Us(dfs):
         plot_multi_scores_vs_pH(dfs, target_U)
     
 def plot_all_structs():
-    fittest_images = read('fittest_images_critr5.traj', ':')
-    fittest_images2 = read('fittest_images_1_6.traj', ':')
-    fittest_images3 = read('last_1000.traj', ':')
+    fittest_images = read('./data/fittest_images_critr5.traj', ':')
+    fittest_images2 = read('./data/fittest_images_1_6.traj', ':')
+    fittest_images3 = read('./data/last_1000.traj', ':')
     fittest_images += fittest_images2
     fittest_images += fittest_images3
     dfs = generate_csv(fittest_images, raw_niches, save_to_csv=False)
@@ -129,10 +129,10 @@ def plot_all_structs():
         
 if __name__ == '__main__':
     kappa = np.array([0, 1, 2])
-    raw_niches = pd.read_pickle('em_tasks.pkl')
+    raw_niches = pd.read_pickle('./data/em_tasks.pkl')
     plt.figure(dpi=300)
-    fittest_images = read('fittest_images_critr5.traj', ':')
-    fittest_images2 = read('fittest_images_1_6.traj', ':')
+    fittest_images = read('./data/fittest_images_critr5.traj', ':')
+    fittest_images2 = read('./data/fittest_images_1_6.traj', ':')
     fittest_images += fittest_images2
     
     fittest_images = [atoms for i, atoms in enumerate(fittest_images) if i in [0, 2, 7, 8, 9, 10]]
