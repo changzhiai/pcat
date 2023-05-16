@@ -39,7 +39,9 @@ class CO2RRFEDplot:
                  obser_names: List[str], 
                  X: np.ndarray, 
                  fig_name: str,
-                 info=True) -> None:
+                 info=True, 
+                 ColorDict=ColorDict,
+                 **kwargs) -> None:
         self.step_names = step_names
         self.obser_names = obser_names
         self.X = X
@@ -47,6 +49,7 @@ class CO2RRFEDplot:
         # self.axFree = None
         # self.figFree = None
         self.ColorDict = ColorDict
+        print(ColorDict)
         self.DefaultColor=cm.rainbow(np.linspace(0,1,len(self.obser_names)))
         if info == True:
             logging.debug(f'loaded step_names:\n {self.step_names}')
