@@ -939,7 +939,7 @@ if __name__ == '__main__':
     db = connect(db_name)
     # write_paper_db(db)
     # assert False
-    if 0:
+    if 1:
         if False: # database to excel
             # db = del_partial_db(db)
             db2xls(system_name, xls_name, db, ref_eles, sheet_name_origin, sheet_name_stable, 
@@ -953,7 +953,7 @@ if __name__ == '__main__':
             # plot_selectivity(xls_name, sheet_selectivity, fig_dir)
             plot_activity(xls_name, sheet_binding_energy, fig_dir)
         
-        if True:
+        if False:
             plot_BE_as_Hcons(xls_name, sheet_cons)
             # plot_cons_as_layers_with_ads(obj='H')
             # plot_bar_H_distribution(save=False)
