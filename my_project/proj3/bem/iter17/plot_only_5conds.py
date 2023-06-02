@@ -133,7 +133,7 @@ def plot_scores_vs_chem(df, i, target_Pd_chem_pot, **kwargs):
     # df = df[(df['kappa']==kappa[0]) & (df['d_mu_Pd']==target_Pd_chem_pot)]
 
     df = df[(df['kappa']==kappa[0]) & (df['d_mu_Pd']==target_Pd_chem_pot)  # change here
-            & (df['d_mu_Ti']==d_mu_Ti[0]) & (df['T']==T[1])
+            & (df['d_mu_Ti']==d_mu_Ti[4]) & (df['T']==T[1]) # x axis back and forward
             & (df['P_CO']==P_CO[3])]
     x_col = 'U'
     x = df[x_col]
@@ -170,7 +170,7 @@ def plot_multi_scores_vs_chem(dfs, target_Pd_chem_pot, ind, **kwargs):
     # view(cand)
     plt.text(0.34, 0.03, id_set, horizontalalignment='left', verticalalignment='center',
              transform=ax.transAxes, fontsize=14, fontweight='bold')  
-    write(f'Chem_pot_{target_Pd_chem_pot}.traj', cand)
+    write(f'Chem_pot_Pd_{target_Pd_chem_pot}.traj', cand)
     # plt.legend()
     plt.show()
     return cand, id_set
