@@ -194,7 +194,7 @@ if __name__ == '__main__':
     # plot_scores_vs_U_with_pHs(dfs)
     # plot_scores_vs_pH_with_Us(dfs)
     cands = plot_scores_vs_chem_with_Us(dfs, **{'plot_all': False})
-    # plt.show()
+    plt.show()
     # view(cands[0])
     
     
