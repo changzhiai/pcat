@@ -157,7 +157,6 @@ def in_order(nums):
 def plot_multi_scores_vs_chem(dfs, target_Pd_chem_pot, ind, **kwargs):
     if 'iter' in kwargs:
         iter = kwargs['iter']
-    # fig = plt.figure(figsize=(8, 6), dpi=300)
     fig, ax = plt.subplots(figsize=(8, 6), dpi=300)
     plt.title(f'iter {iter}, Pd chemical pot. {ind}: {target_Pd_chem_pot}',)
     if 'df_raw' in kwargs:
@@ -171,17 +170,22 @@ def plot_multi_scores_vs_chem(dfs, target_Pd_chem_pot, ind, **kwargs):
         # print(x.values, results.columns)
         assert (x.values == results.columns.values).all()
         results.loc[i] = y.values
-    # print(results)
+    print(results)
     mini = results.min(axis=0)
     ids = results.idxmin(axis=0)
     id_set = in_order(ids)
-    id_set = id_set[::-1] # reverse the order
-    # print(mini)
-    # print(ids)
-    # print(id_set)
+    # id_set = id_set[::-1] # reverse the order
+    print(mini)
+    print(ids)
+    print(id_set)
     if 'images' in kwargs:
         fittest_images = kwargs['images']
     cand = [fittest_images[i] for i in id_set]
+    for i, id in enumerate(id_set):
+        x = results.columns.values
+        y = results.iloc[id].values
+        x_col = 'U'
+        basic_plot(x, y, x_col, c=f"C{i}", lable=f'image{i}', ft_sz=12,)
     # view(cand)
     plt.text(0.34, 0.03, id_set, horizontalalignment='left', verticalalignment='center',
              transform=ax.transAxes, fontsize=14, fontweight='bold')  

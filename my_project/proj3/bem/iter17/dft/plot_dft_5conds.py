@@ -251,7 +251,7 @@ def plot_5conds(images, i):
     dfs = generate_csv(images, raw_niches, save_to_csv=False)
     # plot_scores_vs_U_with_pHs(dfs)
     # plot_scores_vs_pH_with_Us(dfs)
-    cands, ids = plot_surf_free_vs_x(dfs, **{'df_raw': raw_niches, 'plot_all': False,
+    cands, ids = plot_surf_free_vs_x(dfs, **{'df_raw': raw_niches, 'plot_all': True,
                                              'images':images, 'iter':i})
     plt.show()
     return cands, ids
@@ -261,11 +261,11 @@ if __name__ == '__main__':
     # niches = generate_tasks(save_to_files=True)
     # generate_tasks(save_to_files=True)
     niches = pd.read_csv('./data/em_tasks.csv')
-    iter = 17
-    for i in range(1,iter):
+    iter = 18
+    for i in range(17,iter):
         images = read(f'./data/dft_PdTiH_adss_r0_to_r{i}_final_tot.traj', ':')
         print(f'iter{i}')
-        if True:
+        if False:
             for atoms in images:
                 atoms = calc_dft_gamma(atoms)
             write(f'dft_iter_{i}.traj', images)
