@@ -270,6 +270,7 @@ if __name__ == '__main__':
                 atoms = calc_dft_gamma(atoms)
             write(f'dft_iter_{i}.traj', images)
         else:
+            print('reading images...')
             images = read(f'dft_iter_{i}.traj', ':')
         cands, ids = plot_5conds(images, i)
 
