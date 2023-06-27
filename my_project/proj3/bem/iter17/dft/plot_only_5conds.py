@@ -158,7 +158,7 @@ def plot_multi_scores_vs_chem(dfs, target_Pd_chem_pot, ind, **kwargs):
     if 'iter' in kwargs:
         iter = kwargs['iter']
     fig, ax = plt.subplots(figsize=(8, 6), dpi=300)
-    plt.title(f'iter {iter}, Pd chemical pot. {ind}: {target_Pd_chem_pot}',)
+    plt.title(f'iter {iter}, Pd chemical pot. {4-ind}: {target_Pd_chem_pot}',)
     if 'df_raw' in kwargs:
         df_raw = kwargs['df_raw']
     U = df_raw['U']

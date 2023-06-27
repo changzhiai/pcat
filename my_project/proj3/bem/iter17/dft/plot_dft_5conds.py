@@ -261,11 +261,11 @@ if __name__ == '__main__':
     # niches = generate_tasks(save_to_files=True)
     # generate_tasks(save_to_files=True)
     niches = pd.read_csv('./data/em_tasks.csv')
-    iter = 18
-    for i in range(17,iter):
+    iter = 19
+    for i in range(18,iter):
         images = read(f'./data/dft_PdTiH_adss_r0_to_r{i}_final_tot.traj', ':')
         print(f'iter{i}')
-        if False:
+        if True:
             for atoms in images:
                 atoms = calc_dft_gamma(atoms)
             write(f'dft_iter_{i}.traj', images)
