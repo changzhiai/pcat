@@ -261,8 +261,8 @@ if __name__ == '__main__':
     # niches = generate_tasks(save_to_files=True)
     # generate_tasks(save_to_files=True)
     niches = pd.read_csv('./data/em_tasks.csv')
-    iter = 19
-    for i in range(18,iter):
+    iter = 20
+    for i in range(19,iter):
         images = read(f'./data/dft_PdTiH_adss_r0_to_r{i}_final_tot.traj', ':')
         print(f'iter{i}')
         if True:
