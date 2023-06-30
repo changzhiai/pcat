@@ -6,6 +6,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 import pcat.utils.constants as const
 from ase.visualize import view
+import os
 
 def generate_tasks(save_to_files=False):
     """Get reaction conditions"""
@@ -192,7 +193,14 @@ def plot_multi_scores_vs_chem(dfs, target_Pd_chem_pot, ind, **kwargs):
     # write(f'Chem_pot_Pd_{target_Pd_chem_pot}.traj', cand)
     # plt.legend()
     plt.show()
-    fig.savefig(f'./figures/iter_{iter}_Chem_pot_Pd_{target_Pd_chem_pot}.png')
+    path = f'./figures/Pd_{target_Pd_chem_pot}'
+    if not(os.path.exists(path) and os.path.isdir(path)):
+        os.makedir(path)
+    # try:
+    #     os.mkdir(f'./figures/Pd_{target_Pd_chem_pot}')
+    # except:
+    #     pass
+    fig.savefig(f'./figures/Pd_{target_Pd_chem_pot}/iter_{iter}_Chem_pot_Pd_{target_Pd_chem_pot}.png')
     return cand, id_set
         
 def plot_surf_free_vs_x(dfs, **kwargs):
