@@ -6,6 +6,8 @@ import numpy as np
 import matplotlib.pyplot as plt
 import pcat.utils.constants as const
 from ase.visualize import view
+import matplotlib.colors as mcolors
+# print(mcolors.CSS4_COLORS)
 import os
 
 def generate_tasks(save_to_files=False):
@@ -134,17 +136,21 @@ def plot_scores_vs_chem(df, i, target_Pd_chem_pot, **kwargs):
     kappa = df_raw['kappa']
     d_mu_Pd = df_raw['d_mu_Pd']
     U = df_raw['U']
-    P_CO = df_raw['P_CO']
-    T = df_raw['T']
-    d_mu_Ti = df_raw['d_mu_Ti']
+    P_CO = sorted(set(df_raw['P_CO']))[3]
+    T = sorted(set(df_raw['T']))[1]
+    d_mu_Ti = sorted(set(df_raw['d_mu_Ti']), reverse=True)[0]
+    d_mu_Pd = target_Pd_chem_pot
 
-    df = df[(df['kappa']==kappa[0]) & (df['d_mu_Pd']==target_Pd_chem_pot)  # change here
-            & (df['d_mu_Ti']==d_mu_Ti[0]) & (df['T']==T[1]) # x axis back and forward
-            & (df['P_CO']==P_CO[4])]
+    df = df[(df['kappa']==kappa[0]) & (df['d_mu_Pd']==d_mu_Pd)  # change here
+            & (df['d_mu_Ti']==d_mu_Ti) & (df['T']==T) # x axis back and forward
+            & (df['P_CO']==P_CO)]
     df = df.sort_values('U')
     x_col = 'U'
     x = df[x_col]
     y = -df['raw_scores']
+    if 'iter' in kwargs:
+        iter = kwargs['iter']
+    plt.title(f'iter {iter}, Ti chem.: {round(d_mu_Ti,3)}, Pd chem.: {d_mu_Pd}, temp: {T}, Pco: {P_CO}')
     basic_plot(x, y, x_col, c=f"C{i}", lable=f'image{i}', ft_sz=12, **kwargs)
     return x, y
 
@@ -159,7 +165,7 @@ def plot_multi_scores_vs_chem(dfs, target_Pd_chem_pot, ind, **kwargs):
     if 'iter' in kwargs:
         iter = kwargs['iter']
     fig, ax = plt.subplots(figsize=(8, 6), dpi=300)
-    plt.title(f'iter {iter}, Pd chemical pot. {4-ind}: {target_Pd_chem_pot}',)
+    # plt.title(f'iter {iter}, Pd chemical pot. {4-ind}: {target_Pd_chem_pot}',)
     if 'df_raw' in kwargs:
         df_raw = kwargs['df_raw']
     U = df_raw['U']
@@ -176,9 +182,9 @@ def plot_multi_scores_vs_chem(dfs, target_Pd_chem_pot, ind, **kwargs):
     ids = results.idxmin(axis=0)
     id_set = in_order(ids)
     # id_set = id_set[::-1] # reverse the order
-    print(mini)
-    print(ids)
-    print(id_set)
+    print('mini:', mini)
+    print('ids:', ids)
+    print('id_set:', id_set)
     if 'images' in kwargs:
         fittest_images = kwargs['images']
     cand = [fittest_images[i] for i in id_set]

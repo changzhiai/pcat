@@ -14,6 +14,7 @@ import pandas as pd
 import copy
 from ase.units import kB
 import matplotlib.pyplot as plt
+import matplotlib.colors as mcolors
 from plot_only_5conds import plot_surf_free_vs_x
 
 def get_gas_free_energy(ads, T=298.15, P=3534., geometry='nonlinear'):
@@ -164,8 +165,8 @@ def calc_dft_gamma(atoms):
     # calc = ensemble_painn_calculator(ga)
     # mask = [atom.z < 2.0 for atom in atoms]
     # atoms.set_constraint(FixAtoms(mask=mask))
-    # atoms.calc = calc
-    converged = True
+    # # atoms.calc = calc
+    # converged = True
     Epot = atoms.get_potential_energy()
     Epot = round(Epot, 4)
     # ens = atoms.calc.get_ensemble()
@@ -262,7 +263,7 @@ if __name__ == '__main__':
     # generate_tasks(save_to_files=True)
     niches = pd.read_csv('./data/em_tasks.csv')
     iter = 22
-    for i in range(21,iter):
+    for i in range(18,iter):
         images = read(f'./data/dft_PdTiH_adss_r0_to_r{i}_final_tot.traj', ':')
         print(f'iter{i}')
         if False:
