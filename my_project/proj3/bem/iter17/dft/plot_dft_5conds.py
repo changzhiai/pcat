@@ -15,7 +15,9 @@ import copy
 from ase.units import kB
 import matplotlib.pyplot as plt
 import matplotlib.colors as mcolors
-from plot_only_5conds import plot_surf_free_vs_x
+from cores_conds import (plot_surf_free_vs_U, 
+                         plot_surf_free_vs_U_matrix, 
+                         plot_surf_free_vs_U_contour)
 
 def get_gas_free_energy(ads, T=298.15, P=3534., geometry='nonlinear'):
     energies = {}
@@ -144,9 +146,6 @@ def get_element_nums(atoms):
     num_full = 16
     if 'data' not in atoms.info:
         atoms.info['data'] = {}
-    # adss = atoms.info['data']['ads_symbols']
-    # num_ads_OH = adss.count('OH')
-    # num_ads_CO = adss.count('CO')
     symbols = atoms.get_chemical_symbols()
     num_ads_OH = symbols.count('O') - symbols.count('C')
     num_ads_CO = symbols.count('C')
@@ -162,22 +161,8 @@ def get_element_nums(atoms):
 
 def calc_dft_gamma(atoms):
     """Relax one atoms ensemble"""
-    # calc = ensemble_painn_calculator(ga)
-    # mask = [atom.z < 2.0 for atom in atoms]
-    # atoms.set_constraint(FixAtoms(mask=mask))
-    # # atoms.calc = calc
-    # converged = True
     Epot = atoms.get_potential_energy()
     Epot = round(Epot, 4)
-    # ens = atoms.calc.get_ensemble()
-    # if early_return:
-    #     return atoms
-    # atoms.info['key_value_pairs']['potential_energy'] = Epot # for compator
-    # atoms.info['key_value_pairs']['energy_var'] = 0
-    # atoms.info['key_value_pairs']['step'] = 0
-    # atoms.info['key_value_pairs']['converged'] = converged
-    # atoms.info['data']['nnmat_string'] = 0
-    # atoms.info['data']['atoms_string'] = ''.join(atoms.get_chemical_symbols())
     std = 0 # standard variance
     A_surf = np.linalg.norm(np.cross(atoms.cell[0], atoms.cell[1]))
     gammas = []
@@ -245,16 +230,29 @@ def generate_csv(fittest_images, raw_niches, save_to_csv=False):
         dfs.append(data)
     return dfs
 
-def plot_5conds(images, i):
+def plot_5conds(images, iterations):
     # df_raw = generate_tasks(save_to_files=False)
     raw_niches = copy.deepcopy(niches)
-    fig = plt.figure(dpi=300)
+    
     dfs = generate_csv(images, raw_niches, save_to_csv=False)
     # plot_scores_vs_U_with_pHs(dfs)
     # plot_scores_vs_pH_with_Us(dfs)
-    cands, ids = plot_surf_free_vs_x(dfs, **{'df_raw': raw_niches, 'plot_all': True,
-                                             'images':images, 'iter':i})
-    plt.show()
+    
+    d_mu_Pd = sorted(set(raw_niches['d_mu_Pd']), reverse=True)[:]
+    d_mu_Ti = sorted(set(raw_niches['d_mu_Ti']), reverse=True)[:]
+    P_CO = sorted(set(raw_niches['P_CO']))[3:4]
+    T = sorted(set(raw_niches['T']))[1:2]
+    print({'d_mu_Pd': d_mu_Pd, 'd_mu_Ti': d_mu_Ti, 'P_CO': P_CO, 'T': T})
+    cands, ids = plot_surf_free_vs_U_contour(dfs, **{'df_raw': raw_niches,
+                                             'images':images, 
+                                             'iter':iterations,
+                                             'gray_above': True,
+                                             'd_mu_Pd': d_mu_Pd,
+                                             'd_mu_Ti': d_mu_Ti,
+                                             'P_CO': P_CO,
+                                             'T': T,
+                                             'U': -0.5,
+                                             })
     return cands, ids
 
 if __name__ == '__main__':
@@ -262,8 +260,8 @@ if __name__ == '__main__':
     # niches = generate_tasks(save_to_files=True)
     # generate_tasks(save_to_files=True)
     niches = pd.read_csv('./data/em_tasks.csv')
-    iter = 22
-    for i in range(18,iter):
+    iter = 24
+    for i in range(23,iter):
         images = read(f'./data/dft_PdTiH_adss_r0_to_r{i}_final_tot.traj', ':')
         print(f'iter{i}')
         if False:
