@@ -230,38 +230,81 @@ def generate_csv(fittest_images, raw_niches, save_to_csv=False):
         dfs.append(data)
     return dfs
 
-def plot_5conds(images, iterations):
-    # df_raw = generate_tasks(save_to_files=False)
+def plot_contour(images, iterations, U=-0.5):
     raw_niches = copy.deepcopy(niches)
-    
-    dfs = generate_csv(images, raw_niches, save_to_csv=False)
-    # plot_scores_vs_U_with_pHs(dfs)
-    # plot_scores_vs_pH_with_Us(dfs)
-    
+    dfs = generate_csv(images, raw_niches, save_to_csv=False)  
     d_mu_Pd = sorted(set(raw_niches['d_mu_Pd']), reverse=True)[:]
     d_mu_Ti = sorted(set(raw_niches['d_mu_Ti']), reverse=True)[:]
     P_CO = sorted(set(raw_niches['P_CO']))[3:4]
     T = sorted(set(raw_niches['T']))[1:2]
     print({'d_mu_Pd': d_mu_Pd, 'd_mu_Ti': d_mu_Ti, 'P_CO': P_CO, 'T': T})
-    cands, ids = plot_surf_free_vs_U_contour(dfs, **{'df_raw': raw_niches,
+    minuss, idss = plot_surf_free_vs_U_contour(dfs, **{'df_raw': raw_niches,
                                              'images':images, 
                                              'iter':iterations,
-                                             'gray_above': True,
+                                             'gray_above': None, # no plot
                                              'd_mu_Pd': d_mu_Pd,
                                              'd_mu_Ti': d_mu_Ti,
                                              'P_CO': P_CO,
                                              'T': T,
-                                             'U': -0.5,
                                              })
-    return cands, ids
+    return minuss, idss
+
+def plt_contour_as_U(images, iterations, U=-0.5):
+    raw_niches = copy.deepcopy(niches)
+    Us = sorted(set(raw_niches['U']))
+    for U in Us:
+        print(f'Potential: {U}')
+        cands, ids = plot_contour(images, iterations, U=U)
+    
+
+def plot_5conds(images, iterations):
+    # df_raw = generate_tasks(save_to_files=False)
+    raw_niches = copy.deepcopy(niches)
+    dfs = generate_csv(images, raw_niches, save_to_csv=False)
+    # plot_scores_vs_U_with_pHs(dfs)
+    # plot_scores_vs_pH_with_Us(dfs)
+    
+    d_mu_Pd = sorted(set(raw_niches['d_mu_Pd']))[:]
+    d_mu_Ti = sorted(set(raw_niches['d_mu_Ti']), reverse=True)[:]
+    P_CO = sorted(set(raw_niches['P_CO']))[3:4]
+    T = sorted(set(raw_niches['T']))[1:2]
+    print({'d_mu_Pd': d_mu_Pd, 'd_mu_Ti': d_mu_Ti, 'P_CO': P_CO, 'T': T})
+    cands, ids = plot_surf_free_vs_U(dfs, **{'df_raw': raw_niches,
+                                              'images':images, 
+                                              'iter':iterations,
+                                              'gray_above': True,
+                                              'd_mu_Pd': d_mu_Pd,
+                                              'd_mu_Ti': d_mu_Ti,
+                                              'P_CO': P_CO,
+                                              'T': T,
+                                              })
+    cands, ids = plot_surf_free_vs_U_matrix(dfs, **{'df_raw': raw_niches,
+                                              'images':images, 
+                                              'iter':iterations,
+                                              'gray_above': True,
+                                              'd_mu_Pd': d_mu_Pd,
+                                              'd_mu_Ti': d_mu_Ti,
+                                              'P_CO': P_CO,
+                                              'T': T,
+                                              })
+    minuss, idss = plot_surf_free_vs_U_contour(dfs, **{'df_raw': raw_niches,
+                                             'images':images, 
+                                             'iter':iterations,
+                                             'gray_above': None, # no plot
+                                             'd_mu_Pd': d_mu_Pd,
+                                             'd_mu_Ti': d_mu_Ti,
+                                             'P_CO': P_CO,
+                                             'T': T,
+                                             })
+    return cands, ids, minuss, idss 
 
 if __name__ == '__main__':
     # niches = pd.read_pickle('em_tasks.pkl')
     # niches = generate_tasks(save_to_files=True)
     # generate_tasks(save_to_files=True)
     niches = pd.read_csv('./data/em_tasks.csv')
-    iter = 24
-    for i in range(23,iter):
+    iter = 26
+    for i in range(18,iter):
         images = read(f'./data/dft_PdTiH_adss_r0_to_r{i}_final_tot.traj', ':')
         print(f'iter{i}')
         if False:
@@ -271,7 +314,7 @@ if __name__ == '__main__':
         else:
             print('reading images...')
             images = read(f'dft_iter_{i}.traj', ':')
-        cands, ids = plot_5conds(images, i)
+        cands, ids, minuss, idss = plot_5conds(images, i)
 
     
     
