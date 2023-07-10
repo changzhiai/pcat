@@ -20,6 +20,8 @@ from cores_conds import (plot_surf_free_vs_U,
                          plot_surf_free_vs_U_contour,
                          plot_surf_free_vs_U_matrix_all)
 import pickle
+import matplotlib
+matplotlib.use('Agg')
 
 def get_gas_free_energy(ads, T=298.15, P=3534., geometry='nonlinear'):
     energies = {}
@@ -316,7 +318,7 @@ if __name__ == '__main__':
     # niches = generate_tasks(save_to_files=True)
     niches = pd.read_csv('./data/em_tasks.csv')
     iter = 26
-    for i in range(25,iter):
+    for i in range(12,iter):
         images = read(f'./data/dft_PdTiH_adss_r0_to_r{i}_final_tot.traj', ':')
         print(f'iter{i}')
         if False:
@@ -326,7 +328,7 @@ if __name__ == '__main__':
         else:
             print('reading images...')
             images = read(f'dft_iter_{i}.traj', ':')
-        if False:
+        if True:
             cands, ids, minuss, idss = plot_SFE_at_One_Temp_and_Pco(images, i)
             print(cands, ids, minuss, idss)
         if True: # generate matrix_all
@@ -338,6 +340,9 @@ if __name__ == '__main__':
             print(unique_ids, len(unique_ids))
         if False:
             unique_ids = read_list(i, name='all_unique_ids.pkl')
+            
+        plt.clf()   
+        plt.close()
         
     
 

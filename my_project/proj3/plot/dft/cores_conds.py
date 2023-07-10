@@ -119,7 +119,8 @@ def plot_surf_free_vs_U(dfs, **kwargs):
                     if not(os.path.exists(path) and os.path.isdir(path)):
                         os.mkdir(path)
                     fig.savefig(f'{path}/iter_{iter}_Pd_{d_mu_pd}_Ti_{d_mu_ti}.png',dpi=300, bbox_inches='tight')
-    plt.show()
+                    plt.close(fig)
+    # plt.show()
     return cands, ids
 
 def plot_surf_free_vs_U_matrix(dfs, **kwargs):
@@ -162,7 +163,8 @@ def plot_surf_free_vs_U_matrix(dfs, **kwargs):
     st = plt.suptitle(f'Iter: {iter}, T={T[0]} K, Pco={P_CO[0]} Pa', fontsize=ft_sz)
     fig.tight_layout(pad=0.2)
     st.set_y(1.01)
-    plt.show()
+    # plt.show()
+    plt.close(fig)
     path = './figures/matrix_pourbaix'
     if not(os.path.exists(path) and os.path.isdir(path)):
         os.mkdir(path)
@@ -218,8 +220,9 @@ def plot_surf_free_vs_U_matrix_all(dfs, **kwargs):
             st = plt.suptitle(f'Iter: {iter}, T={t} K, Pco={pco} Pa', fontsize=ft_sz)
             fig.tight_layout(pad=0.2)
             st.set_y(1.01)
-            plt.show()
+            # plt.show()
             fig.savefig(f'{path}/iter_{iter}_matrix_all_T_{t}_Pco_{pco}.png',dpi=300, bbox_inches='tight')
+            plt.close(fig)
     return cands, ids
     
 
@@ -263,7 +266,7 @@ def plot_surf_free_vs_U_contour(dfs, **kwargs):
         plt.scatter(xs, ys, c='gray', marker='o',)
         for i, txt in enumerate(tags):
             ax.annotate(txt, (xs[i], ys[i]), ha='center')
-        plt.show()
+        # plt.show()
         path = './figures/SFE'
         if not(os.path.exists(path) and os.path.isdir(path)):
             os.mkdir(path)
@@ -284,11 +287,12 @@ def plot_surf_free_vs_U_contour(dfs, **kwargs):
         plt.ylabel('Ti chemical potential', fontsize=ft_sz)
         plt.xticks(fontsize=ft_sz)
         plt.yticks(fontsize=ft_sz)
-        plt.show()
+        # plt.show()
         path = './figures/cands'
         if not(os.path.exists(path) and os.path.isdir(path)):
             os.mkdir(path)
         fig.savefig(f'{path}/iter_{iter}_pot_{U}_cands.png',dpi=300, bbox_inches='tight')
+        plt.close(fig)
         
         minuss.append(minis)
         idss.append(ids)
