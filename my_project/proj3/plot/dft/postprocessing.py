@@ -8,14 +8,12 @@ import matplotlib.pyplot as plt
 from pcat.lib.io import pd_read_excel
 import numpy as np
 import matplotlib as mpl
+import pickle
 
 def free_energy_pd():
     """New version to analyze data by pandas"""
     from pcat.free_energy import CO2RRFEDplot
-
-    
     df = pd_read_excel(filename='./data/iter25.xlsx', sheet='free_energy')
-    
     ColorDict = {'image0': 'C0', 'image1': 'C1', 'image2': 'C2', 'image3': 'C3', 'image4': 'C4', }
     stepsNames = ['* + CO$_{2}$', 'HOCO*', 'CO*', '* + CO']
     CO2RR_FED = CO2RRFEDplot(stepsNames, df.index,df.values, fig_name='./CO2RR_FED.jpg', ColorDict=ColorDict)
@@ -25,8 +23,10 @@ def plot_activity():
     from pcat.activity import Activity
     """Plot activity of CO2RR"""
     df = pd_read_excel(filename='./data/iter25.xlsx', sheet='binding_energy')
-    
     # df.drop(['Pd16Ti48H8', 'Pd16Ti48H24'], inplace=True)
+    ColorDict= {'images_774_0': 'white',}
+    
+    tune_tex_pos = {'images_774_0': [-0.5, -0.0],}
     name_fig_act = './data/iter25_activity.jpg'
     activity = Activity(df, descriper1 = 'E(*CO)', descriper2 = 'E(*HOCO)', fig_name=name_fig_act,
                         U0=-0.5, 
@@ -38,7 +38,7 @@ def plot_activity():
                         Gact=0.2, 
                         p_factor = 3.6 * 10**4)
     # activity.verify_BE2FE()
-    activity.plot(save=True, text=True)
+    activity.plot(save=True, text=True, tune_tex_pos=tune_tex_pos, ColorDict=ColorDict)
     # activity.plot(save=True,)
     # activity.plot(save=True, xlim=[-2.5, 2.5], ylim=[-2.5, 2.5])
     # activity.plot(save=True, xlim=[-1., 0], ylim=[-0., 1])
@@ -75,8 +75,53 @@ def plot_iteration():
     plt.show()
     # fig.savefig('RMSE_iters.png', dpi=300, bbox_inches='tight')
     print(fig.get_figwidth(), fig.get_figheight())
+    
+def read_list(iteration, name='all_ids.pkl'):
+    with open(f'./figures/matrix_all/iter_{iteration}/{name}', 'rb') as fp:
+        n_list = pickle.load(fp)
+        return n_list
+
+def flatten_list(n_list):
+    import itertools
+    n_list = list(itertools.chain(*n_list))
+    n_list = list(set(n_list))
+    return n_list
+    
+def find_num_of_new(pre_unique_ids, unique_ids):
+    new_ids = []
+    for id in unique_ids:
+        if id not in pre_unique_ids:
+            new_ids.append(id)
+    return new_ids
+
+def new_cands_vs_iters(since=1, iter=26):
+    iter_unique_ids, iter_new_ids = [], []
+    iter_unique_ids.append([])
+    iter_new_ids.append([])
+    for i in range(1,iter):
+        print(i)
+        unique_ids = read_list(i, name='all_unique_ids.pkl')
+        iter_unique_ids.append(unique_ids)
+        new_ids = find_num_of_new(iter_unique_ids[i-1], iter_unique_ids[i])
+        iter_new_ids.append(new_ids)
+        print(sorted(unique_ids))
+    fig, ax = plt.subplots(figsize=(8,7), dpi=300)
+    lens_new = []
+    for new_ids in iter_new_ids:
+        lens_new.append(len(new_ids))
+    print(lens_new)
+    ft_sz = 12
+    xs = np.arange(0, iter, 1)[since:]
+    ys = lens_new[since:]
+    plt.plot(xs, ys, '-o')
+    plt.xlabel('The numbe of iterations', fontsize=ft_sz)
+    plt.ylabel('The number of new candidates', fontsize=ft_sz)
+    plt.xticks(fontsize=ft_sz)
+    plt.yticks(fontsize=ft_sz)
+    plt.show()
 
 if __name__ == '__main__':
     # free_energy_pd()
     # plot_activity()
-    plot_iteration()
+    # plot_iteration()
+    new_cands_vs_iters(since=17)

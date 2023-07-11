@@ -311,38 +311,35 @@ def flatten_list(n_list):
     n_list = list(itertools.chain(*n_list))
     n_list = list(set(n_list))
     return n_list
-    
-    
+
 if __name__ == '__main__':
     # niches = pd.read_pickle('em_tasks.pkl')
     # niches = generate_tasks(save_to_files=True)
     niches = pd.read_csv('./data/em_tasks.csv')
     iter = 26
-    for i in range(12,iter):
-        images = read(f'./data/dft_PdTiH_adss_r0_to_r{i}_final_tot.traj', ':')
+    for i in range(1,iter):
         print(f'iter{i}')
         if False:
+            images = read(f'./data/dft_PdTiH_adss_r0_to_r{i}_final_tot.traj', ':')
             for atoms in images:
                 atoms = calc_dft_gamma(atoms)
             write(f'dft_iter_{i}.traj', images)
         else:
             print('reading images...')
             images = read(f'dft_iter_{i}.traj', ':')
-        if True:
+        if False:
             cands, ids, minuss, idss = plot_SFE_at_One_Temp_and_Pco(images, i)
             print(cands, ids, minuss, idss)
-        if True: # generate matrix_all
+        if False: # generate matrix_all
             all_cands, all_ids = plot_matrix_all_conds(images, i)
             print(all_cands, all_ids)
             write_list(all_ids, i, name='all_ids.pkl')
             unique_ids = flatten_list(all_ids)
             write_list(unique_ids, i, name='all_unique_ids.pkl')
             print(unique_ids, len(unique_ids))
-        if False:
-            unique_ids = read_list(i, name='all_unique_ids.pkl')
-            
         plt.clf()   
         plt.close()
+        
         
     
 
