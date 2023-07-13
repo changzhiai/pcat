@@ -19,9 +19,22 @@ from cores_conds import (plot_surf_free_vs_U,
                          plot_surf_free_vs_U_matrix, 
                          plot_surf_free_vs_U_contour,
                          plot_surf_free_vs_U_matrix_all)
+from cores_conds import (plot_surf_free_vs_T, 
+                          plot_surf_free_vs_T_matrix, 
+                          plot_surf_free_vs_T_contour,
+                          plot_surf_free_vs_T_matrix_all)
+from cores_conds import (plot_surf_free_vs_Pco, 
+                          plot_surf_free_vs_Pco_matrix, 
+                          plot_surf_free_vs_Pco_contour,
+                          plot_surf_free_vs_Pco_matrix_all
+                         )
+from cores_conds import (plot_surf_free_vs_T_and_Pco,
+                         plot_surf_free_vs_U_and_Pco,
+                         plot_surf_free_vs_T_and_U)
+
 import pickle
 import matplotlib
-matplotlib.use('Agg')
+# matplotlib.use('Agg')
 
 def get_gas_free_energy(ads, T=298.15, P=3534., geometry='nonlinear'):
     energies = {}
@@ -158,10 +171,18 @@ def get_element_nums(atoms):
     num_H = len([s for s in atoms.symbols if s == 'H']) - num_ads_H - num_ads_OH # H only in slab
     d_num_H = num_H - num_full
     num_Pd = len([s for s in atoms.symbols if s == 'Pd'])
+    num_Ti = len([s for s in atoms.symbols if s == 'Ti'])
     d_num_Pd = num_Pd - num_full
     d_num_Ti = -d_num_Pd
     num_slab_H = num_H
-    return d_num_Pd, d_num_Ti, d_num_H, num_ads_CO, num_ads_OH, num_ads_H, num_slab_H
+    formula = f'Pd{num_Pd}Ti{num_Ti}H{num_H}'
+    if num_ads_CO > 0:
+        formula = formula + f'+{num_ads_CO}CO'
+    if num_ads_H > 0:
+        formula = formula + f'+{num_ads_H}H'
+    if num_ads_OH > 0:
+        formula = formula + f'+{num_ads_OH}OH'
+    return d_num_Pd, d_num_Ti, d_num_H, num_ads_CO, num_ads_OH, num_ads_H, num_slab_H, formula
 
 def calc_dft_gamma(atoms):
     """Relax one atoms ensemble"""
@@ -171,7 +192,7 @@ def calc_dft_gamma(atoms):
     A_surf = np.linalg.norm(np.cross(atoms.cell[0], atoms.cell[1]))
     gammas = []
     scores = []
-    d_num_Pd, d_num_Ti, d_num_H, num_ads_CO, num_ads_OH, num_ads_H, num_slab_H = get_element_nums(atoms)
+    d_num_Pd, d_num_Ti, d_num_H, num_ads_CO, num_ads_OH, num_ads_H, num_slab_H, formula = get_element_nums(atoms)
     niches['Epot'] = Epot
     niches['d_num_Pd'] = d_num_Pd
     niches['d_num_Ti'] = d_num_Ti
@@ -187,6 +208,8 @@ def calc_dft_gamma(atoms):
     # print('scores:', scores)
     atoms.info['data']['gammas'] = gammas / A_surf
     atoms.info['data']['raw_scores'] = scores
+    atoms.info['formula'] = formula
+    print(formula)
     atoms.calc = None
     return atoms
 
@@ -252,7 +275,9 @@ def plot_matrix_all_conds(images, iterations):
                                              'd_mu_Ti': d_mu_Ti,
                                              'P_CO': P_CO,
                                              'T': T,
-                                             })
+                                             }) # generate matrix_all
+    plt.clf()   
+    plt.close()
     return all_cands, all_ids
     
 
@@ -265,7 +290,7 @@ def plot_SFE_at_One_Temp_and_Pco(images, iterations):
     P_CO = sorted(set(raw_niches['P_CO']))[3:4] # 5562.0 Pa
     T = sorted(set(raw_niches['T']))[1:2] # 298.15 K
     print({'d_mu_Pd': d_mu_Pd, 'd_mu_Ti': d_mu_Ti, 'P_CO': P_CO, 'T': T})
-    _, _ = plot_surf_free_vs_U(dfs, **{'df_raw': raw_niches,
+    _, _ = plot_surf_free_vs_U(dfs, **{'df_raw': raw_niches, 
                                                'images':images, 
                                                'iter':iterations,
                                                'gray_above': True,
@@ -273,7 +298,7 @@ def plot_SFE_at_One_Temp_and_Pco(images, iterations):
                                                'd_mu_Ti': d_mu_Ti,
                                                'P_CO': P_CO,
                                                'T': T,
-                                               })
+                                               }) # generate pourbaix
     cands, ids = plot_surf_free_vs_U_matrix(dfs, **{'df_raw': raw_niches,
                                               'images':images, 
                                               'iter':iterations,
@@ -282,7 +307,7 @@ def plot_SFE_at_One_Temp_and_Pco(images, iterations):
                                               'd_mu_Ti': d_mu_Ti,
                                               'P_CO': P_CO,
                                               'T': T,
-                                              })
+                                              }) # generate matrix_pourbaix
     minuss, idss = plot_surf_free_vs_U_contour(dfs, **{'df_raw': raw_niches,
                                               'images':images, 
                                               'iter':iterations,
@@ -291,8 +316,10 @@ def plot_SFE_at_One_Temp_and_Pco(images, iterations):
                                               'd_mu_Ti': d_mu_Ti,
                                               'P_CO': P_CO,
                                               'T': T,
-                                              })  
+                                              })  # generate SFE and cands
     # minuss, idss = [], []
+    plt.clf()   
+    plt.close()
     return cands, ids, minuss, idss 
 
 
@@ -312,12 +339,219 @@ def flatten_list(n_list):
     n_list = list(set(n_list))
     return n_list
 
+
+def plot_SFE_at_One_Pco_and_U(images, iterations):
+    """Fix potential=-0.5 V and partial pressure of CO=5562.0 Pa"""
+    raw_niches = copy.deepcopy(niches)
+    dfs = generate_csv(images, raw_niches, save_to_csv=False)
+    d_mu_Pd = sorted(set(raw_niches['d_mu_Pd']))[:]
+    d_mu_Ti = sorted(set(raw_niches['d_mu_Ti']), reverse=True)[:]
+    P_CO = sorted(set(raw_niches['P_CO']))[3:4] # 5562.0 Pa
+    U = sorted(set(raw_niches['U']))[3:4] # 0.5 V
+    print({'d_mu_Pd': d_mu_Pd, 'd_mu_Ti': d_mu_Ti, 'P_CO': P_CO, 'U': U})
+    _, _ = plot_surf_free_vs_T(dfs, **{'df_raw': raw_niches,
+                                                'images':images, 
+                                                'iter':iterations,
+                                                'gray_above': True,
+                                                'd_mu_Pd': d_mu_Pd,
+                                                'd_mu_Ti': d_mu_Ti,
+                                                'P_CO': P_CO,
+                                                'U': U,
+                                                }) # generate pourbaix_T
+    cands, ids = plot_surf_free_vs_T_matrix(dfs, **{'df_raw': raw_niches,
+                                              'images':images, 
+                                              'iter':iterations,
+                                              'gray_above': True,
+                                              'd_mu_Pd': d_mu_Pd,
+                                              'd_mu_Ti': d_mu_Ti,
+                                              'P_CO': P_CO,
+                                              'U': U,
+                                              }) # generate matrix_pourbaix_T
+    minuss, idss = plot_surf_free_vs_T_contour(dfs, **{'df_raw': raw_niches,
+                                              'images':images, 
+                                              'iter':iterations,
+                                              'gray_above': None, # no plot
+                                              'd_mu_Pd': d_mu_Pd,
+                                              'd_mu_Ti': d_mu_Ti,
+                                              'P_CO': P_CO,
+                                              'U': U,
+                                              })  # generate SFE and cands_T
+    minuss, idss = [], []
+    cands, ids = [], []
+    # plt.clf()   
+    # plt.close()
+    return cands, ids, minuss, idss 
+
+def plot_matrix_all_conds_T(images, iterations):
+    '''T->Pco->{matrix} return all candidates and ids at one iteration'''
+    raw_niches = copy.deepcopy(niches)
+    dfs = generate_csv(images, raw_niches, save_to_csv=False)  
+    d_mu_Pd = sorted(set(raw_niches['d_mu_Pd']))[:]
+    d_mu_Ti = sorted(set(raw_niches['d_mu_Ti']), reverse=True)[:]
+    P_CO = sorted(set(raw_niches['P_CO']))[:]
+    U = sorted(set(raw_niches['U']))[:]
+    print({'d_mu_Pd': d_mu_Pd, 'd_mu_Ti': d_mu_Ti, 'P_CO': P_CO, 'U': U})
+    all_cands, all_ids = plot_surf_free_vs_T_matrix_all(dfs, **{'df_raw': raw_niches,
+                                             'images':images, 
+                                             'iter':iterations,
+                                             'gray_above': True, 
+                                             'd_mu_Pd': d_mu_Pd,
+                                             'd_mu_Ti': d_mu_Ti,
+                                             'P_CO': P_CO,
+                                             'U': U,
+                                             }) # generate matrix_all_T
+    plt.clf()   
+    plt.close()
+    return all_cands, all_ids
+
+def plot_SFE_at_One_T_and_U(images, iterations):
+    """Fix potential=-0.5 V and partial pressure of CO=5562.0 Pa"""
+    raw_niches = copy.deepcopy(niches)
+    dfs = generate_csv(images, raw_niches, save_to_csv=False)
+    d_mu_Pd = sorted(set(raw_niches['d_mu_Pd']))[:]
+    d_mu_Ti = sorted(set(raw_niches['d_mu_Ti']), reverse=True)[:]
+    T = sorted(set(raw_niches['T']))[1:2] # 298.15 K
+    U = sorted(set(raw_niches['U']))[3:4] # 0.5 V
+    print({'d_mu_Pd': d_mu_Pd, 'd_mu_Ti': d_mu_Ti, 'T': T, 'U': U})
+    _, _ = plot_surf_free_vs_Pco(dfs, **{'df_raw': raw_niches,
+                                                'images':images, 
+                                                'iter':iterations,
+                                                'gray_above': True,
+                                                'd_mu_Pd': d_mu_Pd,
+                                                'd_mu_Ti': d_mu_Ti,
+                                                'T': T,
+                                                'U': U,
+                                                }) # generate pourbaix_T
+    cands, ids = plot_surf_free_vs_Pco_matrix(dfs, **{'df_raw': raw_niches,
+                                              'images':images, 
+                                              'iter':iterations,
+                                              'gray_above': True,
+                                              'd_mu_Pd': d_mu_Pd,
+                                              'd_mu_Ti': d_mu_Ti,
+                                              'T': T,
+                                              'U': U,
+                                              }) # generate matrix_pourbaix_T
+    minuss, idss = plot_surf_free_vs_Pco_contour(dfs, **{'df_raw': raw_niches,
+                                              'images':images, 
+                                              'iter':iterations,
+                                              'gray_above': None, # no plot
+                                              'd_mu_Pd': d_mu_Pd,
+                                              'd_mu_Ti': d_mu_Ti,
+                                              'T': T,
+                                              'U': U,
+                                              })  # generate SFE and cands_T
+    minuss, idss = [], []
+    cands, ids = [], []
+    # plt.clf()   
+    # plt.close()
+    return cands, ids, minuss, idss 
+
+def plot_matrix_all_conds_Pco(images, iterations):
+    '''T->Pco->{matrix} return all candidates and ids at one iteration'''
+    raw_niches = copy.deepcopy(niches)
+    dfs = generate_csv(images, raw_niches, save_to_csv=False)  
+    d_mu_Pd = sorted(set(raw_niches['d_mu_Pd']))[:]
+    d_mu_Ti = sorted(set(raw_niches['d_mu_Ti']), reverse=True)[:]
+    T = sorted(set(raw_niches['T']))[:]
+    U = sorted(set(raw_niches['U']))[:]
+    print({'d_mu_Pd': d_mu_Pd, 'd_mu_Ti': d_mu_Ti, 'T': T, 'U': U})
+    all_cands, all_ids = plot_surf_free_vs_Pco_matrix_all(dfs, **{'df_raw': raw_niches,
+                                             'images':images, 
+                                             'iter':iterations,
+                                             'gray_above': True, 
+                                             'd_mu_Pd': d_mu_Pd,
+                                             'd_mu_Ti': d_mu_Ti,
+                                             'T': T,
+                                             'U': U,
+                                             }) # generate matrix_all_T
+    plt.clf()   
+    plt.close()
+    return all_cands, all_ids
+
+def plot_SFE_at_One_Chem_Pd_and_Ti_and_U(images, iterations):
+    """Fix chem. pot. of Pd and Ti. Plot countour for T, Pco vs surf. energy at each U"""
+    raw_niches = copy.deepcopy(niches)
+    dfs = generate_csv(images, raw_niches, save_to_csv=False)
+    d_mu_Pd = sorted(set(raw_niches['d_mu_Pd']))[0:1]
+    d_mu_Ti = sorted(set(raw_niches['d_mu_Ti']), reverse=True)[0:1]
+    U = sorted(set(raw_niches['U']))[:] 
+    T = sorted(set(raw_niches['T']))[:]
+    P_CO = sorted(set(raw_niches['P_CO']))[:]
+    print({'d_mu_Pd': d_mu_Pd, 'd_mu_Ti': d_mu_Ti, 'T': T, 'U': U})
+    _, _ = plot_surf_free_vs_T_and_Pco(dfs, **{'df_raw': raw_niches,
+                                                'images':images, 
+                                                'iter':iterations,
+                                                'gray_above': None,
+                                                'd_mu_Pd': d_mu_Pd,
+                                                'd_mu_Ti': d_mu_Ti,
+                                                'U': U,
+                                                'T': T,
+                                                'P_CO': P_CO,
+                                                }) # generate SFE and cands_T
+    minuss, idss = [], []
+    cands, ids = [], []
+    # plt.clf()   
+    # plt.close()
+    return cands, ids, minuss, idss 
+
+def plot_SFE_at_One_Chem_Pd_and_Ti_and_T(images, iterations):
+    """Fix potential=-0.5 V and partial pressure of CO=5562.0 Pa"""
+    raw_niches = copy.deepcopy(niches)
+    dfs = generate_csv(images, raw_niches, save_to_csv=False)
+    d_mu_Pd = sorted(set(raw_niches['d_mu_Pd']))[0:1]
+    d_mu_Ti = sorted(set(raw_niches['d_mu_Ti']), reverse=True)[0:1]
+    T = sorted(set(raw_niches['T']))[1:2] # 298.15 K
+    U = sorted(set(raw_niches['U']))[:] 
+    P_CO = sorted(set(raw_niches['P_CO']))[:]
+    print({'d_mu_Pd': d_mu_Pd, 'd_mu_Ti': d_mu_Ti, 'T': T, 'U': U})
+    _, _ = plot_surf_free_vs_U_and_Pco(dfs, **{'df_raw': raw_niches,
+                                                'images':images, 
+                                                'iter':iterations,
+                                                'gray_above': None,
+                                                'd_mu_Pd': d_mu_Pd,
+                                                'd_mu_Ti': d_mu_Ti,
+                                                'U': U,
+                                                'T': T,
+                                                'P_CO': P_CO,
+                                                }) # generate SFE and cands_T
+    minuss, idss = [], []
+    cands, ids = [], []
+    # plt.clf()   
+    # plt.close()
+    return cands, ids, minuss, idss 
+
+def plot_SFE_at_One_Chem_Pd_and_Ti_and_Pco(images, iterations):
+    """Fix potential=-0.5 V and partial pressure of CO=5562.0 Pa"""
+    raw_niches = copy.deepcopy(niches)
+    dfs = generate_csv(images, raw_niches, save_to_csv=False)
+    d_mu_Pd = sorted(set(raw_niches['d_mu_Pd']))[0:1]
+    d_mu_Ti = sorted(set(raw_niches['d_mu_Ti']), reverse=True)[0:1]
+    P_CO = sorted(set(raw_niches['P_CO']))[3:4] # 5562.0 Pa
+    U = sorted(set(raw_niches['U']))[:] 
+    T = sorted(set(raw_niches['T']))[:]
+    print({'d_mu_Pd': d_mu_Pd, 'd_mu_Ti': d_mu_Ti, 'T': T, 'U': U})
+    _, _ = plot_surf_free_vs_T_and_U(dfs, **{'df_raw': raw_niches,
+                                                'images':images, 
+                                                'iter':iterations,
+                                                'gray_above': None,
+                                                'd_mu_Pd': d_mu_Pd,
+                                                'd_mu_Ti': d_mu_Ti,
+                                                'U': U,
+                                                'T': T,
+                                                'P_CO': P_CO,
+                                                }) # generate SFE and cands_T
+    minuss, idss = [], []
+    cands, ids = [], []
+    # plt.clf()   
+    # plt.close()
+    return cands, ids, minuss, idss 
+
 if __name__ == '__main__':
     # niches = pd.read_pickle('em_tasks.pkl')
     # niches = generate_tasks(save_to_files=True)
     niches = pd.read_csv('./data/em_tasks.csv')
     iter = 26
-    for i in range(1,iter):
+    for i in range(25,iter):
         print(f'iter{i}')
         if False:
             images = read(f'./data/dft_PdTiH_adss_r0_to_r{i}_final_tot.traj', ':')
@@ -327,19 +561,36 @@ if __name__ == '__main__':
         else:
             print('reading images...')
             images = read(f'dft_iter_{i}.traj', ':')
+            
         if False:
             cands, ids, minuss, idss = plot_SFE_at_One_Temp_and_Pco(images, i)
             print(cands, ids, minuss, idss)
         if False: # generate matrix_all
             all_cands, all_ids = plot_matrix_all_conds(images, i)
             print(all_cands, all_ids)
-            write_list(all_ids, i, name='all_ids.pkl')
+            write_list(all_ids, i, name='all_ids.pkl') # save candidates
             unique_ids = flatten_list(all_ids)
             write_list(unique_ids, i, name='all_unique_ids.pkl')
             print(unique_ids, len(unique_ids))
-        plt.clf()   
-        plt.close()
+            
+        if True:
+            cands, ids, minuss, idss = plot_SFE_at_One_Pco_and_U(images, i)
+            print(cands, ids, minuss, idss)
+        if True: # generate matrix_all_T
+            all_cands, all_ids = plot_matrix_all_conds_T(images, i)
         
+        if True:
+            cands, ids, minuss, idss = plot_SFE_at_One_T_and_U(images, i)
+            print(cands, ids, minuss, idss)
+        if True: # generate matrix_all_T
+            all_cands, all_ids = plot_matrix_all_conds_Pco(images, i) # Pourbaix matrix: Pco vs. Surf. energy
+            
+        if False:
+            plot_SFE_at_One_Chem_Pd_and_Ti_and_U(images, i) # Contour plot: Pco vs. T
+        if False:
+            plot_SFE_at_One_Chem_Pd_and_Ti_and_T(images, i) # Contour plot: Pco vs. U
+        if False:
+            plot_SFE_at_One_Chem_Pd_and_Ti_and_Pco(images, i) # Contour plot: U vs. T
         
     
 
