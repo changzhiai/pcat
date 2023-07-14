@@ -290,24 +290,24 @@ def plot_SFE_at_One_Temp_and_Pco(images, iterations):
     P_CO = sorted(set(raw_niches['P_CO']))[3:4] # 5562.0 Pa
     T = sorted(set(raw_niches['T']))[1:2] # 298.15 K
     print({'d_mu_Pd': d_mu_Pd, 'd_mu_Ti': d_mu_Ti, 'P_CO': P_CO, 'T': T})
-    _, _ = plot_surf_free_vs_U(dfs, **{'df_raw': raw_niches, 
-                                               'images':images, 
-                                               'iter':iterations,
-                                               'gray_above': True,
-                                               'd_mu_Pd': d_mu_Pd,
-                                               'd_mu_Ti': d_mu_Ti,
-                                               'P_CO': P_CO,
-                                               'T': T,
-                                               }) # generate pourbaix
-    cands, ids = plot_surf_free_vs_U_matrix(dfs, **{'df_raw': raw_niches,
-                                              'images':images, 
-                                              'iter':iterations,
-                                              'gray_above': True,
-                                              'd_mu_Pd': d_mu_Pd,
-                                              'd_mu_Ti': d_mu_Ti,
-                                              'P_CO': P_CO,
-                                              'T': T,
-                                              }) # generate matrix_pourbaix
+    # _, _ = plot_surf_free_vs_U(dfs, **{'df_raw': raw_niches, 
+    #                                            'images':images, 
+    #                                            'iter':iterations,
+    #                                            'gray_above': True,
+    #                                            'd_mu_Pd': d_mu_Pd,
+    #                                            'd_mu_Ti': d_mu_Ti,
+    #                                            'P_CO': P_CO,
+    #                                            'T': T,
+    #                                            }) # generate pourbaix
+    # cands, ids = plot_surf_free_vs_U_matrix(dfs, **{'df_raw': raw_niches,
+    #                                           'images':images, 
+    #                                           'iter':iterations,
+    #                                           'gray_above': True,
+    #                                           'd_mu_Pd': d_mu_Pd,
+    #                                           'd_mu_Ti': d_mu_Ti,
+    #                                           'P_CO': P_CO,
+    #                                           'T': T,
+    #                                           }) # generate matrix_pourbaix
     minuss, idss = plot_surf_free_vs_U_contour(dfs, **{'df_raw': raw_niches,
                                               'images':images, 
                                               'iter':iterations,
@@ -375,7 +375,7 @@ def plot_SFE_at_One_Pco_and_U(images, iterations):
                                               'd_mu_Ti': d_mu_Ti,
                                               'P_CO': P_CO,
                                               'U': U,
-                                              })  # generate SFE and cands_T
+                                              })  # generate contour and heatmap vs. T
     minuss, idss = [], []
     cands, ids = [], []
     # plt.clf()   
@@ -550,8 +550,8 @@ if __name__ == '__main__':
     # niches = pd.read_pickle('em_tasks.pkl')
     # niches = generate_tasks(save_to_files=True)
     niches = pd.read_csv('./data/em_tasks.csv')
-    iter = 26
-    for i in range(25,iter):
+    iter = 27
+    for i in range(26,iter):
         print(f'iter{i}')
         if False:
             images = read(f'./data/dft_PdTiH_adss_r0_to_r{i}_final_tot.traj', ':')
@@ -573,16 +573,16 @@ if __name__ == '__main__':
             write_list(unique_ids, i, name='all_unique_ids.pkl')
             print(unique_ids, len(unique_ids))
             
-        if True:
+        if False:
             cands, ids, minuss, idss = plot_SFE_at_One_Pco_and_U(images, i)
             print(cands, ids, minuss, idss)
         if True: # generate matrix_all_T
             all_cands, all_ids = plot_matrix_all_conds_T(images, i)
         
-        if True:
+        if False:
             cands, ids, minuss, idss = plot_SFE_at_One_T_and_U(images, i)
             print(cands, ids, minuss, idss)
-        if True: # generate matrix_all_T
+        if False: # generate matrix_all_T
             all_cands, all_ids = plot_matrix_all_conds_Pco(images, i) # Pourbaix matrix: Pco vs. Surf. energy
             
         if False:
