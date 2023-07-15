@@ -317,7 +317,8 @@ def plot_SFE_at_One_Temp_and_Pco(images, iterations):
                                               'P_CO': P_CO,
                                               'T': T,
                                               })  # generate SFE and cands
-    # minuss, idss = [], []
+    cands, ids = [], []
+    minuss, idss = [], []
     plt.clf()   
     plt.close()
     return cands, ids, minuss, idss 
@@ -550,8 +551,8 @@ if __name__ == '__main__':
     # niches = pd.read_pickle('em_tasks.pkl')
     # niches = generate_tasks(save_to_files=True)
     niches = pd.read_csv('./data/em_tasks.csv')
-    iter = 27
-    for i in range(26,iter):
+    iter = 28
+    for i in range(27,iter):
         print(f'iter{i}')
         if False:
             images = read(f'./data/dft_PdTiH_adss_r0_to_r{i}_final_tot.traj', ':')
@@ -573,10 +574,10 @@ if __name__ == '__main__':
             write_list(unique_ids, i, name='all_unique_ids.pkl')
             print(unique_ids, len(unique_ids))
             
-        if False:
+        if True:
             cands, ids, minuss, idss = plot_SFE_at_One_Pco_and_U(images, i)
             print(cands, ids, minuss, idss)
-        if True: # generate matrix_all_T
+        if False: # generate matrix_all_T
             all_cands, all_ids = plot_matrix_all_conds_T(images, i)
         
         if False:

@@ -215,9 +215,10 @@ def plot_surf_free_vs_U_matrix_all(dfs, **kwargs):
             st = plt.suptitle(f'Iter: {iter}, T={t} K, Pco={pco} Pa', fontsize=ft_sz)
             fig.tight_layout(pad=0.2)
             st.set_y(1.01)
-            # plt.show()
+            plt.show()
             fig.savefig(f'{path}/iter_{iter}_matrix_all_T_{t}_Pco_{pco}.png',dpi=300, bbox_inches='tight')
             plt.close(fig)
+            plt.clf()
     return cands, ids
     
 
@@ -516,6 +517,7 @@ def plot_surf_free_vs_T_contour(dfs, **kwargs):
             os.mkdir(path)
         fig.savefig(f'{path}/iter_{iter}_T_{t}_cands.png',dpi=300, bbox_inches='tight')
         plt.close(fig)
+        plt.clf()   
         minuss.append(minis)
         idss.append(ids)
     return minuss, idss
@@ -647,7 +649,7 @@ def plot_surf_free_vs_Pco(dfs, **kwargs):
                     plt.ylabel('Partial pressure of CO ($log_{10}(Pa)$)', fontsize=ft_sz)
                     plt.ylabel('Surface free energy (eV)', fontsize=ft_sz)
                     plt.xscale("log")
-                    plt.xlim([-1, 5])
+                    plt.xlim([0.101325, 101325])
                     plt.ylim([-1., 0.251])
                     plt.title(f'Iter {iter}, Ti chem.: {round(d_mu_ti,3)}, Pd chem.: {d_mu_pd}, U: {u} V, T: {t} Pa')
                     plt.text(0.34, 0.03, id_set, horizontalalignment='left', verticalalignment='center',
@@ -694,7 +696,7 @@ def plot_surf_free_vs_Pco_matrix(dfs, **kwargs):
                     else:
                         plt.yticks([])
                     if i > 20:
-                        plt.ylabel('Partial pressure of CO ($log_{10}(Pa)$)', fontsize=ft_sz)
+                        plt.xlabel('Partial pressure of CO ($log_{10}(Pa)$)', fontsize=ft_sz)
                         # plt.xticks([-0.6, -0.4, -0.2, 0.0])
                     else:
                         plt.xticks([])
@@ -820,7 +822,7 @@ def plot_surf_free_vs_Pco_matrix_all(dfs, **kwargs):
                     plt.text(0.05, 0.90, f'Pd: {d_mu_pd}, Ti: {round(d_mu_ti,3)}',
                              horizontalalignment='left', verticalalignment='center', transform=ax.transAxes,fontsize=ft_sz)
                     plt.xscale("log")
-                    plt.xlim([-1, 5])
+                    plt.xlim([0.101325, 101325])
                     plt.ylim([-1., 0.25])
                     i += 1
                     ft_sz = 10
@@ -830,7 +832,7 @@ def plot_surf_free_vs_Pco_matrix_all(dfs, **kwargs):
                     else:
                         plt.yticks([])
                     if i > 20:
-                        plt.ylabel('Partial pressure of CO ($log_{10}(Pa)$)', fontsize=ft_sz)
+                        plt.xlabel('Partial pressure of CO ($log_{10}(Pa)$)', fontsize=ft_sz)
                         # plt.xticks([-0.6, -0.4, -0.2, 0.0])
                     else:
                         plt.xticks([])

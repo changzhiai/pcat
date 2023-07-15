@@ -94,7 +94,7 @@ def find_num_of_new(pre_unique_ids, unique_ids):
             new_ids.append(id)
     return new_ids
 
-def new_cands_vs_iters(since=1, iter=27):
+def new_cands_vs_iters(since=1, iter=28):
     iter_unique_ids, iter_new_ids = [], []
     iter_unique_ids.append([])
     iter_new_ids.append([])
