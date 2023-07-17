@@ -32,9 +32,38 @@ from cores_conds import (plot_surf_free_vs_T_and_Pco,
                          plot_surf_free_vs_U_and_Pco,
                          plot_surf_free_vs_T_and_U)
 
+from cores_conds import (plot_surf_free_vs_U_and_Tichem,
+                         plot_surf_free_vs_U_and_Pdchem)
+
 import pickle
 import matplotlib
 # matplotlib.use('Agg')
+
+def generate_tasks(save_to_files=False):
+    """Get reaction conditions"""
+    d_mu_Pd = np.array([0, -0.25, -0.5, -0.75, -1.0])+(-2.24900)
+    d_mu_Ti = np.array([0, -0.25, -0.5, -0.75, -1.0])+(-7.28453)
+    d_mu_H = np.array([-3.61353])
+    T = np.array([10, 25, 40, 65, 80])+273.15
+    U = np.array([0, -0.1, -0.2, -0.3, -0.4, -0.5, -0.6, -0.7, -0.8])
+    pH = np.array([0,])
+    P_H2 = np.array([101325.])
+    P_CO2 = np.array([101325.])
+    P_H2O = np.array([3534.])
+    # P_CO = np.logspace(-6, 0, 5)*101325.
+    P_CO = np.array([0.101325, 10.1325, 1013.25, 5562, 101325])
+    kappa = np.array([0, 1])
+    keys = ['d_mu_Pd', 'd_mu_Ti', 'd_mu_H', 'T', 'U', 'pH', 'P_H2', 'P_CO2', 'P_H2O', 'P_CO', 'kappa']
+    words = [d_mu_Pd, d_mu_Ti, d_mu_H, T, U, pH, P_H2, P_CO2, P_H2O, P_CO, kappa]
+    df = {}
+    for i in range(len(keys)):
+        df[keys[i]] = words[i]  
+    if save_to_files:
+        cond_grid = np.array(np.meshgrid(d_mu_Pd, d_mu_Ti, d_mu_H, T, U, pH, P_H2, P_CO2, P_H2O, P_CO, kappa)).T.reshape(-1, 11)
+        df = pd.DataFrame(cond_grid, columns=['d_mu_Pd', 'd_mu_Ti', 'd_mu_H', 'T', 'U', 'pH', 'P_H2', 'P_CO2', 'P_H2O', 'P_CO', 'kappa'])
+        df.to_pickle('em_tasks.pkl')
+        df.to_csv('em_tasks.csv')
+    return df
 
 def get_gas_free_energy(ads, T=298.15, P=3534., geometry='nonlinear'):
     energies = {}
@@ -213,32 +242,6 @@ def calc_dft_gamma(atoms):
     atoms.calc = None
     return atoms
 
-def generate_tasks(save_to_files=False):
-    """Get reaction conditions"""
-    d_mu_Pd = np.array([0, -0.25, -0.5, -0.75, -1.0])+(-2.24900)
-    d_mu_Ti = np.array([0, -0.25, -0.5, -0.75, -1.0])+(-7.28453)
-    d_mu_H = np.array([-3.61353])
-    T = np.array([10, 25, 40, 65, 80])+273.15
-    U = np.array([0, -0.1, -0.2, -0.3, -0.4, -0.5, -0.6, -0.7, -0.8])
-    pH = np.array([0,])
-    P_H2 = np.array([101325.])
-    P_CO2 = np.array([101325.])
-    P_H2O = np.array([3534.])
-    # P_CO = np.logspace(-6, 0, 5)*101325.
-    P_CO = np.array([0.101325, 10.1325, 1013.25, 5562, 101325])
-    kappa = np.array([0, 1])
-    keys = ['d_mu_Pd', 'd_mu_Ti', 'd_mu_H', 'T', 'U', 'pH', 'P_H2', 'P_CO2', 'P_H2O', 'P_CO', 'kappa']
-    words = [d_mu_Pd, d_mu_Ti, d_mu_H, T, U, pH, P_H2, P_CO2, P_H2O, P_CO, kappa]
-    df = {}
-    for i in range(len(keys)):
-        df[keys[i]] = words[i]  
-    if save_to_files:
-        cond_grid = np.array(np.meshgrid(d_mu_Pd, d_mu_Ti, d_mu_H, T, U, pH, P_H2, P_CO2, P_H2O, P_CO, kappa)).T.reshape(-1, 11)
-        df = pd.DataFrame(cond_grid, columns=['d_mu_Pd', 'd_mu_Ti', 'd_mu_H', 'T', 'U', 'pH', 'P_H2', 'P_CO2', 'P_H2O', 'P_CO', 'kappa'])
-        df.to_pickle('em_tasks.pkl')
-        df.to_csv('em_tasks.csv')
-    return df
-
 def generate_csv(fittest_images, raw_niches, save_to_csv=False):
     """Generate CSV for each images"""
     dfs = []
@@ -281,7 +284,7 @@ def plot_matrix_all_conds(images, iterations):
     return all_cands, all_ids
     
 
-def plot_SFE_at_One_Temp_and_Pco(images, iterations):
+def plot_SFE_at_One_Temp_and_Pco_and_T(images, iterations):
     """Fix temperature=298.15 K and partial pressure of CO=5562.0 Pa"""
     raw_niches = copy.deepcopy(niches)
     dfs = generate_csv(images, raw_niches, save_to_csv=False)
@@ -547,6 +550,60 @@ def plot_SFE_at_One_Chem_Pd_and_Ti_and_Pco(images, iterations):
     # plt.close()
     return cands, ids, minuss, idss 
 
+
+def plot_SFE_at_One_Chem_Pd_and_Pco_and_T(images, iterations):
+    """Fix Pd chem. pot.=[0], Pco and T. Plot U, Tichem vs surf. energy"""
+    raw_niches = copy.deepcopy(niches)
+    dfs = generate_csv(images, raw_niches, save_to_csv=False)
+    # d_mu_Ti = sorted(set(raw_niches['d_mu_Ti']), reverse=True)[0:1]
+    d_mu_Pd = sorted(set(raw_niches['d_mu_Pd']))[0:1]
+    T = sorted(set(raw_niches['T']))[1:2] # 298.15 K
+    P_CO = sorted(set(raw_niches['P_CO']))[3:4] # 5562.0 Pa
+    d_mu_Ti = sorted(set(raw_niches['d_mu_Ti']), reverse=True)[:]
+    U = sorted(set(raw_niches['U']))[:]
+    print({'d_mu_Pd': d_mu_Pd, 'd_mu_Ti': d_mu_Ti, 'T': T, 'U': U})
+    _, _ = plot_surf_free_vs_U_and_Tichem(dfs, **{'df_raw': raw_niches,
+                                                'images':images, 
+                                                'iter':iterations,
+                                                'gray_above': None,
+                                                'd_mu_Pd': d_mu_Pd,
+                                                'd_mu_Ti': d_mu_Ti,
+                                                'U': U,
+                                                'T': T,
+                                                'P_CO': P_CO,
+                                                }) # generate SFE and cands_T
+    minuss, idss = [], []
+    cands, ids = [], []
+    # plt.clf()   
+    # plt.close()
+    return cands, ids, minuss, idss
+
+def plot_SFE_at_One_Chem_Ti_and_Pco_and_T(images, iterations):
+    """Fix Ti chem. pot.=[0], Pco and T. Plot U, Pdchem vs surf. energy"""
+    raw_niches = copy.deepcopy(niches)
+    dfs = generate_csv(images, raw_niches, save_to_csv=False)
+    d_mu_Ti = sorted(set(raw_niches['d_mu_Ti']), reverse=True)[0:1]
+    T = sorted(set(raw_niches['T']))[1:2] # 298.15 K
+    P_CO = sorted(set(raw_niches['P_CO']))[3:4] # 5562.0 Pa
+    U = sorted(set(raw_niches['U']))[:]
+    d_mu_Pd = sorted(set(raw_niches['d_mu_Pd']))[:]
+    print({'d_mu_Pd': d_mu_Pd, 'd_mu_Ti': d_mu_Ti, 'T': T, 'U': U})
+    _, _ = plot_surf_free_vs_U_and_Pdchem(dfs, **{'df_raw': raw_niches,
+                                                'images':images, 
+                                                'iter':iterations,
+                                                'gray_above': None,
+                                                'd_mu_Pd': d_mu_Pd,
+                                                'd_mu_Ti': d_mu_Ti,
+                                                'U': U,
+                                                'T': T,
+                                                'P_CO': P_CO,
+                                                }) # generate SFE and cands_T
+    minuss, idss = [], []
+    cands, ids = [], []
+    # plt.clf()   
+    # plt.close()
+    return cands, ids, minuss, idss 
+
 if __name__ == '__main__':
     # niches = pd.read_pickle('em_tasks.pkl')
     # niches = generate_tasks(save_to_files=True)
@@ -563,9 +620,7 @@ if __name__ == '__main__':
             print('reading images...')
             images = read(f'dft_iter_{i}.traj', ':')
             
-        if False:
-            cands, ids, minuss, idss = plot_SFE_at_One_Temp_and_Pco(images, i)
-            print(cands, ids, minuss, idss)
+        
         if False: # generate matrix_all
             all_cands, all_ids = plot_matrix_all_conds(images, i)
             print(all_cands, all_ids)
@@ -574,24 +629,30 @@ if __name__ == '__main__':
             write_list(unique_ids, i, name='all_unique_ids.pkl')
             print(unique_ids, len(unique_ids))
             
-        if True:
+        if False:
             cands, ids, minuss, idss = plot_SFE_at_One_Pco_and_U(images, i)
             print(cands, ids, minuss, idss)
         if False: # generate matrix_all_T
             all_cands, all_ids = plot_matrix_all_conds_T(images, i)
         
         if False:
-            cands, ids, minuss, idss = plot_SFE_at_One_T_and_U(images, i)
-            print(cands, ids, minuss, idss)
+            plot_SFE_at_One_T_and_U(images, i) # plt SFT seperately
         if False: # generate matrix_all_T
             all_cands, all_ids = plot_matrix_all_conds_Pco(images, i) # Pourbaix matrix: Pco vs. Surf. energy
             
         if False:
+            plot_SFE_at_One_Temp_and_Pco_and_T(images, i) # Contour plot: Pd chem. vs. Ti chem.
+        if False:
             plot_SFE_at_One_Chem_Pd_and_Ti_and_U(images, i) # Contour plot: Pco vs. T
         if False:
             plot_SFE_at_One_Chem_Pd_and_Ti_and_T(images, i) # Contour plot: Pco vs. U
-        if False:
+            
+        if True:
             plot_SFE_at_One_Chem_Pd_and_Ti_and_Pco(images, i) # Contour plot: U vs. T
+        if False:
+            plot_SFE_at_One_Chem_Pd_and_Pco_and_T(images, i) # Contour plot: Ti chem. vs. U
+        if False:
+            plot_SFE_at_One_Chem_Ti_and_Pco_and_T(images, i) # Contour plot: Pd chem. vs. U
         
     
 

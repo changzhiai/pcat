@@ -115,6 +115,7 @@ def plot_surf_free_vs_U(dfs, **kwargs):
                     fig.savefig(f'{path}/iter_{iter}_Pd_{d_mu_pd}_Ti_{d_mu_ti}.png',dpi=300, bbox_inches='tight')
                     plt.show()
                     plt.close(fig)
+                    plt.clf()
     # plt.show()
     return cands, ids
 
@@ -160,6 +161,7 @@ def plot_surf_free_vs_U_matrix(dfs, **kwargs):
     st.set_y(1.01)
     plt.show()
     plt.close(fig)
+    plt.clf()
     path = './figures/matrix_pourbaix'
     if not(os.path.exists(path) and os.path.isdir(path)):
         os.mkdir(path)
@@ -296,7 +298,7 @@ def plot_surf_free_vs_U_contour(dfs, **kwargs):
             os.mkdir(path)
         fig.savefig(f'{path}/iter_{iter}_pot_{U}_cands.png',dpi=300, bbox_inches='tight')
         plt.close(fig)
-        
+        plt.clf()
         minuss.append(minis)
         idss.append(ids)
     return minuss, idss
@@ -392,6 +394,7 @@ def plot_surf_free_vs_T(dfs, **kwargs):
                     fig.savefig(f'{path}/iter_{iter}_Pd_{d_mu_pd}_Ti_{d_mu_ti}.png',dpi=300, bbox_inches='tight')
                     plt.show()
                     plt.close(fig)
+                    plt.clf()
     return cands, ids
 
 def plot_surf_free_vs_T_matrix(dfs, **kwargs):
@@ -436,6 +439,7 @@ def plot_surf_free_vs_T_matrix(dfs, **kwargs):
     st.set_y(1.01)
     plt.show()
     plt.close(fig)
+    plt.clf()
     path = './figures/matrix_pourbaix_T'
     if not(os.path.exists(path) and os.path.isdir(path)):
         os.mkdir(path)
@@ -489,6 +493,7 @@ def plot_surf_free_vs_T_contour(dfs, **kwargs):
             os.mkdir(path)
         fig.savefig(f'{path}/iter_{iter}_T_{t}_SFE.png',dpi=300, bbox_inches='tight')
         plt.close(fig)
+        plt.clf()
         fig,ax = plt.subplots(figsize=(5,5), dpi=300)
         ft_sz = 10
         pos_label = plot_heatmap(xs, ys, tags, df_results)
@@ -574,6 +579,7 @@ def plot_surf_free_vs_T_matrix_all(dfs, **kwargs):
             plt.show()
             fig.savefig(f'{path}/iter_{iter}_matrix_all_U_{u}_Pco_{pco}.png',dpi=300, bbox_inches='tight')
             plt.close(fig)
+            plt.clf()
     return cands, ids
 
 # Pco
@@ -660,6 +666,7 @@ def plot_surf_free_vs_Pco(dfs, **kwargs):
                     fig.savefig(f'{path}/iter_{iter}_Pd_{d_mu_pd}_Ti_{d_mu_ti}.png',dpi=300, bbox_inches='tight')
                     plt.show()
                     plt.close(fig)
+                    plt.clf()
     return cands, ids
 
 def plot_surf_free_vs_Pco_matrix(dfs, **kwargs):
@@ -705,6 +712,7 @@ def plot_surf_free_vs_Pco_matrix(dfs, **kwargs):
     st.set_y(1.01)
     plt.show()
     plt.close(fig)
+    plt.clf()
     path = './figures/matrix_pourbaix_Pco'
     if not(os.path.exists(path) and os.path.isdir(path)):
         os.mkdir(path)
@@ -758,6 +766,7 @@ def plot_surf_free_vs_Pco_contour(dfs, **kwargs):
             os.mkdir(path)
         fig.savefig(f'{path}/iter_{iter}_Pco_{pco}_SFE.png',dpi=300, bbox_inches='tight')
         plt.close(fig)
+        plt.clf()
         fig,ax = plt.subplots(figsize=(5,5), dpi=300)
         ft_sz = 10
         pos_label = plot_heatmap(xs, ys, tags, df_results)
@@ -784,7 +793,7 @@ def plot_surf_free_vs_Pco_contour(dfs, **kwargs):
             os.mkdir(path)
         fig.savefig(f'{path}/iter_{iter}_Pco_{pco}_cands.png',dpi=300, bbox_inches='tight')
         plt.close(fig)
-        
+        plt.clf()
         minuss.append(minis)
         idss.append(ids)
     return minuss, idss
@@ -842,6 +851,7 @@ def plot_surf_free_vs_Pco_matrix_all(dfs, **kwargs):
             plt.show()
             fig.savefig(f'{path}/iter_{iter}_matrix_all_U_{u}_T_{t}.png',dpi=300, bbox_inches='tight')
             plt.close(fig)
+            plt.clf()
     return cands, ids
 
 def plot_heatmap(xs, ys, tags, df_results):
@@ -924,6 +934,7 @@ def plot_surf_free_vs_T_and_Pco(dfs, **kwargs):
             ax.annotate(txt, (xs[i], ys[i]), ha='center')
         plt.show()
         plt.close(fig)
+        plt.clf()
         path = './figures/Contour_vs_T_and_Pco'
         if not(os.path.exists(path) and os.path.isdir(path)):
             os.mkdir(path)
@@ -948,6 +959,7 @@ def plot_surf_free_vs_T_and_Pco(dfs, **kwargs):
             os.mkdir(path)
         fig.savefig(f'{path}/iter_{iter}_U_{u}_heatmap.png',dpi=300, bbox_inches='tight')
         plt.close(fig)
+        plt.clf()
         minuss.append(minis)
         idss.append(ids)
     return minuss, idss
@@ -994,6 +1006,7 @@ def plot_surf_free_vs_U_and_Pco(dfs, **kwargs):
             ax.annotate(txt, (xs[i], ys[i]), ha='center')
         plt.show()
         plt.close(fig)
+        plt.clf()
         path = './figures/Contour_vs_U_and_Pco'
         if not(os.path.exists(path) and os.path.isdir(path)):
             os.mkdir(path)
@@ -1018,6 +1031,7 @@ def plot_surf_free_vs_U_and_Pco(dfs, **kwargs):
             os.mkdir(path)
         fig.savefig(f'{path}/iter_{iter}_T_{t}_heatmap.png',dpi=300, bbox_inches='tight')
         plt.close(fig)
+        plt.clf()
         minuss.append(minis)
         idss.append(ids)
     return minuss, idss
@@ -1040,8 +1054,8 @@ def plot_surf_free_vs_T_and_U(dfs, **kwargs):
                 for u in U:
                     for t in T:
                         cand, id_set, minis, ids = plot_multi_scores_vs_U(dfs, d_mu_pd, d_mu_ti, pco, t, **kwargs)
-                        xs.append(t)
-                        ys.append(u)
+                        xs.append(u)
+                        ys.append(t)
                         zs.append(minis[u])
                         tags.append(ids[u])
         df_results = pd.DataFrame({'xs': xs, 'ys': ys, 'zs': zs, 'tags':tags})
@@ -1064,6 +1078,7 @@ def plot_surf_free_vs_T_and_U(dfs, **kwargs):
             ax.annotate(txt, (xs[i], ys[i]), ha='center')
         plt.show()
         plt.close(fig)
+        plt.clf()
         path = './figures/Contour_vs_T_and_U'
         if not(os.path.exists(path) and os.path.isdir(path)):
             os.mkdir(path)
@@ -1088,6 +1103,151 @@ def plot_surf_free_vs_T_and_U(dfs, **kwargs):
             os.mkdir(path)
         fig.savefig(f'{path}/iter_{iter}_Pco_{pco}_heatmap.png',dpi=300, bbox_inches='tight')
         plt.close(fig)
+        plt.clf()
+        minuss.append(minis)
+        idss.append(ids)
+    return minuss, idss
+
+def plot_surf_free_vs_U_and_Tichem(dfs, **kwargs):
+    """Fix chem. pot. of Pd, and Pco. Plot U, Tichem vs surf. energy
+    Generat only one 5x5 matrix plot"""
+    iter = kwargs['iter']
+    d_mu_Pd = kwargs['d_mu_Pd']
+    d_mu_Ti = kwargs['d_mu_Ti']
+    T = kwargs['T']
+    U = kwargs['U']
+    P_CO = kwargs['P_CO']
+    minuss, idss = [], []
+    for d_mu_pd in d_mu_Pd:
+        i=0
+        xs, ys, zs, tags = [], [], [], []
+        for d_mu_ti in d_mu_Ti:
+            for pco in P_CO:
+                for u in U:
+                    for t in T:
+                        cand, id_set, minis, ids = plot_multi_scores_vs_U(dfs, d_mu_pd, d_mu_ti, pco, t, **kwargs)
+                        xs.append(d_mu_ti)
+                        ys.append(u)
+                        zs.append(minis[u])
+                        tags.append(ids[u])
+        df_results = pd.DataFrame({'xs': xs, 'ys': ys, 'zs': zs, 'tags':tags})
+        xs = np.asarray(xs)
+        ys = np.asarray(ys)
+        zs = np.asarray(zs)
+        fig,ax = plt.subplots(figsize=(8,6), dpi=300)
+        ft_sz = 12
+        cp = ax.contourf(xs.reshape(5,9), ys.reshape(5,9), zs.reshape(5,9))
+        bar = fig.colorbar(cp) # Add a colorbar to a plot
+        bar.set_label('Surface free energy (eV)', rotation=270, labelpad=20, fontsize=ft_sz)
+        bar.ax.tick_params(labelsize=ft_sz)
+        ax.set_title(f'Iter. {iter}, Pd chem.: {d_mu_Pd[0]}, Pco={pco} Pa, T={T[0]} K', fontsize=ft_sz)
+        plt.xlabel('Ti chemical potential', fontsize=ft_sz)
+        plt.ylabel('Potential (V)', fontsize=ft_sz)
+        plt.xticks(fontsize=ft_sz)
+        plt.yticks(fontsize=ft_sz)
+        plt.scatter(xs, ys, c='gray', marker='o',)
+        for i, txt in enumerate(tags):
+            ax.annotate(txt, (xs[i], ys[i]), ha='center')
+        plt.show()
+        plt.close(fig)
+        plt.clf()
+        path = './figures/Contour_vs_Tichem_and_U'
+        if not(os.path.exists(path) and os.path.isdir(path)):
+            os.mkdir(path)
+        fig.savefig(f'{path}/iter_{iter}_pot_{U}_Contour.png',dpi=300, bbox_inches='tight')
+        
+        fig,ax = plt.subplots(figsize=(5,5), dpi=300)
+        ft_sz = 10
+        pos_label = plot_heatmap(xs, ys, tags, df_results)
+        for label in pos_label.keys():
+            x, y = pos_label[label]
+            plt.text(x, y, label, horizontalalignment='center', fontsize=ft_sz)
+        ax.set_title(f'Iter. {iter}, Pd chem.: {d_mu_Pd[0]}, Pco={pco} Pa, T={T[0]} K', fontsize=ft_sz)
+        plt.xlim([-8.28, -7.28])
+        plt.ylim([-0.8, 0.0])
+        plt.xlabel('Ti chemical potential', fontsize=ft_sz)
+        plt.ylabel('Potential (V)', fontsize=ft_sz)
+        plt.xticks(fontsize=ft_sz)
+        plt.yticks(fontsize=ft_sz)
+        plt.show()
+        path = './figures/Heatmap_vs_Tichem_and_U'
+        if not(os.path.exists(path) and os.path.isdir(path)):
+            os.mkdir(path)
+        fig.savefig(f'{path}/iter_{iter}_Pco_{pco}_heatmap.png',dpi=300, bbox_inches='tight')
+        plt.close(fig)
+        plt.clf()
+        minuss.append(minis)
+        idss.append(ids)
+    return minuss, idss
+
+def plot_surf_free_vs_U_and_Pdchem(dfs, **kwargs):
+    """Fix chem. pot. of Ti, and Pco. Plot U, Pdchem vs surf. energy
+    Generat only one 5x5 matrix plot"""
+    iter = kwargs['iter']
+    d_mu_Pd = kwargs['d_mu_Pd']
+    d_mu_Ti = kwargs['d_mu_Ti']
+    T = kwargs['T']
+    U = kwargs['U']
+    P_CO = kwargs['P_CO']
+    minuss, idss = [], []
+    for d_mu_ti in d_mu_Ti:
+        i=0
+        xs, ys, zs, tags = [], [], [], []
+        for d_mu_pd in d_mu_Pd:
+            for pco in P_CO:
+                for u in U:
+                    for t in T:
+                        cand, id_set, minis, ids = plot_multi_scores_vs_U(dfs, d_mu_pd, d_mu_ti, pco, t, **kwargs)
+                        xs.append(d_mu_pd)
+                        ys.append(u)
+                        zs.append(minis[u])
+                        tags.append(ids[u])
+        df_results = pd.DataFrame({'xs': xs, 'ys': ys, 'zs': zs, 'tags':tags})
+        xs = np.asarray(xs)
+        ys = np.asarray(ys)
+        zs = np.asarray(zs)
+        fig,ax = plt.subplots(figsize=(8,6), dpi=300)
+        ft_sz = 12
+        cp = ax.contourf(xs.reshape(5,9), ys.reshape(5,9), zs.reshape(5,9))
+        bar = fig.colorbar(cp) # Add a colorbar to a plot
+        bar.set_label('Surface free energy (eV)', rotation=270, labelpad=20, fontsize=ft_sz)
+        bar.ax.tick_params(labelsize=ft_sz)
+        ax.set_title(f'Iter. {iter}, Ti chem.: {d_mu_Ti[0]}, Pco={pco} Pa, T={T[0]} K', fontsize=ft_sz)
+        plt.xlabel('Pd chemical potential', fontsize=ft_sz)
+        plt.ylabel('Potential (V)', fontsize=ft_sz)
+        plt.xticks(fontsize=ft_sz)
+        plt.yticks(fontsize=ft_sz)
+        plt.scatter(xs, ys, c='gray', marker='o',)
+        for i, txt in enumerate(tags):
+            ax.annotate(txt, (xs[i], ys[i]), ha='center')
+        plt.show()
+        plt.close(fig)
+        plt.clf()
+        path = './figures/Contour_vs_Tichem_and_U'
+        if not(os.path.exists(path) and os.path.isdir(path)):
+            os.mkdir(path)
+        fig.savefig(f'{path}/iter_{iter}_pot_{U}_Contour.png',dpi=300, bbox_inches='tight')
+        
+        fig,ax = plt.subplots(figsize=(5,5), dpi=300)
+        ft_sz = 10
+        pos_label = plot_heatmap(xs, ys, tags, df_results)
+        for label in pos_label.keys():
+            x, y = pos_label[label]
+            plt.text(x, y, label, horizontalalignment='center', fontsize=ft_sz)
+        ax.set_title(f'Iter. {iter}, Ti chem.: {d_mu_Ti[0]}, Pco={pco} Pa, T={T[0]} K', fontsize=ft_sz)
+        plt.xlabel('Pd chemical potential', fontsize=ft_sz)
+        plt.ylabel('Potential (V)', fontsize=ft_sz)
+        plt.xlim([-3.25, -2.25])
+        plt.ylim([-0.8, 0.0])
+        plt.xticks(fontsize=ft_sz)
+        plt.yticks(fontsize=ft_sz)
+        plt.show()
+        path = './figures/Heatmap_vs_Tichem_and_U'
+        if not(os.path.exists(path) and os.path.isdir(path)):
+            os.mkdir(path)
+        fig.savefig(f'{path}/iter_{iter}_Pco_{pco}_heatmap.png',dpi=300, bbox_inches='tight')
+        plt.close(fig)
+        plt.clf()
         minuss.append(minis)
         idss.append(ids)
     return minuss, idss
