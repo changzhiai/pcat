@@ -636,8 +636,8 @@ if __name__ == '__main__':
     # niches = pd.read_pickle('em_tasks.pkl')
     # niches = generate_tasks(save_to_files=True)
     niches = pd.read_csv('./data/em_tasks.csv')
-    iter = 28
-    for i in range(27,iter):
+    iter = 30
+    for i in range(29,iter):
         print(f'iter{i}')
         if False:
             images = read(f'./data/dft_PdTiH_adss_r0_to_r{i}_final_tot.traj', ':')
@@ -672,19 +672,19 @@ if __name__ == '__main__':
                 plot_SFE_at_One_T_and_U(images, i) # # plot SFT seperately x is Pco
         
         
-        if True:
+        if False:
             if True: # Contour
                 plot_Contour_at_One_U_and_Pco_and_T(images, i) # Contour plot: Ti chem. vs. Pd chem.
-            # if True:
-            #     plot_Contour_at_One_Chem_Pd_and_Ti_and_U(images, i) # Contour plot: Pco vs. T
-            # if True:
-            #     plot_Contour_at_One_Chem_Pd_and_Ti_and_T(images, i) # Contour plot: Pco vs. U
-            # if True:
-            #     plot_Contour_at_One_Chem_Pd_and_Ti_and_Pco(images, i) # Contour plot: U vs. T
-            # if True:
-            #     plot_Contour_at_One_Chem_Pd_and_Pco_and_T(images, i) # Contour plot: Ti chem. vs. U
-            # if True:
-            #     plot_Contour_at_One_Chem_Ti_and_Pco_and_T(images, i) # Contour plot: Pd chem. vs. U
+            if True:
+                plot_Contour_at_One_Chem_Pd_and_Ti_and_U(images, i) # Contour plot: Pco vs. T
+            if True:
+                plot_Contour_at_One_Chem_Pd_and_Ti_and_T(images, i) # Contour plot: Pco vs. U
+            if True:
+                plot_Contour_at_One_Chem_Pd_and_Ti_and_Pco(images, i) # Contour plot: U vs. T
+            if True:
+                plot_Contour_at_One_Chem_Pd_and_Pco_and_T(images, i) # Contour plot: Ti chem. vs. U
+            if True:
+                plot_Contour_at_One_Chem_Ti_and_Pco_and_T(images, i) # Contour plot: Pd chem. vs. U
         
     
 

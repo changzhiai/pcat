@@ -360,7 +360,7 @@ def plot_surf_free_vs_Tichem_and_Pdchem(dfs, **kwargs):
         pos_label = plot_heatmap(xs, ys, tags, df_results)
         for label in pos_label.keys():
             x, y = pos_label[label]
-            label = images[label].info['formula']
+            # label = images[label].info['formula']
             plt.text(x, y, label, horizontalalignment='center', fontsize=ft_sz)
         plt.xlim([-3.25, -2.25])
         plt.ylim([-8.28, -7.28])
@@ -945,6 +945,33 @@ def plot_surf_free_vs_Pco_matrix_all(dfs, **kwargs):
     return cands, ids
 
 def plot_heatmap(xs, ys, tags, df_results):
+    """Plot heatmap of xs, ys, tags"""
+    cs = get_colorslist(NUM_COLORS=1000)
+    colors = []
+    for tag in tags:
+        colors.append(cs[tag])
+    # im = ax.imshow(np.asarray(tags).reshape(9,5))
+    xi = np.linspace(min(xs), max(xs), 100)
+    yi = np.linspace(min(ys), max(ys), 100)
+    from scipy.interpolate import griddata
+    Z = griddata((xs, ys), np.asarray(tags), (xi[None,:], yi[:,None]), method='nearest')
+    # plt.contour(xi, yi, Z)
+    colors = []
+    for i in range(Z.shape[0]):
+        for j in range(Z.shape[1]):
+            colors.append(cs[Z[i][j]])
+    X, Y = np.meshgrid(xi,yi)
+    plt.scatter(X, Y, c=colors, marker='s',s=2, linewidths=4)
+    pos_label = {}
+    df = pd.DataFrame({'xs': X.flatten(), 'ys': Y.flatten(), 'zs': Z.flatten()})
+    for tag in set(tags):
+        df_sub = df.loc[df['zs'] == tag]
+        x_ave = df_sub['xs'].mean()
+        y_ave = df_sub['ys'].mean()
+        pos_label[tag] = (x_ave, y_ave)
+    return pos_label
+
+def plot_heatmap_old2(xs, ys, tags, df_results):
     """Plot heatmap of xs, ys, tags"""
     cs = get_colorslist(NUM_COLORS=1000)
     colors = []
