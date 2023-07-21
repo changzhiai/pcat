@@ -28,8 +28,11 @@ def plot_activity():
     """Plot activity of CO2RR"""
     df = pd_read_excel(filename='./data/iter27.xlsx', sheet='Activity')
     # df.drop(['Pd16Ti48H8', 'Pd16Ti48H24'], inplace=True)
-    ColorDict= {'images_774_0': 'white',}
-    tune_tex_pos = {'images_774_0': [-0.5, -0.0],}
+    ColorDict= {'Pure': 'black', 'Pd14Ti2H17+1CO': 'black', 'Pd5Ti11H20+2CO': 'black', 
+                'Pd5Ti11H20+1CO': 'black', 'Pd9Ti7H17+1CO': 'black'}
+    
+    tune_tex_pos = {'Pure': [-0.0, 0.1], 'Pd14Ti2H17+1CO': [-0.35, -0.2], 'Pd5Ti11H20+2CO': [-0.2, -0.3], 
+                    'Pd5Ti11H20+1CO': [-0.2, -0.25], 'Pd9Ti7H17+1CO': [-0.25, -0.25]}
     name_fig_act = './figures/iter27_activity.jpg'
     activity = Activity(df, descriper1 = 'E(CO*)', descriper2 = 'E(HOCO*)', fig_name=name_fig_act,
                         U0=-0.5, 
@@ -57,10 +60,11 @@ def plot_CO2RR_free_enegy():
     name_fig_FE = './figures/iter27_CO2RR.jpg'
     fig = plt.figure(figsize=(8, 6), dpi = 300)
     ax = fig.add_subplot(111)
-    CO2RR_FED = CO2RRFED(df, fig_name=name_fig_FE)
+    ColorDict= {'Pure': 'black',}
+    CO2RR_FED = CO2RRFED(df, fig_name=name_fig_FE, **{'ColorDict': ColorDict})
     pos0, _ = CO2RR_FED.plot(ax=ax, save=False, title='',)
     print('initial x pos:', pos0)
-    plt.legend(loc='upper center', bbox_to_anchor=(0.48, -0.12), fancybox=True, shadow=True, ncol=5, fontsize=8)
+    plt.legend(loc='upper center', bbox_to_anchor=(0.46, -0.12), fancybox=True, shadow=True, ncol=5, fontsize=8)
     # plt.legend(loc='upper center', bbox_to_anchor=(0.45, -0.12), fancybox=True, shadow=True, ncol=5, fontsize=8)
     # plt.legend(loc = "lower left", bbox_to_anchor=(0.00, -0.50, 0.8, 1.02), ncol=5, borderaxespad=0)
     plt.show()
@@ -79,11 +83,12 @@ def plot_HER_free_energy():
     name_fig_FE = './figures/iter27_HER.jpg'
     fig = plt.figure(figsize=(8, 6), dpi = 300)
     ax = fig.add_subplot(111)
-    HER_FED = HERFED(df, fig_name=name_fig_FE)
-    pos0, _ = HER_FED.plot(ax=ax, save=False, title='',)
+    ColorDict= {'Pure': 'black',}
+    HER_FED = HERFED(df, fig_name=name_fig_FE, **{'ColorDict': ColorDict})
+    pos0, _ = HER_FED.plot(ax=ax, save=False, title='')
     print('initial x pos:', pos0)
     # plt.legend(loc='upper center', bbox_to_anchor=(pos0-0.25, -0.12), fancybox=True, shadow=True, ncol=5, fontsize=8)
-    plt.legend(loc='upper center', bbox_to_anchor=(pos0-2.65, -0.12), fancybox=True, shadow=True, ncol=5, fontsize=8)
+    plt.legend(loc='upper center', bbox_to_anchor=(pos0-1.96, -0.12), fancybox=True, shadow=True, ncol=5, fontsize=8)
     plt.show()
     fig.savefig(name_fig_FE, dpi=300, bbox_inches='tight')
     
@@ -95,9 +100,11 @@ def plot_selectivity():
     # df.set_axis(['Single'], axis='columns', inplace=True)
     name_fig_select = './figures/iter27_Selectivity.jpg'
     
-    tune_ano_pos = {'images_774_0': [-0.5, -0.0],}
+    tune_ano_pos = {'Pure': [0.7, 0.1], 'Pd14Ti2H17+1CO': [0.7, 0.0], 'Pd5Ti11H20+2CO': [0.7, -0.1], 
+                    'Pd5Ti11H20+1CO': [0.7, -0.1], 'Pd9Ti7H17+1CO': [0.7, 0.0]}
     selectivity = Selectivity(df, fig_name=name_fig_select)
-    selectivity.plot(save=True, title='', xlabel='Different surfaces', tune_tex_pos=-1.5, legend=False, tune_ano_pos=tune_ano_pos)
+    selectivity.plot(save=True, title='', xlabel='Different surfaces', tune_tex_pos=-0.4, legend=False, 
+                     tune_ano_pos=tune_ano_pos, **{'width': 0.5, 'head_width': 1.})
 
 def plot_iteration():
     mpl.rcParams["figure.figsize"] = [6.4, 4.8]
@@ -145,7 +152,7 @@ def find_num_of_new(pre_unique_ids, unique_ids):
             new_ids.append(id)
     return new_ids
 
-def new_cands_vs_iters(since=1, iter=28):
+def new_cands_vs_iters(since=1, iter=31):
     iter_unique_ids, iter_new_ids = [], []
     iter_unique_ids.append([])
     iter_new_ids.append([])
@@ -156,7 +163,8 @@ def new_cands_vs_iters(since=1, iter=28):
         new_ids = find_num_of_new(iter_unique_ids[i-1], iter_unique_ids[i])
         iter_new_ids.append(new_ids)
         print(sorted(unique_ids))
-    fig, ax = plt.subplots(figsize=(8,7), dpi=300)
+    # fig, ax = plt.subplots(figsize=(8,7), dpi=300)
+    fig, ax = plt.subplots(dpi=300)
     lens_new = []
     for new_ids in iter_new_ids:
         lens_new.append(len(new_ids))
@@ -172,10 +180,11 @@ def new_cands_vs_iters(since=1, iter=28):
     plt.show()
 
 if __name__ == '__main__':
-    # plot_activity()
-    # plot_HER_free_energy()
-    # plot_CO2RR_free_enegy()
-    plot_selectivity()
+    if False:
+        plot_activity()
+        plot_HER_free_energy()
+        plot_CO2RR_free_enegy()
+        plot_selectivity()
     # plot_iteration()
-    # new_cands_vs_iters(since=17)
+    new_cands_vs_iters(since=17)
     

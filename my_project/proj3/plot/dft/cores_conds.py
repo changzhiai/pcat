@@ -106,7 +106,7 @@ def plot_surf_free_vs_U(dfs, **kwargs):
                     plt.ylabel('Surface free energy (eV)', fontsize=ft_sz)
                     plt.xlim([-0.8, 0.])
                     plt.ylim([-1., 0.251])
-                    plt.title(f'Iter {iter}, Ti chem.: {round(d_mu_ti,3)}, Pd chem.: {d_mu_pd}, T: {t} K, Pco: {pco} Pa')
+                    plt.title(f'Iter {iter}, $\Delta \mu_{{Pd}}$: {d_mu_pd}, $\Delta \mu_{{Ti}}$: {round(d_mu_ti,3)}, T: {t} K, Pco: {pco} Pa')
                     plt.text(0.34, 0.03, id_set, horizontalalignment='left', verticalalignment='center',
                               transform=ax.transAxes, fontsize=14, fontweight='bold')
                     path = f'./figures/pourbaix/Pd_{d_mu_pd}_Ti_{d_mu_ti}'
@@ -140,7 +140,7 @@ def plot_surf_free_vs_U_matrix(dfs, **kwargs):
                     ft_sz = 6
                     plt.text(0.05, 0.05, id_set, horizontalalignment='left', verticalalignment='center',
                              transform=ax.transAxes, fontsize=ft_sz)  
-                    plt.text(0.05, 0.90, f'Pd: {d_mu_pd}, Ti: {round(d_mu_ti,3)}',
+                    plt.text(0.05, 0.90, f'$\Delta \mu_{{Pd}}$: {d_mu_pd}, $\Delta \mu_{{Ti}}$: {round(d_mu_ti,3)}',
                              horizontalalignment='left', verticalalignment='center', transform=ax.transAxes,fontsize=ft_sz)
                     plt.xlim([-0.8, 0.])
                     plt.ylim([-1., 0.25])
@@ -198,7 +198,7 @@ def plot_surf_free_vs_U_matrix_all(dfs, **kwargs):
                     ft_sz = 6
                     plt.text(0.05, 0.05, id_set, horizontalalignment='left', verticalalignment='center',
                              transform=ax.transAxes, fontsize=ft_sz)  
-                    plt.text(0.05, 0.90, f'Pd: {d_mu_pd}, Ti: {round(d_mu_ti,3)}',
+                    plt.text(0.05, 0.90, f'$\Delta \mu_{{Pd}}$: {d_mu_pd}, $\Delta \mu_{{Ti}}$: {round(d_mu_ti,3)}',
                              horizontalalignment='left', verticalalignment='center', transform=ax.transAxes,fontsize=ft_sz)
                     plt.xlim([-0.8, 0.])
                     plt.ylim([-1., 0.25])
@@ -258,8 +258,8 @@ def plot_surf_free_vs_U_contour(dfs, **kwargs):
         bar.set_label('Surface free energy (eV)', rotation=270, labelpad=20, fontsize=ft_sz)
         bar.ax.tick_params(labelsize=ft_sz)
         ax.set_title(f'Iter. {iter}, U={U} V, T={T[0]} K, Pco={P_CO[0]} Pa', fontsize=ft_sz)
-        plt.xlabel('Pd chemical potential', fontsize=ft_sz)
-        plt.ylabel('Ti chemical potential', fontsize=ft_sz)
+        plt.xlabel(r'$\Delta \mu_{Pd}$', fontsize=ft_sz)
+        plt.ylabel(r'$\Delta \mu_{Ti}$', fontsize=ft_sz)
         plt.xticks(fontsize=ft_sz)
         plt.yticks(fontsize=ft_sz)
         if False:
@@ -289,8 +289,8 @@ def plot_surf_free_vs_U_contour(dfs, **kwargs):
         # for i, txt in enumerate(tags):
         #     ax.annotate(txt, (xs[i], ys[i]), ha='center')
         ax.set_title(f'Iter. {iter}, U={U} V, T={T[0]} K, Pco={P_CO[0]} Pa', fontsize=ft_sz)
-        plt.xlabel('Pd chemical potential', fontsize=ft_sz)
-        plt.ylabel('Ti chemical potential', fontsize=ft_sz)
+        plt.xlabel(r'$\Delta \mu_{Pd}$', fontsize=ft_sz)
+        plt.ylabel(r'$\Delta \mu_{Ti}$', fontsize=ft_sz)
         plt.xticks(fontsize=ft_sz)
         plt.yticks(fontsize=ft_sz)
         plt.show()
@@ -340,8 +340,8 @@ def plot_surf_free_vs_Tichem_and_Pdchem(dfs, **kwargs):
         bar.set_label('Surface free energy (eV)', rotation=270, labelpad=20, fontsize=ft_sz)
         bar.ax.tick_params(labelsize=ft_sz)
         ax.set_title(f'Iter. {iter}, U={u} V, T={T[0]} K, Pco={P_CO[0]} Pa', fontsize=ft_sz)
-        plt.xlabel('Pd chemical potential', fontsize=ft_sz)
-        plt.ylabel('Ti chemical potential', fontsize=ft_sz)
+        plt.xlabel(r'$\Delta \mu_{Pd}$', fontsize=ft_sz)
+        plt.ylabel(r'$\Delta \mu_{Ti}$', fontsize=ft_sz)
         plt.xticks(fontsize=ft_sz)
         plt.yticks(fontsize=ft_sz)
         if False:
@@ -374,8 +374,8 @@ def plot_surf_free_vs_Tichem_and_Pdchem(dfs, **kwargs):
         # for i, txt in enumerate(tags):
         #     ax.annotate(txt, (xs[i], ys[i]), ha='center')
         ax.set_title(f'Iter. {iter}, U={u} V, T={T[0]} K, Pco={P_CO[0]} Pa', fontsize=ft_sz)
-        plt.xlabel('Pd chemical potential', fontsize=ft_sz)
-        plt.ylabel('Ti chemical potential', fontsize=ft_sz)
+        plt.xlabel(r'$\Delta \mu_{Pd}$', fontsize=ft_sz)
+        plt.ylabel(r'$\Delta \mu_{Ti}$', fontsize=ft_sz)
         plt.xticks(fontsize=ft_sz)
         plt.yticks(fontsize=ft_sz)
         plt.show()
@@ -471,7 +471,7 @@ def plot_surf_free_vs_T(dfs, **kwargs):
                     plt.ylabel('Surface free energy (eV)', fontsize=ft_sz)
                     plt.xlim([283.15, 353.15])
                     plt.ylim([-1., 0.251])
-                    plt.title(f'Iter {iter}, Ti chem.: {round(d_mu_ti,3)}, Pd chem.: {d_mu_pd}, U: {u} V, Pco: {pco} Pa')
+                    plt.title(f'Iter {iter}, $\Delta \mu_{{Pd}}$: {d_mu_pd}, $\Delta \mu_{{Ti}}$: {round(d_mu_ti,3)}, U: {u} V, Pco: {pco} Pa')
                     plt.text(0.34, 0.03, id_set, horizontalalignment='left', verticalalignment='center',
                               transform=ax.transAxes, fontsize=14, fontweight='bold')
                     path = f'./figures/pourbaix_T/Pd_{d_mu_pd}_Ti_{d_mu_ti}'
@@ -504,7 +504,7 @@ def plot_surf_free_vs_T_matrix(dfs, **kwargs):
                     ft_sz = 6
                     plt.text(0.05, 0.05, id_set, horizontalalignment='left', verticalalignment='center',
                              transform=ax.transAxes, fontsize=ft_sz)  
-                    plt.text(0.05, 0.90, f'Pd: {d_mu_pd}, Ti: {round(d_mu_ti,3)}',
+                    plt.text(0.05, 0.90, f'$\Delta \mu_{{Pd}}$: {d_mu_pd}, $\Delta \mu_{{Ti}}$: {round(d_mu_ti,3)}',
                              horizontalalignment='left', verticalalignment='center', transform=ax.transAxes,fontsize=ft_sz)
                     plt.xlim([283.15, 353.15])
                     plt.ylim([-1., 0.25])
@@ -567,8 +567,8 @@ def plot_surf_free_vs_T_contour(dfs, **kwargs):
         bar.set_label('Surface free energy (eV)', rotation=270, labelpad=20, fontsize=ft_sz)
         bar.ax.tick_params(labelsize=ft_sz)
         ax.set_title(f'Iter. {iter}, U={U[0]} V, T={t} K, Pco={P_CO[0]} Pa', fontsize=ft_sz)
-        plt.xlabel('Pd chemical potential', fontsize=ft_sz)
-        plt.ylabel('Ti chemical potential', fontsize=ft_sz)
+        plt.xlabel(r'$\Delta \mu_{Pd}$', fontsize=ft_sz)
+        plt.ylabel(r'$\Delta \mu_{Ti}$', fontsize=ft_sz)
         plt.xticks(fontsize=ft_sz)
         plt.yticks(fontsize=ft_sz)
         if False:
@@ -600,8 +600,8 @@ def plot_surf_free_vs_T_contour(dfs, **kwargs):
         # for i, txt in enumerate(tags):
         #     ax.annotate(txt, (xs[i], ys[i]), ha='center')
         ax.set_title(f'Iter. {iter}, U={U[0]} V, T={t} K, Pco={P_CO[0]} Pa', fontsize=ft_sz)
-        plt.xlabel('Pd chemical potential', fontsize=ft_sz)
-        plt.ylabel('Ti chemical potential', fontsize=ft_sz)
+        plt.xlabel(r'$\Delta \mu_{Pd}$', fontsize=ft_sz)
+        plt.ylabel(r'$\Delta \mu_{Ti}$', fontsize=ft_sz)
         plt.xticks(fontsize=ft_sz)
         plt.yticks(fontsize=ft_sz)
         plt.show()
@@ -645,7 +645,7 @@ def plot_surf_free_vs_T_matrix_all(dfs, **kwargs):
                     ft_sz = 6
                     plt.text(0.05, 0.05, id_set, horizontalalignment='left', verticalalignment='center',
                              transform=ax.transAxes, fontsize=ft_sz)  
-                    plt.text(0.05, 0.90, f'Pd: {d_mu_pd}, Ti: {round(d_mu_ti,3)}',
+                    plt.text(0.05, 0.90, f'$\Delta \mu_{{Pd}}$: {d_mu_pd}, $\Delta \mu_{{Ti}}$: {round(d_mu_ti,3)}',
                              horizontalalignment='left', verticalalignment='center', transform=ax.transAxes,fontsize=ft_sz)
                     plt.xlim([283.15, 353.15])
                     plt.ylim([-1., 0.25])
@@ -745,7 +745,7 @@ def plot_surf_free_vs_Pco(dfs, **kwargs):
                     plt.xscale("log")
                     plt.xlim([0.101325, 101325])
                     plt.ylim([-1., 0.251])
-                    plt.title(f'Iter {iter}, Ti chem.: {round(d_mu_ti,3)}, Pd chem.: {d_mu_pd}, U: {u} V, T: {t} K')
+                    plt.title(f'Iter {iter}, $\Delta \mu_{{Pd}}$: {d_mu_pd}, $\Delta \mu_{{Ti}}$: {round(d_mu_ti,3)}, U: {u} V, T: {t} K')
                     plt.text(0.34, 0.03, id_set, horizontalalignment='left', verticalalignment='center',
                               transform=ax.transAxes, fontsize=14, fontweight='bold')
                     path = f'./figures/pourbaix_Pco/Pd_{d_mu_pd}_Ti_{d_mu_ti}'
@@ -778,7 +778,7 @@ def plot_surf_free_vs_Pco_matrix(dfs, **kwargs):
                     ft_sz = 6
                     plt.text(0.05, 0.05, id_set, horizontalalignment='left', verticalalignment='center',
                              transform=ax.transAxes, fontsize=ft_sz)  
-                    plt.text(0.05, 0.90, f'Pd: {d_mu_pd}, Ti: {round(d_mu_ti,3)}',
+                    plt.text(0.05, 0.90, f'$\Delta \mu_{{Pd}}$: {d_mu_pd}, $\Delta \mu_{{Ti}}$: {round(d_mu_ti,3)}',
                              horizontalalignment='left', verticalalignment='center', transform=ax.transAxes,fontsize=ft_sz)
                     plt.xscale("log")
                     plt.xlim([0.101325, 101325])
@@ -842,8 +842,8 @@ def plot_surf_free_vs_Pco_contour(dfs, **kwargs):
         bar.set_label('Surface free energy (eV)', rotation=270, labelpad=20, fontsize=ft_sz)
         bar.ax.tick_params(labelsize=ft_sz)
         ax.set_title(f'Iter. {iter}, U={U[0]} V, T={T[0]} K, Pco={pco} Pa', fontsize=ft_sz)
-        plt.xlabel('Pd chemical potential', fontsize=ft_sz)
-        plt.ylabel('Ti chemical potential', fontsize=ft_sz)
+        plt.xlabel(r'$\Delta \mu_{Pd}$', fontsize=ft_sz)
+        plt.ylabel(r'$\Delta \mu_{Ti}$', fontsize=ft_sz)
         plt.xticks(fontsize=ft_sz)
         plt.yticks(fontsize=ft_sz)
         if False:
@@ -873,8 +873,8 @@ def plot_surf_free_vs_Pco_contour(dfs, **kwargs):
         for i, txt in enumerate(tags):
             ax.annotate(txt, (xs[i], ys[i]), ha='center')
         ax.set_title(f'Iter. {iter}, U={U[0]} V, T={T[0]} K, Pco={pco} Pa', fontsize=ft_sz)
-        plt.xlabel('Pd chemical potential', fontsize=ft_sz)
-        plt.ylabel('Ti chemical potential', fontsize=ft_sz)
+        plt.xlabel(r'$\Delta \mu_{Pd}$', fontsize=ft_sz)
+        plt.ylabel(r'$\Delta \mu_{Ti}$', fontsize=ft_sz)
         plt.xticks(fontsize=ft_sz)
         plt.yticks(fontsize=ft_sz)
         # plt.show()
@@ -918,7 +918,7 @@ def plot_surf_free_vs_Pco_matrix_all(dfs, **kwargs):
                     ft_sz = 6
                     plt.text(0.05, 0.05, id_set, horizontalalignment='left', verticalalignment='center',
                              transform=ax.transAxes, fontsize=ft_sz)  
-                    plt.text(0.05, 0.90, f'Pd: {d_mu_pd}, Ti: {round(d_mu_ti,3)}',
+                    plt.text(0.05, 0.90, f'$\Delta \mu_{{Pd}}$: {d_mu_pd}, $\Delta \mu_{{Ti}}$: {round(d_mu_ti,3)}',
                              horizontalalignment='left', verticalalignment='center', transform=ax.transAxes,fontsize=ft_sz)
                     plt.xscale("log")
                     plt.xlim([0.101325, 101325])
@@ -1042,7 +1042,7 @@ def plot_surf_free_vs_T_and_Pco(dfs, **kwargs):
         bar.ax.invert_yaxis()
         bar.set_label('Surface free energy (eV)', rotation=270, labelpad=20, fontsize=ft_sz)
         bar.ax.tick_params(labelsize=ft_sz)
-        ax.set_title(f'Iter. {iter}, Ti chem.: {round(d_mu_Ti[0],3)}, Pd chem.: {d_mu_Pd[0]}, U={u} V', fontsize=ft_sz)
+        ax.set_title(f'Iter. {iter}, $\Delta \mu_{{Pd}}$: {d_mu_Pd[0]}, $\Delta \mu_{{Ti}}$: {round(d_mu_Ti[0],3)} U={u} V', fontsize=ft_sz)
         plt.xlabel('Temperature (K)', fontsize=ft_sz)
         plt.ylabel('Partial pressure of CO ($log_{10}(Pa)$)', fontsize=ft_sz)
         plt.xticks(fontsize=ft_sz)
@@ -1065,7 +1065,7 @@ def plot_surf_free_vs_T_and_Pco(dfs, **kwargs):
         for label in pos_label.keys():
             x, y = pos_label[label]
             plt.text(x, y, label, horizontalalignment='center', fontsize=ft_sz)
-        ax.set_title(f'Iter. {iter}, Ti chem.: {round(d_mu_Ti[0],3)}, Pd chem.: {d_mu_Pd[0]}, U={u} V', fontsize=ft_sz)
+        ax.set_title(f'Iter. {iter}, $\Delta \mu_{{Pd}}$: {d_mu_Pd[0]}, $\Delta \mu_{{Ti}}$: {round(d_mu_Ti[0],3)} U={u} V', fontsize=ft_sz)
         plt.xlim([283.15, 353.15])
         plt.ylim([-1, 5])
         plt.xlabel('Temperature (K)', fontsize=ft_sz)
@@ -1116,7 +1116,7 @@ def plot_surf_free_vs_U_and_Pco(dfs, **kwargs):
         bar.ax.invert_yaxis()
         bar.set_label('Surface free energy (eV)', rotation=270, labelpad=20, fontsize=ft_sz)
         bar.ax.tick_params(labelsize=ft_sz)
-        ax.set_title(f'Iter. {iter}, Ti chem.: {round(d_mu_Ti[0],3)}, Pd chem.: {d_mu_Pd[0]}, T={T[0]} K', fontsize=ft_sz)
+        ax.set_title(f'Iter. {iter}, $\Delta \mu_{{Pd}}$: {d_mu_Pd[0]}, $\Delta \mu_{{Ti}}$: {round(d_mu_Ti[0],3)} T={T[0]} K', fontsize=ft_sz)
         plt.xlabel('Potential (V)', fontsize=ft_sz)
         plt.ylabel('Partial pressure of CO ($log_{10}(Pa)$)', fontsize=ft_sz)
         plt.xticks(fontsize=ft_sz)
@@ -1139,7 +1139,7 @@ def plot_surf_free_vs_U_and_Pco(dfs, **kwargs):
         for label in pos_label.keys():
             x, y = pos_label[label]
             plt.text(x, y, label, horizontalalignment='center', fontsize=ft_sz)
-        ax.set_title(f'Iter. {iter}, Ti chem.: {round(d_mu_Ti[0],3)}, Pd chem.: {d_mu_Pd[0]}, T={T[0]} K', fontsize=ft_sz)
+        ax.set_title(f'Iter. {iter}, $\Delta \mu_{{Pd}}$: {d_mu_Pd[0]}, $\Delta \mu_{{Ti}}$: {round(d_mu_Ti[0],3)} T={T[0]} K', fontsize=ft_sz)
         plt.xlim([-0.8, 0.0])
         plt.ylim([-1, 5])
         plt.xlabel('Potential (V)', fontsize=ft_sz)
@@ -1190,7 +1190,7 @@ def plot_surf_free_vs_T_and_U(dfs, **kwargs):
         bar.ax.invert_yaxis()
         bar.set_label('Surface free energy (eV)', rotation=270, labelpad=20, fontsize=ft_sz)
         bar.ax.tick_params(labelsize=ft_sz)
-        ax.set_title(f'Iter. {iter}, Ti chem.: {round(d_mu_Ti[0],3)}, Pd chem.: {d_mu_Pd[0]}, Pco={pco} Pa', fontsize=ft_sz)
+        ax.set_title(f'Iter. {iter}, $\Delta \mu_{{Pd}}$: {d_mu_Pd[0]}, $\Delta \mu_{{Ti}}$: {round(d_mu_Ti[0],3)} Pco={pco} Pa', fontsize=ft_sz)
         plt.xlabel('Potential (V)', fontsize=ft_sz)
         plt.ylabel('Temperature (K)', fontsize=ft_sz)
         plt.xticks(fontsize=ft_sz)
@@ -1213,7 +1213,7 @@ def plot_surf_free_vs_T_and_U(dfs, **kwargs):
         for label in pos_label.keys():
             x, y = pos_label[label]
             plt.text(x, y, label, horizontalalignment='center', fontsize=ft_sz)
-        ax.set_title(f'Iter. {iter}, Ti chem.: {round(d_mu_Ti[0],3)}, Pd chem.: {d_mu_Pd[0]}, Pco={pco} Pa', fontsize=ft_sz)
+        ax.set_title(f'Iter. {iter}, $\Delta \mu_{{Pd}}$: {d_mu_Pd[0]}, $\Delta \mu_{{Ti}}$: {round(d_mu_Ti[0],3)} Pco={pco} Pa', fontsize=ft_sz)
         plt.xlim([-0.8, 0.0])
         plt.ylim([283.15, 353.15])
         plt.xlabel('Potential (V)', fontsize=ft_sz)
@@ -1264,8 +1264,8 @@ def plot_surf_free_vs_U_and_Tichem(dfs, **kwargs):
         bar.ax.invert_yaxis()
         bar.set_label('Surface free energy (eV)', rotation=270, labelpad=20, fontsize=ft_sz)
         bar.ax.tick_params(labelsize=ft_sz)
-        ax.set_title(f'Iter. {iter}, Pd chem.: {d_mu_Pd[0]}, Pco={pco} Pa, T={T[0]} K', fontsize=ft_sz)
-        plt.xlabel('Ti chemical potential', fontsize=ft_sz)
+        ax.set_title(rf'Iter. {iter}, $\Delta \mu_{{Pd}}$: {d_mu_pd}, Pco={pco} Pa, T={T[0]} K', fontsize=ft_sz)
+        plt.xlabel(r'$\Delta \mu_{Ti}$', fontsize=ft_sz)
         plt.ylabel('Potential (V)', fontsize=ft_sz)
         plt.xticks(fontsize=ft_sz)
         plt.yticks(fontsize=ft_sz)
@@ -1287,10 +1287,10 @@ def plot_surf_free_vs_U_and_Tichem(dfs, **kwargs):
         for label in pos_label.keys():
             x, y = pos_label[label]
             plt.text(x, y, label, horizontalalignment='center', fontsize=ft_sz)
-        ax.set_title(f'Iter. {iter}, Pd chem.: {d_mu_Pd[0]}, Pco={pco} Pa, T={T[0]} K', fontsize=ft_sz)
+        ax.set_title(f'Iter. {iter}, $\Delta \mu_{{Pd}}$: {d_mu_pd}, Pco={pco} Pa, T={T[0]} K', fontsize=ft_sz)
         plt.xlim([-8.28, -7.28])
         plt.ylim([-0.8, 0.0])
-        plt.xlabel('Ti chemical potential', fontsize=ft_sz)
+        plt.xlabel(r'$\Delta \mu_{Ti}$', fontsize=ft_sz)
         plt.ylabel('Potential (V)', fontsize=ft_sz)
         plt.xticks(fontsize=ft_sz)
         plt.yticks(fontsize=ft_sz)
@@ -1338,8 +1338,8 @@ def plot_surf_free_vs_U_and_Pdchem(dfs, **kwargs):
         bar.ax.invert_yaxis()
         bar.set_label('Surface free energy (eV)', rotation=270, labelpad=20, fontsize=ft_sz)
         bar.ax.tick_params(labelsize=ft_sz)
-        ax.set_title(f'Iter. {iter}, Ti chem.: {d_mu_Ti[0]}, Pco={pco} Pa, T={T[0]} K', fontsize=ft_sz)
-        plt.xlabel('Pd chemical potential', fontsize=ft_sz)
+        ax.set_title(f'Iter. {iter}, $\Delta \mu_{{Ti}}$: {d_mu_ti}, Pco={pco} Pa, T={T[0]} K', fontsize=ft_sz)
+        plt.xlabel(r'$\Delta \mu_{Pd}$', fontsize=ft_sz)
         plt.ylabel('Potential (V)', fontsize=ft_sz)
         plt.xticks(fontsize=ft_sz)
         plt.yticks(fontsize=ft_sz)
@@ -1361,8 +1361,8 @@ def plot_surf_free_vs_U_and_Pdchem(dfs, **kwargs):
         for label in pos_label.keys():
             x, y = pos_label[label]
             plt.text(x, y, label, horizontalalignment='center', fontsize=ft_sz)
-        ax.set_title(f'Iter. {iter}, Ti chem.: {d_mu_Ti[0]}, Pco={pco} Pa, T={T[0]} K', fontsize=ft_sz)
-        plt.xlabel('Pd chemical potential', fontsize=ft_sz)
+        ax.set_title(f'Iter. {iter}, $\Delta \mu_{{Ti}}$: {d_mu_ti}, Pco={pco} Pa, T={T[0]} K', fontsize=ft_sz)
+        plt.xlabel(r'$\Delta \mu_{Pd}$', fontsize=ft_sz)
         plt.ylabel('Potential (V)', fontsize=ft_sz)
         plt.xlim([-3.25, -2.25])
         plt.ylim([-0.8, 0.0])

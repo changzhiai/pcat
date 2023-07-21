@@ -92,7 +92,6 @@ def get_gas_free_energy(ads, T=298.15, P=3534., geometry='nonlinear'):
         energies['potential'] = -12.118
         energies['vib_energies'] = np.array([0.0047756513493744214j, 0.002608437221102516j, 7.154463200372838e-05j, 
             (0.0014875269280506848+0j), (0.0018423337620198735+0j), (0.26328363577957453+0j)])
-
     thermo = IdealGasThermo(vib_energies=energies['vib_energies'],
                             potentialenergy=energies['potential'],
                             atoms=atoms,
@@ -636,8 +635,8 @@ if __name__ == '__main__':
     # niches = pd.read_pickle('em_tasks.pkl')
     # niches = generate_tasks(save_to_files=True)
     niches = pd.read_csv('./data/em_tasks.csv')
-    iter = 30
-    for i in range(29,iter):
+    iter = 31
+    for i in range(30,iter):
         print(f'iter{i}')
         if False:
             images = read(f'./data/dft_PdTiH_adss_r0_to_r{i}_final_tot.traj', ':')
@@ -663,16 +662,16 @@ if __name__ == '__main__':
             plot_matrix_all_conds_Pco(images, i) # plot all matrix and x is Pco
         
         
-        if False:
-            if False: # plot Pourbaix diagram seperately and one total maxtrix diagram
+        if True:
+            if True: # plot Pourbaix diagram seperately and one total maxtrix diagram
                 plot_SFE_at_One_Pco_and_T(images, i) # plot SFT seperately x is U
-            if False: 
+            if True: 
                 plot_SFE_at_One_Pco_and_U(images, i) # plot SFT seperately x is T
-            if False:
+            if True:
                 plot_SFE_at_One_T_and_U(images, i) # # plot SFT seperately x is Pco
         
         
-        if False:
+        if True:
             if True: # Contour
                 plot_Contour_at_One_U_and_Pco_and_T(images, i) # Contour plot: Ti chem. vs. Pd chem.
             if True:
