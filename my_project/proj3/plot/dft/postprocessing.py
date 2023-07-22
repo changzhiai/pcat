@@ -113,16 +113,20 @@ def plot_iteration():
     # fig = plt.figure(figsize=(12,10),dpi=300)
     # lens = [103, 129, 154, 180, 209, 236, 265, 284, 308, 328,
     #         345, 371, 392, 410, 429, 458, 499, 575, 634, 693,
-    #         742, 775, 796, 819, 840, 865, 882]
+    #         742, 775, 796, 819, 840, 865, 882, 913, 933, 955,
+    #         976]
     iters = ['iter1', 'iter2','iter3','iter4','iter5','iter6','iter7','iter8','iter9','iter10',
-             'iter11','iter12','iter13','iter14','iter15','iter16','iter17', 'iter18', 'iter19', 'iter20',
-             'iter21', 'iter22', 'iter23', 'iter24', 'iter25', 'iter26', 'iter27']
+             'iter11','iter12','iter13','iter14','iter15','iter16','iter17','iter18','iter19','iter20',
+             'iter21','iter22','iter23','iter24','iter25','iter26','iter27','iter28','iter29','iter30',
+             'iter31']
     rmse_e = [41.039, 31.736, 29.180, 27.135, 25.770, 23.888, 21.107, 22.015, 19.886, 21.128,
               20.094, 19.295, 18.923, 17.493, 18.186, 16.965, 16.166, 17.255, 15.546, 15.202, 
-              14.569, 14.216, 12.739, 14.475, 13.698, 13.492, 12.066]
+              14.569, 14.216, 12.739, 14.475, 13.698, 13.492, 12.066, 13.367, 12.777, 12.439,
+              12.425]
     rmse_e3 = [1.306, 5.019, 8.416, 7.626, 7.365, 6.086, 6.382, 6.130, 5.871, 5.563,
                5.521, 5.805, 5.541, 5.708, 5.575, 5.566, 4.971, 6.751, 7.095, 6.136,
-               5.346, 5.547, 5.913, 5.726, 5.277, 5.057, 5.202]
+               5.346, 5.547, 5.913, 5.726, 5.277, 5.057, 5.202, 5.398, 5.636, 5.431,
+               5.267]
     iters = np.arange(1, len(iters)+1, 1)
     plt.plot(iters, rmse_e, '-o', label='The active learning with all iterations')
     plt.plot(iters[1:], rmse_e3[1:], '-o', label='The active learning without 1st iteration')
@@ -152,7 +156,7 @@ def find_num_of_new(pre_unique_ids, unique_ids):
             new_ids.append(id)
     return new_ids
 
-def new_cands_vs_iters(since=1, iter=31):
+def new_cands_vs_iters(since=1, iter=32):
     iter_unique_ids, iter_new_ids = [], []
     iter_unique_ids.append([])
     iter_new_ids.append([])
@@ -175,7 +179,7 @@ def new_cands_vs_iters(since=1, iter=31):
     plt.plot(xs, ys, '-o')
     plt.xlabel('The numbe of iterations', fontsize=ft_sz)
     plt.ylabel('The number of new candidates', fontsize=ft_sz)
-    plt.xticks(fontsize=ft_sz)
+    plt.xticks(np.arange(since, iter, 1),fontsize=ft_sz)
     plt.yticks(fontsize=ft_sz)
     plt.show()
 
