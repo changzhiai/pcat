@@ -105,7 +105,8 @@ def plot_surf_free_vs_U(dfs, **kwargs):
                     plt.xlabel('Potential (V)', fontsize=ft_sz)
                     plt.ylabel('Surface free energy (eV)', fontsize=ft_sz)
                     plt.xlim([-0.8, 0.])
-                    plt.ylim([-1., 0.251])
+                    # plt.ylim([-1., 0.251])
+                    plt.ylim([-1.2, 0.20])
                     plt.title(f'Iter.={iter}, $\Delta \mu_{{Pd}}$={d_mu_pd} eV, $\Delta \mu_{{Ti}}$={round(d_mu_ti,3)} eV, T={t} K, Pco={pco} Pa')
                     plt.text(0.34, 0.03, id_set, horizontalalignment='left', verticalalignment='center',
                               transform=ax.transAxes, fontsize=14, fontweight='bold')
@@ -113,10 +114,10 @@ def plot_surf_free_vs_U(dfs, **kwargs):
                     if not(os.path.exists(path) and os.path.isdir(path)):
                         os.mkdir(path)
                     fig.savefig(f'{path}/iter_{iter}_Pd_{d_mu_pd}_Ti_{d_mu_ti}.png',dpi=300, bbox_inches='tight')
-                    plt.show()
+                    # plt.show()
                     plt.close(fig)
                     plt.clf()
-    # plt.show()
+    # # plt.show()
     return cands, ids
 
 def plot_surf_free_vs_U_matrix(dfs, **kwargs):
@@ -159,7 +160,7 @@ def plot_surf_free_vs_U_matrix(dfs, **kwargs):
     st = plt.suptitle(f'Iter={iter}, T={T[0]} K, Pco={P_CO[0]} Pa', fontsize=ft_sz)
     fig.tight_layout(pad=0.2)
     st.set_y(1.01)
-    plt.show()
+    # plt.show()
     plt.close(fig)
     plt.clf()
     path = './figures/matrix_pourbaix'
@@ -217,7 +218,7 @@ def plot_surf_free_vs_U_matrix_all(dfs, **kwargs):
             st = plt.suptitle(f'Iter={iter}, T={t} K, Pco={pco} Pa', fontsize=ft_sz)
             fig.tight_layout(pad=0.2)
             st.set_y(1.01)
-            plt.show()
+            # plt.show()
             fig.savefig(f'{path}/iter_{iter}_matrix_all_T_{t}_Pco_{pco}.png',dpi=300, bbox_inches='tight')
             plt.close(fig)
             plt.clf()
@@ -266,7 +267,7 @@ def plot_surf_free_vs_U_contour(dfs, **kwargs):
             plt.scatter(xs, ys, c='gray', marker='o',)
             for i, txt in enumerate(tags):
                 ax.annotate(txt, (xs[i], ys[i]), ha='center')
-        # plt.show()
+        # # plt.show()
         path = './figures/SFE'
         if not(os.path.exists(path) and os.path.isdir(path)):
             os.mkdir(path)
@@ -293,7 +294,7 @@ def plot_surf_free_vs_U_contour(dfs, **kwargs):
         plt.ylabel(r'$\Delta \mu_{Ti}$ (eV)', fontsize=ft_sz)
         plt.xticks(fontsize=ft_sz)
         plt.yticks(fontsize=ft_sz)
-        plt.show()
+        # plt.show()
         path = './figures/cands'
         if not(os.path.exists(path) and os.path.isdir(path)):
             os.mkdir(path)
@@ -348,7 +349,7 @@ def plot_surf_free_vs_Tichem_and_Pdchem(dfs, **kwargs):
             plt.scatter(xs, ys, c='gray', marker='o',)
             for i, txt in enumerate(tags):
                 ax.annotate(txt, (xs[i], ys[i]), ha='center')
-        plt.show()
+        # plt.show()
         path = './figures/Contour_vs_Tichem_and_Pdchem'
         if not(os.path.exists(path) and os.path.isdir(path)):
             os.mkdir(path)
@@ -378,7 +379,7 @@ def plot_surf_free_vs_Tichem_and_Pdchem(dfs, **kwargs):
         plt.ylabel(r'$\Delta \mu_{Ti}$ (eV)', fontsize=ft_sz)
         plt.xticks(fontsize=ft_sz)
         plt.yticks(fontsize=ft_sz)
-        plt.show()
+        # plt.show()
         path = './figures/Heatmap_vs_Tichem_and_Pdchem'
         if not(os.path.exists(path) and os.path.isdir(path)):
             os.mkdir(path)
@@ -470,7 +471,7 @@ def plot_surf_free_vs_T(dfs, **kwargs):
                     plt.xlabel('Temperature (K)', fontsize=ft_sz)
                     plt.ylabel('Surface free energy (eV)', fontsize=ft_sz)
                     plt.xlim([283.15, 353.15])
-                    plt.ylim([-1., 0.251])
+                    plt.ylim([-1.2, 0.20])
                     plt.title(f'Iter.={iter}, $\Delta \mu_{{Pd}}$={d_mu_pd} eV, $\Delta \mu_{{Ti}}$={round(d_mu_ti,3)} eV, U={u} V, Pco={pco} Pa')
                     plt.text(0.34, 0.03, id_set, horizontalalignment='left', verticalalignment='center',
                               transform=ax.transAxes, fontsize=14, fontweight='bold')
@@ -478,7 +479,7 @@ def plot_surf_free_vs_T(dfs, **kwargs):
                     if not(os.path.exists(path) and os.path.isdir(path)):
                         os.mkdir(path)
                     fig.savefig(f'{path}/iter_{iter}_Pd_{d_mu_pd}_Ti_{d_mu_ti}.png',dpi=300, bbox_inches='tight')
-                    plt.show()
+                    # plt.show()
                     plt.close(fig)
                     plt.clf()
     return cands, ids
@@ -523,7 +524,7 @@ def plot_surf_free_vs_T_matrix(dfs, **kwargs):
     st = plt.suptitle(f'Iter={iter}, U={U[0]} V, Pco={P_CO[0]} Pa', fontsize=ft_sz)
     fig.tight_layout(pad=0.2)
     st.set_y(1.01)
-    plt.show()
+    # plt.show()
     plt.close(fig)
     plt.clf()
     path = './figures/matrix_pourbaix_T'
@@ -575,7 +576,7 @@ def plot_surf_free_vs_T_contour(dfs, **kwargs):
             plt.scatter(xs, ys, c='gray', marker='o',)
             for i, txt in enumerate(tags):
                 ax.annotate(txt, (xs[i], ys[i]), ha='center')
-        plt.show()
+        # plt.show()
         path = './figures/SFE_T'
         if not(os.path.exists(path) and os.path.isdir(path)):
             os.mkdir(path)
@@ -604,7 +605,7 @@ def plot_surf_free_vs_T_contour(dfs, **kwargs):
         plt.ylabel(r'$\Delta \mu_{Ti}$ (eV)', fontsize=ft_sz)
         plt.xticks(fontsize=ft_sz)
         plt.yticks(fontsize=ft_sz)
-        plt.show()
+        # plt.show()
         path = './figures/cands_T'
         if not(os.path.exists(path) and os.path.isdir(path)):
             os.mkdir(path)
@@ -664,7 +665,7 @@ def plot_surf_free_vs_T_matrix_all(dfs, **kwargs):
             st = plt.suptitle(f'Iter={iter}, U={u} V, Pco={pco} Pa', fontsize=ft_sz)
             fig.tight_layout(pad=0.2)
             st.set_y(1.01)
-            plt.show()
+            # plt.show()
             fig.savefig(f'{path}/iter_{iter}_matrix_all_U_{u}_Pco_{pco}.png',dpi=300, bbox_inches='tight')
             plt.close(fig)
             plt.clf()
@@ -744,7 +745,7 @@ def plot_surf_free_vs_Pco(dfs, **kwargs):
                     plt.ylabel('Surface free energy (eV)', fontsize=ft_sz)
                     plt.xscale("log")
                     plt.xlim([0.101325, 101325])
-                    plt.ylim([-1., 0.251])
+                    plt.ylim([-1.2, 0.20])
                     plt.title(f'Iter.={iter}, $\Delta \mu_{{Pd}}$={d_mu_pd} eV, $\Delta \mu_{{Ti}}$={round(d_mu_ti,3)} eV, U={u} V, T={t} K')
                     plt.text(0.34, 0.03, id_set, horizontalalignment='left', verticalalignment='center',
                               transform=ax.transAxes, fontsize=14, fontweight='bold')
@@ -752,7 +753,7 @@ def plot_surf_free_vs_Pco(dfs, **kwargs):
                     if not(os.path.exists(path) and os.path.isdir(path)):
                         os.mkdir(path)
                     fig.savefig(f'{path}/iter_{iter}_Pd_{d_mu_pd}_Ti_{d_mu_ti}.png',dpi=300, bbox_inches='tight')
-                    plt.show()
+                    # plt.show()
                     plt.close(fig)
                     plt.clf()
     return cands, ids
@@ -798,7 +799,7 @@ def plot_surf_free_vs_Pco_matrix(dfs, **kwargs):
     st = plt.suptitle(f'Iter={iter}, U={U[0]} V, T={T[0]} K', fontsize=ft_sz)
     fig.tight_layout(pad=0.2)
     st.set_y(1.01)
-    plt.show()
+    # plt.show()
     plt.close(fig)
     plt.clf()
     path = './figures/matrix_pourbaix_Pco'
@@ -850,7 +851,7 @@ def plot_surf_free_vs_Pco_contour(dfs, **kwargs):
             plt.scatter(xs, ys, c='gray', marker='o',)
             for i, txt in enumerate(tags):
                 ax.annotate(txt, (xs[i], ys[i]), ha='center')
-        plt.show()
+        # plt.show()
         path = './figures/SFE_Pco'
         if not(os.path.exists(path) and os.path.isdir(path)):
             os.mkdir(path)
@@ -877,7 +878,7 @@ def plot_surf_free_vs_Pco_contour(dfs, **kwargs):
         plt.ylabel(r'$\Delta \mu_{Ti}$ (eV)', fontsize=ft_sz)
         plt.xticks(fontsize=ft_sz)
         plt.yticks(fontsize=ft_sz)
-        # plt.show()
+        # # plt.show()
         path = './figures/cands_Pco'
         if not(os.path.exists(path) and os.path.isdir(path)):
             os.mkdir(path)
@@ -938,7 +939,7 @@ def plot_surf_free_vs_Pco_matrix_all(dfs, **kwargs):
             st = plt.suptitle(f'Iter={iter}, U={u} V, T={t} Pa', fontsize=ft_sz)
             fig.tight_layout(pad=0.2)
             st.set_y(1.01)
-            plt.show()
+            # plt.show()
             fig.savefig(f'{path}/iter_{iter}_matrix_all_U_{u}_T_{t}.png',dpi=300, bbox_inches='tight')
             plt.close(fig)
             plt.clf()
@@ -1051,7 +1052,7 @@ def plot_surf_free_vs_T_and_Pco(dfs, **kwargs):
             plt.scatter(xs, ys, c='gray', marker='o',)
             for i, txt in enumerate(tags):
                 ax.annotate(txt, (xs[i], ys[i]), ha='center')
-        plt.show()
+        # plt.show()
         plt.close(fig)
         plt.clf()
         path = './figures/Contour_vs_T_and_Pco'
@@ -1072,7 +1073,7 @@ def plot_surf_free_vs_T_and_Pco(dfs, **kwargs):
         plt.ylabel('Partial pressure of CO ($log_{10}(Pa)$)', fontsize=ft_sz)
         plt.xticks(fontsize=ft_sz)
         plt.yticks(fontsize=ft_sz)
-        plt.show()
+        # plt.show()
         path = './figures/Heatmap_vs_T_and_Pco'
         if not(os.path.exists(path) and os.path.isdir(path)):
             os.mkdir(path)
@@ -1125,7 +1126,7 @@ def plot_surf_free_vs_U_and_Pco(dfs, **kwargs):
             plt.scatter(xs, ys, c='gray', marker='o',)
             for i, txt in enumerate(tags):
                 ax.annotate(txt, (xs[i], ys[i]), ha='center')
-        plt.show()
+        # plt.show()
         plt.close(fig)
         plt.clf()
         path = './figures/Contour_vs_U_and_Pco'
@@ -1146,7 +1147,7 @@ def plot_surf_free_vs_U_and_Pco(dfs, **kwargs):
         plt.ylabel('Partial pressure of CO ($log_{10}(Pa)$)', fontsize=ft_sz)
         plt.xticks(fontsize=ft_sz)
         plt.yticks(fontsize=ft_sz)
-        plt.show()
+        # plt.show()
         path = './figures/Heatmap_vs_U_and_Pco'
         if not(os.path.exists(path) and os.path.isdir(path)):
             os.mkdir(path)
@@ -1199,7 +1200,7 @@ def plot_surf_free_vs_T_and_U(dfs, **kwargs):
             plt.scatter(xs, ys, c='gray', marker='o',)
             for i, txt in enumerate(tags):
                 ax.annotate(txt, (xs[i], ys[i]), ha='center')
-        plt.show()
+        # plt.show()
         plt.close(fig)
         plt.clf()
         path = './figures/Contour_vs_T_and_U'
@@ -1220,7 +1221,7 @@ def plot_surf_free_vs_T_and_U(dfs, **kwargs):
         plt.ylabel('Temperature (K)', fontsize=ft_sz)
         plt.xticks(fontsize=ft_sz)
         plt.yticks(fontsize=ft_sz)
-        plt.show()
+        # plt.show()
         path = './figures/Heatmap_vs_T_and_U'
         if not(os.path.exists(path) and os.path.isdir(path)):
             os.mkdir(path)
@@ -1273,7 +1274,7 @@ def plot_surf_free_vs_U_and_Tichem(dfs, **kwargs):
             plt.scatter(xs, ys, c='gray', marker='o',)
             for i, txt in enumerate(tags):
                 ax.annotate(txt, (xs[i], ys[i]), ha='center')
-        plt.show()
+        # plt.show()
         plt.close(fig)
         plt.clf()
         path = './figures/Contour_vs_Tichem_and_U'
@@ -1294,7 +1295,7 @@ def plot_surf_free_vs_U_and_Tichem(dfs, **kwargs):
         plt.ylabel('Potential (V)', fontsize=ft_sz)
         plt.xticks(fontsize=ft_sz)
         plt.yticks(fontsize=ft_sz)
-        plt.show()
+        # plt.show()
         path = './figures/Heatmap_vs_Tichem_and_U'
         if not(os.path.exists(path) and os.path.isdir(path)):
             os.mkdir(path)
@@ -1347,10 +1348,10 @@ def plot_surf_free_vs_U_and_Pdchem(dfs, **kwargs):
             plt.scatter(xs, ys, c='gray', marker='o',)
             for i, txt in enumerate(tags):
                 ax.annotate(txt, (xs[i], ys[i]), ha='center')
-        plt.show()
+        # plt.show()
         plt.close(fig)
         plt.clf()
-        path = './figures/Contour_vs_Tichem_and_U'
+        path = './figures/Contour_vs_Pdchem_and_U'
         if not(os.path.exists(path) and os.path.isdir(path)):
             os.mkdir(path)
         fig.savefig(f'{path}/iter_{iter}_pot_{U}_Contour.png',dpi=300, bbox_inches='tight')
@@ -1368,8 +1369,8 @@ def plot_surf_free_vs_U_and_Pdchem(dfs, **kwargs):
         plt.ylim([-0.8, 0.0])
         plt.xticks(fontsize=ft_sz)
         plt.yticks(fontsize=ft_sz)
-        plt.show()
-        path = './figures/Heatmap_vs_Tichem_and_U'
+        # plt.show()
+        path = './figures/Heatmap_vs_Pdchem_and_U'
         if not(os.path.exists(path) and os.path.isdir(path)):
             os.mkdir(path)
         fig.savefig(f'{path}/iter_{iter}_Pco_{pco}_heatmap.png',dpi=300, bbox_inches='tight')

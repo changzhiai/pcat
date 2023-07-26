@@ -635,8 +635,8 @@ if __name__ == '__main__':
     # niches = pd.read_pickle('em_tasks.pkl')
     # niches = generate_tasks(save_to_files=True)
     niches = pd.read_csv('./data/em_tasks.csv')
-    iter = 32
-    for i in range(31,iter):
+    iter = 31
+    for i in range(17,iter):
         print(f'iter{i}')
         if False:
             images = read(f'./data/dft_PdTiH_adss_r0_to_r{i}_final_tot.traj', ':')
@@ -649,16 +649,16 @@ if __name__ == '__main__':
         
         
         
-        if True: # 25 matrix Pourbaix diagram
+        if False: # 25 matrix Pourbaix diagram
             all_cands, all_ids = plot_matrix_all_conds_U(images, i) # plot all matrix and x is U
             print(all_cands, all_ids)
             write_list(all_ids, i, name='all_ids.pkl') # save candidates
             unique_ids = flatten_list(all_ids)
             write_list(unique_ids, i, name='all_unique_ids.pkl')
             print(unique_ids, len(unique_ids))
-        if True: # N matrix Pourbaix diagram
+        if False: # N matrix Pourbaix diagram
             plot_matrix_all_conds_T(images, i) # plot all matrix and x is T
-        if True: # N matrix Pourbaix diagram
+        if False: # N matrix Pourbaix diagram
             plot_matrix_all_conds_Pco(images, i) # plot all matrix and x is Pco
         
         

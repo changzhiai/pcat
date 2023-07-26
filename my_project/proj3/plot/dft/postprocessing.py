@@ -26,14 +26,14 @@ def plot_CO2RR_free_energy_old():
 def plot_activity():
     from pcat.activity import Activity
     """Plot activity of CO2RR"""
-    df = pd_read_excel(filename='./data/iter27.xlsx', sheet='Activity')
+    df = pd_read_excel(filename='./data/iter31.xlsx', sheet='Activity')
     # df.drop(['Pd16Ti48H8', 'Pd16Ti48H24'], inplace=True)
     ColorDict= {'Pure': 'black', 'Pd14Ti2H17+1CO': 'black', 'Pd5Ti11H20+2CO': 'black', 
                 'Pd5Ti11H20+1CO': 'black', 'Pd9Ti7H17+1CO': 'black'}
     
     tune_tex_pos = {'Pure': [-0.0, 0.1], 'Pd14Ti2H17+1CO': [-0.35, -0.2], 'Pd5Ti11H20+2CO': [-0.2, -0.3], 
                     'Pd5Ti11H20+1CO': [-0.2, -0.25], 'Pd9Ti7H17+1CO': [-0.25, -0.25]}
-    name_fig_act = './figures/iter27_activity.jpg'
+    name_fig_act = './figures/iter31_activity.jpg'
     activity = Activity(df, descriper1 = 'E(CO*)', descriper2 = 'E(HOCO*)', fig_name=name_fig_act,
                         U0=-0.5, 
                         T0=297.15, 
@@ -52,12 +52,12 @@ def plot_CO2RR_free_enegy():
     """
     Plot free energy for CO2RR
     """
-    df = pd_read_excel(filename='./data/iter27.xlsx', sheet='CO2RR_FED')
+    df = pd_read_excel(filename='./data/iter31.xlsx', sheet='CO2RR_FED')
     # obj_list = ['Pd64H64',]
     # df = df[df.index.isin(obj_list)]
     step_names = ['* + CO$_{2}$', 'HOCO*', 'CO*', '* + CO']  #reload step name for CO2RR
     df.set_axis(step_names, axis='columns', inplace=True)
-    name_fig_FE = './figures/iter27_CO2RR.jpg'
+    name_fig_FE = './figures/iter31_CO2RR.jpg'
     fig = plt.figure(figsize=(8, 6), dpi = 300)
     ax = fig.add_subplot(111)
     ColorDict= {'Pure': 'black',}
@@ -72,7 +72,7 @@ def plot_CO2RR_free_enegy():
     
 def plot_HER_free_energy():
     """Plot free energy for HER"""
-    df = pd_read_excel(filename='./data/iter27.xlsx', sheet='HER_FED')
+    df = pd_read_excel(filename='./data/iter31.xlsx', sheet='HER_FED')
     df['step1']=0
     df['step3']=0
     df = df[['step1', 'G(H*)', 'step3']]
@@ -80,7 +80,7 @@ def plot_HER_free_energy():
     df.set_axis(step_names, axis='columns', inplace=True)
     # obj_list = ['Pd64H64',]
     # df = df[df.index.isin(obj_list)]
-    name_fig_FE = './figures/iter27_HER.jpg'
+    name_fig_FE = './figures/iter31_HER.jpg'
     fig = plt.figure(figsize=(8, 6), dpi = 300)
     ax = fig.add_subplot(111)
     ColorDict= {'Pure': 'black',}
@@ -95,10 +95,10 @@ def plot_HER_free_energy():
 def plot_selectivity():
     """Plot selectivity of CO2RR and HER"""
     
-    df = pd_read_excel(filename='./data/iter27.xlsx', sheet='Selectivity')
+    df = pd_read_excel(filename='./data/iter31.xlsx', sheet='Selectivity')
     df = df[['G_HOCO-G_H']]
     # df.set_axis(['Single'], axis='columns', inplace=True)
-    name_fig_select = './figures/iter27_Selectivity.jpg'
+    name_fig_select = './figures/iter31_Selectivity.jpg'
     
     tune_ano_pos = {'Pure': [0.7, 0.1], 'Pd14Ti2H17+1CO': [0.7, 0.0], 'Pd5Ti11H20+2CO': [0.7, -0.1], 
                     'Pd5Ti11H20+1CO': [0.7, -0.1], 'Pd9Ti7H17+1CO': [0.7, 0.0]}
@@ -184,11 +184,12 @@ def new_cands_vs_iters(since=1, iter=32):
     plt.show()
 
 if __name__ == '__main__':
-    if False:
+    if True:
         plot_activity()
         plot_HER_free_energy()
         plot_CO2RR_free_enegy()
         plot_selectivity()
-    # plot_iteration()
-    new_cands_vs_iters(since=17)
+    if False:
+        plot_iteration()
+        new_cands_vs_iters(since=17)
     
