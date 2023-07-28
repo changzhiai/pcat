@@ -28,11 +28,13 @@ def plot_activity():
     """Plot activity of CO2RR"""
     df = pd_read_excel(filename='./data/iter31.xlsx', sheet='Activity')
     # df.drop(['Pd16Ti48H8', 'Pd16Ti48H24'], inplace=True)
-    ColorDict= {'Pure': 'black', 'Pd14Ti2H17+1CO': 'black', 'Pd5Ti11H20+2CO': 'black', 
-                'Pd5Ti11H20+1CO': 'black', 'Pd9Ti7H17+1CO': 'black'}
-    
-    tune_tex_pos = {'Pure': [-0.0, 0.1], 'Pd14Ti2H17+1CO': [-0.35, -0.2], 'Pd5Ti11H20+2CO': [-0.2, -0.3], 
-                    'Pd5Ti11H20+1CO': [-0.2, -0.25], 'Pd9Ti7H17+1CO': [-0.25, -0.25]}
+    color = ['black', 'blue']
+    ColorDict= {'Pure': color[1], 'Pd14Ti2H17+1CO': color[1], 'Pd5Ti11H20+2CO': color[1], 
+                'Pd5Ti11H20+1CO': color[1], 'Pd9Ti7H17+1CO': color[1]}
+    # tune_tex_pos = {'Pure': [-0.0, 0.0], 'Pd14Ti2H17+1CO': [-0.25, -0.17], 'Pd5Ti11H20+2CO': [-0.22, -0.28], 
+    #                 'Pd5Ti11H20+1CO': [-0.25, -0.25], 'Pd9Ti7H17+1CO': [-0.25, -0.25]}
+    tune_tex_pos = {'Pure': [-0.0, 0.0], 'Pd14Ti2H17+1CO': [-0.2, -0.17], 'Pd5Ti11H20+2CO': [-0.12, -0.28], 
+                    'Pd5Ti11H20+1CO': [-0.2, -0.25], 'Pd9Ti7H17+1CO': [-0.15, -0.25]}
     name_fig_act = './figures/iter31_activity.jpg'
     activity = Activity(df, descriper1 = 'E(CO*)', descriper2 = 'E(HOCO*)', fig_name=name_fig_act,
                         U0=-0.5, 
@@ -44,9 +46,9 @@ def plot_activity():
                         Gact=0.2, 
                         p_factor = 3.6 * 10**4)
     # activity.verify_BE2FE()
-    activity.plot(save=True, text=False, tune_tex_pos=tune_tex_pos, ColorDict=ColorDict)
-    # activity.plot(save=True,)
+    # activity.plot(save=True, text=False, tune_tex_pos=tune_tex_pos, ColorDict=ColorDict)
     # activity.plot(save=True, xlim=[-2.5, 2.5], ylim=[-2.5, 2.5])
+    activity.plot(save=True, text=False, tune_tex_pos=tune_tex_pos, ColorDict=ColorDict, xlim=[-1.0, 0.35], ylim=[-1.2, 1.0], **{'subscritpt': True})
     
 def plot_CO2RR_free_enegy():
     """
@@ -62,7 +64,7 @@ def plot_CO2RR_free_enegy():
     ax = fig.add_subplot(111)
     ColorDict= {'Pure': 'black',}
     CO2RR_FED = CO2RRFED(df, fig_name=name_fig_FE, **{'ColorDict': ColorDict})
-    pos0, _ = CO2RR_FED.plot(ax=ax, save=False, title='',)
+    pos0, _ = CO2RR_FED.plot(ax=ax, save=False, title='', **{'subscritpt': True})
     print('initial x pos:', pos0)
     plt.legend(loc='upper center', bbox_to_anchor=(0.46, -0.12), fancybox=True, shadow=True, ncol=5, fontsize=8)
     # plt.legend(loc='upper center', bbox_to_anchor=(0.45, -0.12), fancybox=True, shadow=True, ncol=5, fontsize=8)
@@ -85,10 +87,11 @@ def plot_HER_free_energy():
     ax = fig.add_subplot(111)
     ColorDict= {'Pure': 'black',}
     HER_FED = HERFED(df, fig_name=name_fig_FE, **{'ColorDict': ColorDict})
-    pos0, _ = HER_FED.plot(ax=ax, save=False, title='')
+    pos0, _ = HER_FED.plot(ax=ax, save=False, title='', **{'subscritpt': True})
     print('initial x pos:', pos0)
     # plt.legend(loc='upper center', bbox_to_anchor=(pos0-0.25, -0.12), fancybox=True, shadow=True, ncol=5, fontsize=8)
-    plt.legend(loc='upper center', bbox_to_anchor=(pos0-1.96, -0.12), fancybox=True, shadow=True, ncol=5, fontsize=8)
+    # plt.legend(loc='upper center', bbox_to_anchor=(pos0-1.96, -0.12), fancybox=True, shadow=True, ncol=5, fontsize=8)
+    plt.legend(loc='upper center', bbox_to_anchor=(pos0-0.75, -0.12), fancybox=True, shadow=True, ncol=5, fontsize=8)
     plt.show()
     fig.savefig(name_fig_FE, dpi=300, bbox_inches='tight')
     
@@ -104,7 +107,7 @@ def plot_selectivity():
                     'Pd5Ti11H20+1CO': [0.7, -0.1], 'Pd9Ti7H17+1CO': [0.7, 0.0]}
     selectivity = Selectivity(df, fig_name=name_fig_select)
     selectivity.plot(save=True, title='', xlabel='Different surfaces', tune_tex_pos=-0.4, legend=False, 
-                     tune_ano_pos=tune_ano_pos, **{'width': 0.5, 'head_width': 1.})
+                     tune_ano_pos=tune_ano_pos, **{'width': 0.5, 'head_width': 1., 'subscritpt': True})
 
 def plot_iteration():
     mpl.rcParams["figure.figsize"] = [6.4, 4.8]

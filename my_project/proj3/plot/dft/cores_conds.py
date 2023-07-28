@@ -471,6 +471,7 @@ def plot_surf_free_vs_T(dfs, **kwargs):
                     plt.xlabel('Temperature (K)', fontsize=ft_sz)
                     plt.ylabel('Surface free energy (eV)', fontsize=ft_sz)
                     plt.xlim([283.15, 353.15])
+                    # plt.ylim([-1.2, 0.0])
                     plt.ylim([-1.2, 0.20])
                     plt.title(f'Iter.={iter}, $\Delta \mu_{{Pd}}$={d_mu_pd} eV, $\Delta \mu_{{Ti}}$={round(d_mu_ti,3)} eV, U={u} V, Pco={pco} Pa')
                     plt.text(0.34, 0.03, id_set, horizontalalignment='left', verticalalignment='center',
@@ -745,6 +746,7 @@ def plot_surf_free_vs_Pco(dfs, **kwargs):
                     plt.ylabel('Surface free energy (eV)', fontsize=ft_sz)
                     plt.xscale("log")
                     plt.xlim([0.101325, 101325])
+                    # plt.ylim([-1.2, 0.00])
                     plt.ylim([-1.2, 0.20])
                     plt.title(f'Iter.={iter}, $\Delta \mu_{{Pd}}$={d_mu_pd} eV, $\Delta \mu_{{Ti}}$={round(d_mu_ti,3)} eV, U={u} V, T={t} K')
                     plt.text(0.34, 0.03, id_set, horizontalalignment='left', verticalalignment='center',

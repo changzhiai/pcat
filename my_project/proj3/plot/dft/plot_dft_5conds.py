@@ -635,8 +635,8 @@ if __name__ == '__main__':
     # niches = pd.read_pickle('em_tasks.pkl')
     # niches = generate_tasks(save_to_files=True)
     niches = pd.read_csv('./data/em_tasks.csv')
-    iter = 31
-    for i in range(17,iter):
+    iter = 32
+    for i in range(31,iter):
         print(f'iter{i}')
         if False:
             images = read(f'./data/dft_PdTiH_adss_r0_to_r{i}_final_tot.traj', ':')
@@ -646,7 +646,6 @@ if __name__ == '__main__':
         else:
             print('reading images...')
             images = read(f'dft_iter_{i}.traj', ':')
-        
         
         
         if False: # 25 matrix Pourbaix diagram
@@ -663,7 +662,7 @@ if __name__ == '__main__':
         
         
         if True:
-            if True: # plot Pourbaix diagram seperately and one total maxtrix diagram
+            if False: # plot Pourbaix diagram seperately and one total maxtrix diagram
                 plot_SFE_at_One_Pco_and_T(images, i) # plot SFT seperately x is U
             if True: 
                 plot_SFE_at_One_Pco_and_U(images, i) # plot SFT seperately x is T
