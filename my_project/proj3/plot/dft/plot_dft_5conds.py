@@ -648,9 +648,10 @@ if __name__ == '__main__':
             images = read(f'dft_iter_{i}.traj', ':')
         
         
-        if False: # 25 matrix Pourbaix diagram
+        if True: # 25 matrix Pourbaix diagram
             all_cands, all_ids = plot_matrix_all_conds_U(images, i) # plot all matrix and x is U
             print(all_cands, all_ids)
+            assert False
             write_list(all_ids, i, name='all_ids.pkl') # save candidates
             unique_ids = flatten_list(all_ids)
             write_list(unique_ids, i, name='all_unique_ids.pkl')
@@ -661,7 +662,7 @@ if __name__ == '__main__':
             plot_matrix_all_conds_Pco(images, i) # plot all matrix and x is Pco
         
         
-        if True:
+        if False:
             if False: # plot Pourbaix diagram seperately and one total maxtrix diagram
                 plot_SFE_at_One_Pco_and_T(images, i) # plot SFT seperately x is U
             if True: 
