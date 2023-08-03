@@ -187,12 +187,12 @@ def new_cands_vs_iters(since=1, iter=32):
     plt.show()
 
 if __name__ == '__main__':
-    if True:
+    if False:
         plot_activity()
         plot_HER_free_energy()
         plot_CO2RR_free_enegy()
         plot_selectivity()
-    if False:
+    if True:
         plot_iteration()
         new_cands_vs_iters(since=17)
     
