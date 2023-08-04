@@ -648,7 +648,7 @@ if __name__ == '__main__':
             images = read(f'dft_iter_{i}.traj', ':')
         
         
-        if True: # 25 matrix Pourbaix diagram
+        if False: # 25 matrix Pourbaix diagram
             all_cands, all_ids = plot_matrix_all_conds_U(images, i) # plot all matrix and x is U
             print(all_cands, all_ids)
             assert False

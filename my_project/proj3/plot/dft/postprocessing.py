@@ -28,13 +28,13 @@ def plot_activity():
     """Plot activity of CO2RR"""
     df = pd_read_excel(filename='./data/iter31.xlsx', sheet='Activity')
     # df.drop(['Pd16Ti48H8', 'Pd16Ti48H24'], inplace=True)
-    color = ['black', 'blue']
+    color = ['black', 'b', 'blue']
     ColorDict= {'Pure': color[1], 'Pd14Ti2H17+1CO': color[1], 'Pd5Ti11H20+2CO': color[1], 
                 'Pd5Ti11H20+1CO': color[1], 'Pd9Ti7H17+1CO': color[1]}
     # tune_tex_pos = {'Pure': [-0.0, 0.0], 'Pd14Ti2H17+1CO': [-0.25, -0.17], 'Pd5Ti11H20+2CO': [-0.22, -0.28], 
     #                 'Pd5Ti11H20+1CO': [-0.25, -0.25], 'Pd9Ti7H17+1CO': [-0.25, -0.25]}
-    tune_tex_pos = {'Pure': [-0.0, 0.0], 'Pd14Ti2H17+1CO': [-0.2, -0.17], 'Pd5Ti11H20+2CO': [-0.12, -0.28], 
-                    'Pd5Ti11H20+1CO': [-0.2, -0.25], 'Pd9Ti7H17+1CO': [-0.15, -0.25]}
+    tune_tex_pos = {'Pure': [0.05, 0.1], 'Pd14Ti2H17+1CO': [-0.2, 0.1], 'Pd5Ti11H20+2CO': [-0.16, -0.28], 
+                    'Pd5Ti11H20+1CO': [-0.26, -0.25], 'Pd9Ti7H17+1CO': [-0.15, -0.25]}
     name_fig_act = './figures/iter31_activity.jpg'
     activity = Activity(df, descriper1 = 'E(CO*)', descriper2 = 'E(HOCO*)', fig_name=name_fig_act,
                         U0=-0.5, 
@@ -48,15 +48,20 @@ def plot_activity():
     # activity.verify_BE2FE()
     # activity.plot(save=True, text=False, tune_tex_pos=tune_tex_pos, ColorDict=ColorDict)
     # activity.plot(save=True, xlim=[-2.5, 2.5], ylim=[-2.5, 2.5])
-    activity.plot(save=True, text=False, tune_tex_pos=tune_tex_pos, ColorDict=ColorDict, xlim=[-1.0, 0.35], ylim=[-1.2, 1.0], **{'subscritpt': True})
+    activity.plot(save=True, text=False, tune_tex_pos=tune_tex_pos, ColorDict=ColorDict,
+                  xlim=[-1.0, 0.35], ylim=[-1.2, 1.0], **{'subscritpt': True, 'fontsize': 14})
     
-def plot_CO2RR_free_enegy():
+def plot_CO2RR_free_enegy(plot_all=False):
     """
     Plot free energy for CO2RR
     """
     df = pd_read_excel(filename='./data/iter31.xlsx', sheet='CO2RR_FED')
-    # obj_list = ['Pd64H64',]
-    # df = df[df.index.isin(obj_list)]
+    if plot_all:
+        print('plot all rows')
+    else:
+        obj_list = ['Pure', 'Pd9Ti7H17+1CO', 'Pd5Ti11H20+2CO', 'Pd5Ti11H20+1CO', 'Pd14Ti2H17+1CO']
+        df = df[df.index.isin(obj_list)]
+        df = df.reindex(obj_list)
     step_names = ['* + CO$_{2}$', 'HOCO*', 'CO*', '* + CO']  #reload step name for CO2RR
     df.set_axis(step_names, axis='columns', inplace=True)
     name_fig_FE = './figures/iter31_CO2RR.jpg'
@@ -64,15 +69,16 @@ def plot_CO2RR_free_enegy():
     ax = fig.add_subplot(111)
     ColorDict= {'Pure': 'black',}
     CO2RR_FED = CO2RRFED(df, fig_name=name_fig_FE, **{'ColorDict': ColorDict})
-    pos0, _ = CO2RR_FED.plot(ax=ax, save=False, title='', **{'subscritpt': True})
+    pos0, _ = CO2RR_FED.plot(ax=ax, save=False, title='', **{'subscritpt': True,'tune_ylabel': False})
     print('initial x pos:', pos0)
-    plt.legend(loc='upper center', bbox_to_anchor=(0.46, -0.12), fancybox=True, shadow=True, ncol=5, fontsize=8)
-    # plt.legend(loc='upper center', bbox_to_anchor=(0.45, -0.12), fancybox=True, shadow=True, ncol=5, fontsize=8)
-    # plt.legend(loc = "lower left", bbox_to_anchor=(0.00, -0.50, 0.8, 1.02), ncol=5, borderaxespad=0)
+    if plot_all:
+        plt.legend(loc='upper center', bbox_to_anchor=(0.46, -0.12), fancybox=True, shadow=True, ncol=5, fontsize=8)
+    else:
+        plt.legend(fontsize=12)
     plt.show()
     fig.savefig(name_fig_FE, dpi=300, bbox_inches='tight')
     
-def plot_HER_free_energy():
+def plot_HER_free_energy(plot_all=False):
     """Plot free energy for HER"""
     df = pd_read_excel(filename='./data/iter31.xlsx', sheet='HER_FED')
     df['step1']=0
@@ -80,18 +86,23 @@ def plot_HER_free_energy():
     df = df[['step1', 'G(H*)', 'step3']]
     step_names = ['* + $H^{+}$', 'H*', r'* + $\frac{1}{2}H_{2}$']
     df.set_axis(step_names, axis='columns', inplace=True)
-    # obj_list = ['Pd64H64',]
-    # df = df[df.index.isin(obj_list)]
+    if plot_all:
+        print('plot all rows')
+    else:
+        obj_list = ['Pure', 'Pd14Ti2H4+2CO', 'Pd12Ti4H4+3CO', 'Pd14Ti2H4+3CO', 'Pd14Ti2H7+1CO', 'Pd14Ti2H5+3CO', 'Pd14Ti2H12+3CO', 'Pd9Ti7H17+1CO']
+        df = df[df.index.isin(obj_list)]
+        df = df.reindex(obj_list)
     name_fig_FE = './figures/iter31_HER.jpg'
-    fig = plt.figure(figsize=(8, 6), dpi = 300)
+    fig = plt.figure(figsize=(8, 6), dpi=300)
     ax = fig.add_subplot(111)
     ColorDict= {'Pure': 'black',}
     HER_FED = HERFED(df, fig_name=name_fig_FE, **{'ColorDict': ColorDict})
-    pos0, _ = HER_FED.plot(ax=ax, save=False, title='', **{'subscritpt': True})
+    pos0, _ = HER_FED.plot(ax=ax, save=False, title='', **{'subscritpt': True, 'tune_ylabel': False})
     print('initial x pos:', pos0)
-    # plt.legend(loc='upper center', bbox_to_anchor=(pos0-0.25, -0.12), fancybox=True, shadow=True, ncol=5, fontsize=8)
-    # plt.legend(loc='upper center', bbox_to_anchor=(pos0-1.96, -0.12), fancybox=True, shadow=True, ncol=5, fontsize=8)
-    plt.legend(loc='upper center', bbox_to_anchor=(pos0-0.75, -0.12), fancybox=True, shadow=True, ncol=5, fontsize=8)
+    if plot_all:
+        plt.legend(loc='upper center', bbox_to_anchor=(pos0-0.75, -0.12), fancybox=True, shadow=True, ncol=5, fontsize=8)
+    else:
+        plt.legend(fontsize=12)
     plt.show()
     fig.savefig(name_fig_FE, dpi=300, bbox_inches='tight')
     
@@ -107,7 +118,7 @@ def plot_selectivity():
                     'Pd5Ti11H20+1CO': [0.7, -0.1], 'Pd9Ti7H17+1CO': [0.7, 0.0]}
     selectivity = Selectivity(df, fig_name=name_fig_select)
     selectivity.plot(save=True, title='', xlabel='Different surfaces', tune_tex_pos=-0.4, legend=False, 
-                     tune_ano_pos=tune_ano_pos, **{'width': 0.5, 'head_width': 1., 'subscritpt': True})
+                     tune_ano_pos=tune_ano_pos, **{'width': 0.5, 'head_width': 1., 'subscritpt': True, 'fontsize': 14})
 
 def plot_iteration():
     mpl.rcParams["figure.figsize"] = [6.4, 4.8]
@@ -180,19 +191,19 @@ def new_cands_vs_iters(since=1, iter=32):
     xs = np.arange(0, iter, 1)[since:]
     ys = lens_new[since:]
     plt.plot(xs, ys, '-o')
-    plt.xlabel('The numbe of iterations', fontsize=ft_sz)
+    plt.xlabel('The number of iterations', fontsize=ft_sz)
     plt.ylabel('The number of new candidates', fontsize=ft_sz)
     plt.xticks(np.arange(since, iter, 1),fontsize=ft_sz)
     plt.yticks(fontsize=ft_sz)
     plt.show()
 
 if __name__ == '__main__':
-    if False:
-        plot_activity()
+    if True:
+        # plot_activity()
         plot_HER_free_energy()
         plot_CO2RR_free_enegy()
-        plot_selectivity()
-    if True:
+        # plot_selectivity()
+    if False:
         plot_iteration()
         new_cands_vs_iters(since=17)
     
