@@ -200,8 +200,8 @@ def new_cands_vs_iters(since=1, iter=32):
 if __name__ == '__main__':
     if True:
         # plot_activity()
-        plot_HER_free_energy()
-        plot_CO2RR_free_enegy()
+        plot_HER_free_energy(plot_all=False)
+        plot_CO2RR_free_enegy(plot_all=False)
         # plot_selectivity()
     if False:
         plot_iteration()
