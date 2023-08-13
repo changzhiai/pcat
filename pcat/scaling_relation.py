@@ -11,7 +11,7 @@ import matplotlib.pyplot as plt
 from matplotlib.ticker import FormatStrFormatter
 import numpy as np
 from pcat.utils.styles import ColorDict
-from typing import List
+from typing import List, Dict
 import logging
 logging.basicConfig(level=logging.DEBUG, format='\n(%(asctime)s) \n%(message)s')
 logging.getLogger('matplotlib.font_manager').disabled = True
@@ -35,13 +35,17 @@ class ScalingRelationPlot:
     def __init__(self, descriper1: List[float], 
                  descriper2: List[float], 
                  obser_names: List[str], 
-                 fig_name: str) -> None:
+                 fig_name: str,
+                 colordict: Dict = None) -> None:
         # plot parameters
         self.descriper1 = descriper1
         self.descriper2 = descriper2
         self.obser_names = obser_names
         self.fig_name = fig_name
-        self.ColorDict = ColorDict
+        if colordict == None:
+            self.ColorDict = ColorDict
+        else:
+            self.ColorDict = colordict
         
     def plot(self, ax: plt.Axes = None, 
              dot_color='black', 
@@ -162,10 +166,11 @@ class ScalingRelationPlot:
         
 class ScalingRelation(ScalingRelationPlot):
     """New version of CO2RR scaling relation using panda, and thus less varalbe would be used"""
-    def __init__(self, df, descriper1, descriper2, fig_name):
+    def __init__(self, df, descriper1, descriper2, fig_name, colordict = None):
         self.descriper1 = df[descriper1]
         self.descriper2 = df[descriper2]
         self.obser_names = df.index
         self.fig_name = fig_name
-        super().__init__(self.descriper1, self.descriper2, self.obser_names, self.fig_name)
+        self.colordict = colordict
+        super().__init__(self.descriper1, self.descriper2, self.obser_names, self.fig_name, self.colordict)
         logging.debug(f'Loaded scaling relation table: \n{df}')

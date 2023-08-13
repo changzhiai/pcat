@@ -17,6 +17,25 @@ logging.basicConfig(level=logging.DEBUG, format='\n(%(asctime)s) \n%(message)s')
 logging.getLogger('matplotlib.font_manager').disabled = True
 logging.disable()
 
+def subscript_chemical_formula(formula):
+    """Return a formuala with subscript numbers"""
+    if_exist_a_num = any(i.isdigit() for i in formula)
+    if if_exist_a_num:
+        subscript = formula.split('+')[0]
+        sub = str.maketrans("0123456789", "₀₁₂₃₄₅₆₇₈₉")
+        formula_sub = subscript.translate(sub) + formula.replace(formula.split('+')[0], '')
+    else:
+        formula_sub = formula
+    return formula_sub
+
+def subscript_chemical_formulas(formulas):
+    """Return formualas with subscript numbers"""
+    formulas_sub = []
+    for formala in formulas:
+        formula_sub = subscript_chemical_formula(formala)
+        formulas_sub.append(formula_sub)
+    return formulas_sub
+
 class CO2RRFEDplot:
     """Class for CO2RR free energy diagram without TS data
     
@@ -85,7 +104,7 @@ class CO2RRFEDplot:
         if start_id != None and end_id != None:
             self.diagram.remove_link(start_id, end_id)
     
-    def plot(self, ax: plt.Axes = None, title='', save = False, legend=True, legendSize=14, text='', ratio=1.6181, ymin=None, ymax=None):
+    def plot(self, ax: plt.Axes = None, title='', save = False, legend=True, legendSize=14, text='', ratio=1.6181, ymin=None, ymax=None, **kwargs):
         """Plot free energy diagram without energy barrier"""
         if not ax:
             figFree = plt.figure(figsize=(8, 6), dpi = 300)
@@ -100,15 +119,20 @@ class CO2RRFEDplot:
         
         # add legend
         for i, specis in enumerate(self.obser_names):
+            if 'subscritpt' in kwargs and kwargs['subscritpt']==True:
+                specis = subscript_chemical_formula(specis)
             try:
-                plt.hlines(0.1, pos[0], pos[0], color=self.ColorDict[specis], label= specis)
+                plt.hlines(0.1, pos[0], pos[0], color=self.ColorDict[specis], label=specis)
             except:
-                plt.hlines(0.1, pos[0], pos[0], color=self.DefaultColor[i], label= specis)
-        if legend == True:
+                plt.hlines(0.1, pos[0], pos[0], color=self.DefaultColor[i], label=specis)
+        if legend:
             plt.legend(fontsize=legendSize)
         plt.title(title, fontsize=14)
         plt.text(0.04, 0.93, text, horizontalalignment='left', verticalalignment='center', transform=axFree.transAxes, fontsize=14, fontweight='bold')        
-        axFree.yaxis.set_label_coords(-0.1, 0.6)
+        if 'tune_ylabel' in kwargs and kwargs['tune_ylabel']==False:
+            print('Use default ylabel')
+        else:
+            axFree.yaxis.set_label_coords(-0.1, 0.6)
         axFree.yaxis.set_major_formatter(FormatStrFormatter('%.2f'))
         # save figure
         if save == True: 
@@ -120,12 +144,14 @@ class CO2RRFEDplot:
         
 class CO2RRFED(CO2RRFEDplot):
     """New version of CO2RR free energy diagram using panda, and thus less varalbe would be used"""
-    def __init__(self, df, fig_name):
+    def __init__(self, df, fig_name, **kwargs):
         self.step_names = df.columns
         self.obser_names = df.index
         self.X = df.values
         self.fig_name = fig_name
-        super().__init__(self.step_names, self.obser_names, self.X, self.fig_name, info=False)
+        if 'ColorDict' in kwargs:
+            ColorDict = kwargs['ColorDict']
+        super().__init__(self.step_names, self.obser_names, self.X, self.fig_name, info=False, ColorDict=ColorDict)
         logging.debug(f'Loaded free energy table: \n {df}')
 
 class HERFEDplot:
@@ -142,7 +168,7 @@ class HERFEDplot:
     fig_name: str
         figure name
     """
-    def __init__(self, step_names, obser_names, X, fig_name, info=True):
+    def __init__(self, step_names, obser_names, X, fig_name, info=True, ColorDict=ColorDict):
         # plot parameters
         self.step_names = step_names
         self.obser_names = obser_names
@@ -172,7 +198,7 @@ class HERFEDplot:
                     except:
                         self.diagram.add_link(count-1, count, color = self.DefaultColor[i])
         
-    def plot(self, ax: plt.Axes = None, title='', save=False, legend=True, legendSize=14,text='', ratio=1.6181, **kwargs):
+    def plot(self, ax: plt.Axes = None, title='', save=False, legend=True, legendSize=14,text='', ratio=1.6181, ColorDict=ColorDict, **kwargs):
         if not ax:
             figFree = plt.figure(figsize=(8, 6), dpi=300)
             axFree = figFree.add_subplot(111)
@@ -183,6 +209,8 @@ class HERFEDplot:
         
         # add legend    
         for i, specis in enumerate(self.obser_names):
+            if 'subscritpt' in kwargs and kwargs['subscritpt']==True:
+                specis = subscript_chemical_formula(specis)
             try:
                 plt.hlines(0.1, pos[0], pos[0], color=self.ColorDict[specis], label=specis)
             except:
@@ -191,7 +219,10 @@ class HERFEDplot:
             plt.legend(fontsize=legendSize)
         plt.title(title, fontsize=14)
         plt.text(0.04, 0.93, text, horizontalalignment='left', verticalalignment='center', transform=axFree.transAxes, fontsize=14, fontweight='bold')        
-        axFree.yaxis.set_label_coords(-0.1, 0.5)
+        if 'tune_ylabel' in kwargs and kwargs['tune_ylabel']==False:
+            print('Use default ylabel')
+        else:
+            axFree.yaxis.set_label_coords(-0.1, 0.5)
         axFree.yaxis.set_major_formatter(FormatStrFormatter('%.1f'))
         
         if save:
@@ -203,12 +234,14 @@ class HERFEDplot:
 
 class HERFED(HERFEDplot):
     """New version of HER free energy diagram using panda, and thus less varalbe would be used"""
-    def __init__(self, df, fig_name):
+    def __init__(self, df, fig_name, **kwargs):
         self.step_names = df.columns
         self.obser_names = df.index
         self.X = df.values
         self.fig_name = fig_name
-        super().__init__(self.step_names, self.obser_names, self.X, self.fig_name, info=False)
+        if 'ColorDict' in kwargs:
+            ColorDict = kwargs['ColorDict']
+        super().__init__(self.step_names, self.obser_names, self.X, self.fig_name, info=False, ColorDict=ColorDict)
         logging.debug(f'Loaded free energy table: \n {df}')
         
 class CO2RRFED_with_TS:

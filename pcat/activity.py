@@ -20,6 +20,25 @@ logging.getLogger('matplotlib.font_manager').disabled = True
 
 # rc('font', **{'family':'sans-serif','sans-serif':['Helvetica'], 'size':8})
 
+def subscript_chemical_formula(formula):
+    """Return a formuala with subscript numbers"""
+    if_exist_a_num = any(i.isdigit() for i in formula)
+    if if_exist_a_num:
+        subscript = formula.split('+')[0]
+        sub = str.maketrans("0123456789", "₀₁₂₃₄₅₆₇₈₉")
+        formula_sub = subscript.translate(sub) + formula.replace(formula.split('+')[0], '')
+    else:
+        formula_sub = formula
+    return formula_sub
+
+def subscript_chemical_formulas(formulas):
+    """Return formualas with subscript numbers"""
+    formulas_sub = []
+    for formala in formulas:
+        formula_sub = subscript_chemical_formula(formala)
+        formulas_sub.append(formula_sub)
+    return formulas_sub
+
 class Activity:
     """Activity calculation of CO2 to CO in acid environment
     
@@ -239,26 +258,33 @@ class Activity:
         k3 = self.get_k3(nu_c, Eb_CO, U, T=T, tc=tc0)
         return k1, K1, k2, K2, k3, K3
     
-    def plot_scaling_rev(self, Eb_CO_model, Eb_HOCO_model, xlim, ylim, text=True, tune_tex_pos=None, scaling=False,ColorDict=ColorDict, **kwargs):
+    def plot_scaling_rev(self, Eb_CO_model, Eb_HOCO_model, xlim, ylim, text=True, tune_tex_pos=None, scaling=False, ColorDict=ColorDict, **kwargs):
         """Plot scaling relation but slope is inverse in order to correspond to previous scaling relation
         tune_tex_pos = {'Pd64H31': [0.1, 0.2], 'Pd64H39': [0.3, 0.4]}"""
         
         Eb_CO_d = (self.df[self.descriper1]).values
         Eb_HOCO_d = (self.df[self.descriper2]).values
         obser_names = (self.df.index).values
-        fontsize = 10
+        if 'fontsize' in kwargs:
+            fontsize = kwargs['fontsize']
+        else:
+            fontsize = 10
+        # fontsize = 10
         # default_bias = 0.05
         default_bias = 0.02
         # xlim = [-1, 1]
         # ylim = [-2, 1]
         for i,obser_name in enumerate(obser_names):
             try:
+                color=ColorDict[obser_name]
                 if Eb_CO_d[i] >= min(xlim) and Eb_CO_d[i] <= max(xlim) and Eb_HOCO_d[i] >= min(ylim) and Eb_HOCO_d[i] <= max(ylim):
-                    plt.plot(Eb_CO_d[i], Eb_HOCO_d[i], 'o', color=ColorDict[obser_name]) 
+                    plt.plot(Eb_CO_d[i], Eb_HOCO_d[i], 'o', color=color) 
                     # plt.text would fail xlim and ylim 
                     if tune_tex_pos==None:
+                        if 'subscritpt' in kwargs and kwargs['subscritpt']==True:
+                            obser_name = subscript_chemical_formula(obser_name)
                         plt.text(Eb_CO_d[i], Eb_HOCO_d[i]+default_bias, obser_name, fontsize=fontsize, \
-                                 horizontalalignment='center', verticalalignment='bottom', color=ColorDict[obser_name],zorder=10)
+                                 horizontalalignment='center', verticalalignment='bottom', color=color,zorder=10)
                     else:
                         names = tune_tex_pos.keys()
                         if obser_name in names:
@@ -269,11 +295,13 @@ class Activity:
                             tune_x, tune_y = 0, 0
                         if tune_x == 0 and tune_y == 0:
                             plt.text(Eb_CO_d[i]+tune_x, Eb_HOCO_d[i]+default_bias+tune_y, obser_name, fontsize=fontsize, \
-                                      horizontalalignment='center', verticalalignment='bottom', color=ColorDict[obser_name],zorder=10)
+                                      horizontalalignment='center', verticalalignment='bottom', color=color,zorder=10)
                         else:
+                            if 'subscritpt' in kwargs and kwargs['subscritpt']==True:
+                                obser_name = subscript_chemical_formula(obser_name)
                             plt.annotate(obser_name,xy=(Eb_CO_d[i], Eb_HOCO_d[i]), xycoords='data',
                             xytext=(Eb_CO_d[i]+tune_x, Eb_HOCO_d[i]+default_bias+tune_y), textcoords='data', fontsize=fontsize,
-                            arrowprops=dict(arrowstyle="->", connectionstyle="arc3",color=ColorDict[obser_name]), color=ColorDict[obser_name])
+                            arrowprops=dict(arrowstyle="->", connectionstyle="arc3",color=color), color=color)
             except:
                 if Eb_CO_d[i] >= min(xlim) and Eb_CO_d[i] <= max(xlim) and Eb_HOCO_d[i] >= min(ylim) and Eb_HOCO_d[i] <= max(ylim):
                     plt.plot(Eb_CO_d[i], Eb_HOCO_d[i], 'o', color='white')
@@ -289,6 +317,8 @@ class Activity:
                                 tune_y = pos_tune[1]
                             else:
                                 tune_x, tune_y = 0, 0
+                            if 'subscritpt' in kwargs and kwargs['subscritpt']==True:
+                                obser_name = subscript_chemical_formula(obser_name)
                             plt.text(Eb_CO_d[i]+tune_x, Eb_HOCO_d[i]+default_bias+tune_y, obser_name, fontsize=12, \
                                      horizontalalignment='center', verticalalignment='bottom', color='white')
         if scaling:
@@ -390,7 +420,7 @@ class Activity:
             xlim = [min(Eb_CO_model), max(Eb_CO_model)]
         if ylim == None:
             ylim = [min(Eb_HOCO_model), max(Eb_HOCO_model)]
-        self.plot_scaling_rev(Eb_CO_model, Eb_HOCO_model, xlim, ylim,text=text, tune_tex_pos=tune_tex_pos, ColorDict=ColorDict,)
+        self.plot_scaling_rev(Eb_CO_model, Eb_HOCO_model, xlim, ylim,text=text, tune_tex_pos=tune_tex_pos, ColorDict=ColorDict, **kwargs)
         
         plt.tick_params(labelsize=12) # tick label font size
         plt.title(title, fontsize=14,)
