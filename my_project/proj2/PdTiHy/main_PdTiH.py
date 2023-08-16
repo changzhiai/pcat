@@ -404,6 +404,16 @@ def plot_scaling_relations(xls_name, sheet_binding_energy, fig_dir):
     df = pd_read_excel(xls_name, sheet_binding_energy)
     # df.drop(['Pd9Ti55H20', 'Pd9Ti55H16', 'Pd4Ti60H21', 'Pd36Ti28H28'], inplace=True)
     
+    c1 = 'black'
+    c2 = 'yellow'
+    c3 = 'red'
+    ColorDict= {'Pd64H64': 'b', 'Pd16Ti48H60': 'b', 'Pd15Ti49H64': c1, 'Pd2Ti62H64': 'b', 'Pd12Ti52H56': c2,
+                'Pd9Ti55H20': c1, 'Pd9Ti55H16': c1, 'Pd9Ti55H64': c2, 'Pd4Ti60H64': 'b', 'Pd18Ti46H62': c3, 
+                'Pd8Ti56H62': c3, 'Pd12Ti52H60': c1, 'Pd6Ti58H58': 'b', 'Pd10Ti54H52': c2, 'Pd9Ti55H52': 'b',
+                'Pd9Ti55H50': 'b', 'Pd4Ti60H21': c1, 'Pd17Ti47H40': 'b', 'Pd10Ti54H55': c2, 'Pd10Ti54H56': c3,
+                'Ti64H61': 'b', 'Pd2Ti62H63': 'b', 'Pd9Ti55H51': 'b', 'Pd11Ti53H55': c2, 'Pd14Ti50H60': c3, 
+                'Pd31Ti33H34': 'b', 'Pd36Ti28H28': 'b', 'Pd13Ti51H48': c2, 'Pd5Ti59H59': 'b', 'Pd13Ti51H45': c3}
+    
     # df.drop(['Pd16Ti48H8', 'Pd16Ti48H24'], inplace=True)
     col1 = [2, 2, 2, 3, 3, 5] # column in excel
     col2 = [3, 5, 4, 5, 4, 4] # column in excel
@@ -417,14 +427,14 @@ def plot_scaling_relations(xls_name, sheet_binding_energy, fig_dir):
             ax = plt.subplot(M, M, m1*M + m2 + 1)
             descriper1 = df.columns[col1[i]-2]
             descriper2 = df.columns[col2[i]-2]
-            sr = ScalingRelation(df, descriper1, descriper2, fig_name=name_fig_BE)
+            sr = ScalingRelation(df, descriper1, descriper2, fig_name=name_fig_BE, colordict=ColorDict)
             sr.plot(ax = ax, save=False, 
                     color_dict=True, 
                     title='', 
                     xlabel=descriper1, 
                     ylabel=descriper2, 
-                    dot_color='red', 
-                    line_color='red',
+                    dot_color='lightcoral', 
+                    line_color='darkred',
                     annotate=False,)
             i+=1
     plt.show()
@@ -460,8 +470,17 @@ def plot_selectivity(xls_name, sheet_selectivity, fig_dir):
     # df.set_axis(['Single'], axis='columns', inplace=True)
     name_fig_select = f'{fig_dir}/{system_name}_{sheet_selectivity}.jpg'
     
+    tune_ano_pos = {'Pd64H64': [-1.8, -0.0], 'Pd16Ti48H60': [0.0, -0.00], 'Pd15Ti49H64': [-2.5, -2], 'Pd2Ti62H64': [-0.0, 0.0], 
+     'Pd12Ti52H56': [-1., -2], 'Pd9Ti55H20': [-1., -2], 'Pd9Ti55H16': [1., -2], 'Pd9Ti55H64': [1., -2], 
+     'Pd4Ti60H64': [-1.5, 0.02], 'Pd18Ti46H62': [0.00, -0.00], 'Pd8Ti56H62': [1, 0.2], 'Pd12Ti52H60': [-1., -2],# 45d
+     'Pd6Ti58H58': [1., -2], 'Pd10Ti54H52': [0.03, -0.02], 'Pd9Ti55H52': [2., -2], 'Pd9Ti55H50': [0.0, -0.0], 
+     'Pd4Ti60H21': [-1., -2], 'Pd17Ti47H40': [-1., -2], 'Pd10Ti54H55': [-4., 0.0], 'Pd10Ti54H56': [-3.0, -0.0], 
+     'Ti64H61': [0.0, 0.0], 'Pd2Ti62H63': [0.03, -0.03], 'Pd9Ti55H51': [2.0, -0.0], 'Pd11Ti53H55': [-1., -2],
+     'Pd14Ti50H60': [-1., -2], 'Pd31Ti33H34': [-0., 0.4], 'Pd36Ti28H28': [-1., -2], 'Pd13Ti51H48': [-1., -2], 
+     'Pd5Ti59H59': [-3.0, 0.03], 'Pd13Ti51H45': [-3.0, 0.1]}
+    
     selectivity = Selectivity(df, fig_name=name_fig_select)
-    selectivity.plot(save=True, title='', xlabel='Different surfaces', tune_tex_pos=1.5, legend=False)
+    selectivity.plot(save=True, title='', xlabel='Different surfaces', tune_tex_pos=-1.5, legend=False, tune_ano_pos=tune_ano_pos)
 
 def required_condition(df):
     df = df[(df['E(*CO)']>-0.65) & (df['E(*CO)']<-0.)]
@@ -705,6 +724,42 @@ def plot_count_nn_hist(ads='CO'):
         plt.xlim([-1., 2.])
     plt.show()
 
+def plot_OH_binding(xls_name, sheet_binding_energy, fig_dir):
+    """
+    Plot scaling relation by binding energy
+    """
+    df = pd_read_excel(xls_name, sheet_binding_energy)
+    # df.drop(['Pd16Ti48H8', 'Pd16Ti48H24'], inplace=True)
+    col1 = [2, 2, 2, 3, 3, 5] # column in excel
+    col2 = [3, 5, 4, 5, 4, 4] # column in excel
+    
+    c1 = 'black'
+    c2 = 'yellow'
+    c3 = 'red'
+    ColorDict= {'Pd64H64': 'b', 'Pd16Ti48H60': 'b', 'Pd15Ti49H64': c1, 'Pd2Ti62H64': 'b', 'Pd12Ti52H56': c2,
+                'Pd9Ti55H20': c1, 'Pd9Ti55H16': c1, 'Pd9Ti55H64': c2, 'Pd4Ti60H64': 'b', 'Pd18Ti46H62': c3, 
+                'Pd8Ti56H62': c3, 'Pd12Ti52H60': c1, 'Pd6Ti58H58': 'b', 'Pd10Ti54H52': c2, 'Pd9Ti55H52': 'b',
+                'Pd9Ti55H50': 'b', 'Pd4Ti60H21': c1, 'Pd17Ti47H40': 'b', 'Pd10Ti54H55': c2, 'Pd10Ti54H56': c3,
+                'Ti64H61': 'b', 'Pd2Ti62H63': 'b', 'Pd9Ti55H51': 'b', 'Pd11Ti53H55': c2, 'Pd14Ti50H60': c3, 
+                'Pd31Ti33H34': 'b', 'Pd36Ti28H28': 'b', 'Pd13Ti51H48': c2, 'Pd5Ti59H59': 'b', 'Pd13Ti51H45': c3}
+    
+    fig = plt.figure(figsize=(18, 16), dpi = 300)
+    name_fig_BE = f'{fig_dir}/{system_name}_OH.jpg'
+    i = 1
+    descriper1 = df.columns[col1[i]-2]
+    descriper2 = df.columns[col2[i]-2]
+    sr = ScalingRelation(df, descriper1, descriper2, fig_name=name_fig_BE, colordict=ColorDict)
+    sr.plot(save=False, 
+            color_dict=True, 
+            title='', 
+            xlabel=descriper1, 
+            ylabel=descriper2, 
+            dot_color='red', 
+            line_color='red',
+            annotate=False,)
+    plt.show()
+    fig.savefig(name_fig_BE, dpi=300, bbox_inches='tight')
+
 
 if __name__ == '__main__':
     # if False:
@@ -764,11 +819,11 @@ if __name__ == '__main__':
         print('Generating data done!')
     
     if False: # plot
-        plot_free_enegy(xls_name, sheet_free_energy, fig_dir)
-        plot_HER_free_energy(xls_name, sheet_name_allFE, fig_dir)
+        # plot_free_enegy(xls_name, sheet_free_energy, fig_dir)
+        # plot_HER_free_energy(xls_name, sheet_name_allFE, fig_dir)
         plot_scaling_relations(xls_name, sheet_binding_energy, fig_dir)
         # plot_selectivity(xls_name, sheet_selectivity, fig_dir)
-        plot_activity(xls_name, sheet_binding_energy, fig_dir)
+        # plot_activity(xls_name, sheet_binding_energy, fig_dir)
     
     if False: # cutoff=4.5
         binding_energy_distribution(ads='HOCO')
@@ -783,9 +838,12 @@ if __name__ == '__main__':
         # plot_count_nn(ads='CO')
         # plot_count_nn_stack(ads='CO')
     
-    if True:
+    if False:
         for ads in ['HOCO', 'CO', 'OH', 'H']:
             plot_count_nn_hist(ads=ads)
+    
+    if False:
+        plot_OH_binding(xls_name, sheet_binding_energy, fig_dir)
             
     # add_generation_to_db(db)
     # plot_BE_as_Hcons(xls_name, sheet_cons)
