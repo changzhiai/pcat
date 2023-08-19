@@ -344,15 +344,16 @@ def plot_free_enegy(xls_name, sheet_free_energy, fig_dir):
     """
     df = pd_read_excel(xls_name, sheet_free_energy)
     df.drop(['Nb32Pd32', 'Nb64H2'], inplace=True)
-    # obj_list = ['Pd64H64', 'Nb53Pd11H16', 'Nb64H20', 'Nb49Pd15H29', 'Nb52Pd12H56', 'Nb56Pd8H27', 'Nb28Pd36H33']
-    # df = df[df.index.isin(obj_list)]
+    obj_list = ['Pd64H64', 'Nb53Pd11H16', 'Nb49Pd15H29', 'Nb52Pd12H56', 'Nb56Pd8H27', 'Nb28Pd36H33']
+    df = df[df.index.isin(obj_list)]
     
-    # df.drop(['Nb32Pd32', 'Nb64H2'], inplace=True)
+    # df.drop(['Nb32Pd32', 'Nb64H2', 'Nb64H20'], inplace=True)
     step_names = ['* + CO$_{2}$', 'HOCO*', 'CO*', '* + CO']  #reload step name for CO2RR
     df.set_axis(step_names, axis='columns', inplace=True)
     name_fig_FE = f'{fig_dir}/{system_name}_{sheet_free_energy}.jpg'
     fig = plt.figure(figsize=(8, 6), dpi = 300)
     ax = fig.add_subplot(111)
+    df = update_df_name(df)
     CO2RR_FED = CO2RRFED(df, fig_name=name_fig_FE)
     pos0, _ = CO2RR_FED.plot(ax=ax, save=False, title='')
     plt.legend(loc='upper center', bbox_to_anchor=(0.47, -0.12), fancybox=True, shadow=True, ncol=5, fontsize=8)
@@ -370,12 +371,13 @@ def plot_HER_free_energy(xls_name, sheet_name_allFE, fig_dir):
     step_names = ['* + $H^{+}$', 'H*', r'* + $\frac{1}{2}H_{2}$']
     df.set_axis(step_names, axis='columns', inplace=True)
     
-    # obj_list = ['Pd64H64', 'Nb53Pd11H16', 'Nb64H20', 'Nb49Pd15H29', 'Nb52Pd12H56', 'Nb56Pd8H27', 'Nb28Pd36H33']
+    # obj_list = ['Pd64H64', 'Nb53Pd11H16', 'Nb49Pd15H29', 'Nb52Pd12H56', 'Nb56Pd8H27', 'Nb28Pd36H33']
     # df = df[df.index.isin(obj_list)]
     
     name_fig_FE = f'{fig_dir}/{system_name}_HER.jpg'
     fig = plt.figure(figsize=(8, 6), dpi = 300)
     ax = fig.add_subplot(111)
+    df = update_df_name(df)
     HER_FED = HERFED(df, fig_name=name_fig_FE)
     pos0, _ = HER_FED.plot(ax=ax, save=False, title='')
     print('initial x pos:', pos0)
@@ -391,6 +393,9 @@ def plot_scaling_relations(xls_name, sheet_binding_energy, fig_dir):
     df = pd_read_excel(xls_name, sheet_binding_energy)
     df.drop(['Nb32Pd32', 'Nb64H2'], inplace=True)
     
+    ColorDict = {'Pd64H64': 'b', 'Nb53Pd11H16': 'red', 'Nb49Pd15H29': 'b',
+               'Nb52Pd12H56': 'b', 'Nb56Pd8H27': 'b', 'Nb28Pd36H33': 'red'}
+    
     # df.drop(['Pd16Ti48H8', 'Pd16Ti48H24'], inplace=True)
     col1 = [2, 2, 2, 3, 3, 5] # column in excel
     col2 = [3, 5, 4, 5, 4, 4] # column in excel
@@ -404,14 +409,16 @@ def plot_scaling_relations(xls_name, sheet_binding_energy, fig_dir):
             ax = plt.subplot(M, M, m1*M + m2 + 1)
             descriper1 = df.columns[col1[i]-2]
             descriper2 = df.columns[col2[i]-2]
-            sr = ScalingRelation(df, descriper1, descriper2, fig_name=name_fig_BE)
+            df = update_df_name(df)
+            ColorDict = update_dict_name(ColorDict)
+            sr = ScalingRelation(df, descriper1, descriper2, fig_name=name_fig_BE, colordict=ColorDict)
             sr.plot(ax = ax, save=False, 
                     color_dict=True, 
                     title='', 
                     xlabel=descriper1, 
                     ylabel=descriper2, 
-                    dot_color='red', 
-                    line_color='red',
+                    dot_color='lightcoral', 
+                    line_color='darkred',
                     annotate=False,)
             i+=1
     plt.show()
@@ -446,9 +453,12 @@ def plot_selectivity(xls_name, sheet_selectivity, fig_dir):
     df = pd_read_excel(filename=xls_name, sheet=sheet_selectivity)
     # df.set_axis(['Single'], axis='columns', inplace=True)
     name_fig_select = f'{fig_dir}/{system_name}_{sheet_selectivity}.jpg'
+    tune_ano_pos = {'Pd64H64': [0.0, -2.0], 'Nb53Pd11H16': [0.0, -2.0],
+                    'Nb49Pd15H29': [0.0, -2.0], 'Nb52Pd12H56': [-2.0, -2.0], 'Nb56Pd8H27': [-1., -2.0],
+                    'Nb28Pd36H33': [-0.0, -2.0]}
     
     selectivity = Selectivity(df, fig_name=name_fig_select)
-    selectivity.plot(save=True, title='', xlabel='Different surfaces', tune_tex_pos=1.5, legend=False)
+    selectivity.plot(save=True, title='', xlabel='Different surfaces', tune_tex_pos=-1.5, legend=False, tune_ano_pos=tune_ano_pos)
 
 def required_condition(df):
     df = df[(df['E(*CO)']>-0.65) & (df['E(*CO)']<-0.)]
@@ -469,8 +479,10 @@ def plot_activity(xls_name, sheet_binding_energy, fig_dir):
     """Plot activity of CO2RR"""
     df = pd_read_excel(filename=xls_name, sheet=sheet_binding_energy)
     df = required_condition(df)
+    df.drop(['Nb64H20',], inplace=True)
     # df.drop(['Pd16Ti48H8', 'Pd16Ti48H24'], inplace=True)
     name_fig_act = f'{fig_dir}/{system_name}_activity.jpg'
+    df = update_df_name(df)
     activity = Activity(df, descriper1 = 'E(*CO)', descriper2 = 'E(*HOCO)', fig_name=name_fig_act,
                         U0=-0.5, 
                         T0=297.15, 
@@ -482,12 +494,15 @@ def plot_activity(xls_name, sheet_binding_energy, fig_dir):
                         p_factor = 3.6 * 10**4)
     # activity.verify_BE2FE()
     
-    ColorDict = {'Pd64H64': 'b', 'Nb53Pd11H16': 'red', 'Nb64H20': 'b', 'Nb49Pd15H29': 'b',
+    ColorDict = {'Pd64H64': 'b', 'Nb53Pd11H16': 'red', 'Nb49Pd15H29': 'b',
                'Nb52Pd12H56': 'b', 'Nb56Pd8H27': 'b', 'Nb28Pd36H33': 'red'}
     
-    tune_tex_pos = {'Pd64H64': [0.0, 0.0], 'Nb53Pd11H16': [0.0, 0.0], 'Nb64H20': [0.0, 0.0],
+    tune_tex_pos = {'Pd64H64': [0.0, 0.0], 'Nb53Pd11H16': [0.0, 0.0],
                     'Nb49Pd15H29': [0.0, -0.06], 'Nb52Pd12H56': [0.03, -0.0], 'Nb56Pd8H27': [0.0, 0.0],
                     'Nb28Pd36H33': [-0.1, 0.0]}
+
+    ColorDict = update_dict_name(ColorDict)
+    tune_tex_pos = update_dict_name(tune_tex_pos)
     activity.plot(save=True, text=False, tune_tex_pos=tune_tex_pos, ColorDict=ColorDict)
     # activity.plot(save=True)
     # activity.plot(save=True, xlim=[-2.5, 2.5], ylim=[-2.5, 2.5])
@@ -672,6 +687,68 @@ def plot_count_nn_hist(ads='CO'):
         plt.xlim([-1., 2.])
     plt.show()
 
+def plot_OH_binding(xls_name, sheet_binding_energy, fig_dir):
+    """
+    Plot scaling relation by binding energy
+    """
+    df = pd_read_excel(xls_name, sheet_binding_energy)
+    # df.drop(['Pd16Ti48H8', 'Pd16Ti48H24'], inplace=True)
+    col1 = [2, 2, 2, 3, 3, 5] # column in excel
+    col2 = [3, 5, 4, 5, 4, 4] # column in excel
+    
+    ColorDict = {'Pd64H64': 'b', 'Nb53Pd11H16': 'red', 'Nb49Pd15H29': 'b',
+               'Nb52Pd12H56': 'b', 'Nb56Pd8H27': 'b', 'Nb28Pd36H33': 'red'}
+    
+    fig = plt.figure(figsize=(18, 16), dpi = 300)
+    name_fig_BE = f'{fig_dir}/{system_name}_OH.jpg'
+    i = 1
+    descriper1 = df.columns[col1[i]-2]
+    descriper2 = df.columns[col2[i]-2]
+    sr = ScalingRelation(df, descriper1, descriper2, fig_name=name_fig_BE, colordict=ColorDict)
+    sr.plot(save=False, 
+            color_dict=True, 
+            title='', 
+            xlabel=descriper1, 
+            ylabel=descriper2, 
+            dot_color='red', 
+            line_color='red',
+            annotate=False,)
+    plt.show()
+    fig.savefig(name_fig_BE, dpi=300, bbox_inches='tight')
+
+def custom_name(name="Nb16Pd48H64"):
+    name_12 = name.split('H')[0]
+    name_3 = name.replace(name_12, '')
+    if 'Nb' in name and 'Pd' in name:
+        name_1 = name_12.split('Pd')[0]
+        name_2 = name_12.replace(name_1, '')
+        name_new = name_2 + name_1 + name_3
+        return name_new
+    else:
+        return name
+
+def update_df_name(df):
+    print(df)
+    ls = []
+    for name in df.index.values:
+        name_new = custom_name(name)
+        ls.append(name_new)
+    df = df.reset_index()
+    df.columns = df.columns.str.replace('Surface', 'Surface_old')
+    df['Surface'] = ls
+    df = df.set_index('Surface')
+    df.drop('Surface_old', inplace=True, axis=1)
+    # print(df)
+    return df
+
+def update_dict_name(ColorDict):
+    # print(ColorDict)
+    ColorDict_new = {}
+    for name in ColorDict.keys():
+        name_new = custom_name(name)
+        ColorDict_new[name_new] = ColorDict[name]
+    # print(ColorDict_new)
+    return ColorDict_new
 
 if __name__ == '__main__':
 
@@ -700,11 +777,11 @@ if __name__ == '__main__':
                sheet_name_allFE, sheet_selectivity, sheet_name_dGs,
                cutoff=2.8)
     
-    if False: # plot
-        plot_free_enegy(xls_name, sheet_free_energy, fig_dir)
+    if True: # plot
+        # plot_free_enegy(xls_name, sheet_free_energy, fig_dir)
         plot_scaling_relations(xls_name, sheet_binding_energy, fig_dir)
         # plot_selectivity(xls_name, sheet_selectivity, fig_dir)
-        plot_activity(xls_name, sheet_binding_energy, fig_dir)
+        # plot_activity(xls_name, sheet_binding_energy, fig_dir)
     
     if False: # cutoff=4.5
         binding_energy_distribution(ads='HOCO')
@@ -719,10 +796,13 @@ if __name__ == '__main__':
         # plot_count_nn(ads='CO')
         # plot_count_nn_stack(ads='CO')
     
-    if True:
+    if False:
         for ads in ['HOCO', 'CO', 'OH', 'H']:
             plot_count_nn_hist(ads=ads)
-            
+    
+    if False:
+        plot_OH_binding(xls_name, sheet_binding_energy, fig_dir)
+    
     # add_generation_to_db(db)
     # plot_BE_as_Hcons(xls_name, sheet_cons)
     

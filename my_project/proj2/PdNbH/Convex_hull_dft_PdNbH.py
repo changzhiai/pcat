@@ -22,6 +22,7 @@ from scipy.spatial import ConvexHull, convex_hull_plot_2d
 import pandas as pd
 from pcat.lib.io import pd_read_excel
 import imageio
+import pickle
 
 def concatenate_db(db_name1, db_name2, db_tot):
     """Contatenate two database into the total one"""
@@ -611,6 +612,56 @@ def get_initial_and_final_candidates(ids):
         db_candidates.write(row_final)
     return db_candidates
 
+def write_list(n_list, iteration, name='all_ids.pkl'):
+    with open(f'./figures/{name}', 'wb') as fp:
+        pickle.dump(n_list, fp)
+        print('Done writing list into a binary file')
+
+def read_list(iteration, name='all_ids.pkl'):
+    with open(f'./figures/{name}', 'rb') as fp:
+        n_list = pickle.load(fp)
+        return n_list
+
+def flatten_list(n_list):
+    import itertools
+    n_list = list(itertools.chain(*n_list))
+    n_list = list(set(n_list))
+    return n_list
+    
+def find_num_of_new(pre_unique_ids, unique_ids):
+    new_ids = []
+    for id in unique_ids:
+        if id not in pre_unique_ids:
+            new_ids.append(id)
+    return new_ids
+
+def new_cands_vs_iters(since=1, iter=13):
+    iter_unique_ids, iter_new_ids = [], []
+    iter_unique_ids.append([])
+    iter_new_ids.append([])
+    for i in range(1,iter):
+        unique_ids = read_list(i, name=f'all_ids_{i}.pkl')
+        iter_unique_ids.append(unique_ids)
+        new_ids = find_num_of_new(iter_unique_ids[i-1], iter_unique_ids[i])
+        iter_new_ids.append(new_ids)
+        print(i, len(unique_ids))
+        print(sorted(unique_ids))
+    # fig, ax = plt.subplots(figsize=(8,7), dpi=300)
+    fig, ax = plt.subplots(dpi=300)
+    lens_new = []
+    for new_ids in iter_new_ids:
+        lens_new.append(len(new_ids))
+    print(lens_new)
+    ft_sz = 12
+    xs = np.arange(0, iter, 1)[since:]
+    ys = lens_new[since:]
+    plt.plot(xs, ys, '-o')
+    plt.xlabel('The numbe of iterations', fontsize=ft_sz)
+    plt.ylabel('The number of new candidates', fontsize=ft_sz)
+    plt.xticks(np.arange(since, iter, 1),fontsize=ft_sz)
+    plt.yticks(fontsize=ft_sz)
+    plt.show()
+
 def plot_dft_convex_hull(xls_name, sheet_convex_hull, candidates=False, round=1):
     """Plot convex hull using DFT data"""
     df = pd_read_excel(filename=xls_name, sheet=sheet_convex_hull)
@@ -627,6 +678,9 @@ def plot_dft_convex_hull(xls_name, sheet_convex_hull, candidates=False, round=1)
     pts = np.column_stack((x, y, z, id))
     hull = ConvexHull(pts[:,:3])
     vertices = pts[hull.vertices]
+    all_ids = [int(x) for x in vertices[:,3]]
+    print(all_ids)
+    write_list(all_ids, round, name=f'all_ids_{round}.pkl') # save candidates
     plt.scatter(vertices[:,0], vertices[:,1], c='r', marker='.', zorder=2)
     if candidates:
         only_final_candidates = False
@@ -641,7 +695,6 @@ def plot_dft_convex_hull(xls_name, sheet_convex_hull, candidates=False, round=1)
         plt.plot(pts[s, 0], pts[s, 1], "r--", alpha=0.3, zorder=1)
     bar.set_label(r'Formation energy (eV/atom)', fontsize=12,)
     # plt.title(f'Convex hull {round} of PdNbH ({len(id)} DFT data points)')
-    
     plt.xlim([0, 1])
     # ticks = []
     # set ticks
@@ -658,7 +711,8 @@ def plot_dft_convex_hull(xls_name, sheet_convex_hull, candidates=False, round=1)
     # ax.tight_layout()
     # plt.show()
     # ax.savefig('2d_contour.png')
-    return fig, ax
+    print(hull.volume)
+    return fig, ax, hull
 
 def plot_animate(i):
     global system_name, metal_obj, ref_eles, db_name, xls_name, fig_dir, sheet_name_convex_hull
@@ -675,11 +729,44 @@ def plot_animate(i):
     image  = image.reshape(fig.canvas.get_width_height()[::-1] + (3,))
     return image
 
+def plot_volumes(iters, volumes):
+    plt.figure(dpi=300)
+    plt.plot(iters, volumes, '-o', color='C1')
+    plt.xticks(np.arange(1, 13, step=1))
+    plt.ylim(0.195, 0.325)
+    plt.xlabel('The number of iterations')
+    plt.ylabel('Volume of DFT convex hull')
+    plt.show()
+
+def plot_total_structs(iters, lens):
+    ft_sz = 12
+    print(lens)
+    plt.plot(iters, lens, '-o')
+    plt.xlabel('The numbe of iterations', fontsize=ft_sz)
+    plt.ylabel('The number of the database', fontsize=ft_sz)
+    plt.xticks(np.arange(min(iters), max(iters)+1, 1),fontsize=ft_sz)
+    plt.yticks(fontsize=ft_sz)
+    plt.show()
+
+def plot_new_added_structs(iters, lens):
+    ft_sz = 12
+    new_added = [0] + [int(lens[i]-lens[i-1]) for i, l in enumerate(lens) if i>=1]
+    print(new_added)
+    plt.plot(iters, new_added, '-o')
+    plt.xlabel('The numbe of iterations', fontsize=ft_sz)
+    plt.ylabel('The number of new structures', fontsize=ft_sz)
+    plt.xticks(np.arange(min(iters), max(iters)+1, 1),fontsize=ft_sz)
+    plt.yticks(fontsize=ft_sz)
+    plt.show()
+
+
 if __name__ == '__main__':
     # if False:
     #     db_tot = '../data/collect_vasp_PdHy_and_insert.db'
     #     concatenate_db('../data/collect_vasp_PdHy_v3.db', '../data/collect_vasp_insert_PdHy.db', db_tot)
-    
+    volumes = []
+    iters = []
+    lens = []
     for i in [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]:
     # for i in [12]:
     # for i in [150, 200, 250, 450]:
@@ -710,12 +797,18 @@ if __name__ == '__main__':
         # energy_ref_eles={'Pd':-1.951, metal_obj:-2.534, 'H': -7.158*0.5} # for Ni
         energy_ref_eles={'Pd':-1.951, metal_obj:-7.245, 'H': -7.158*0.5} # for Nb
         db = connect(db_name)
+        lens.append(int((len(db)-1)/2.))
+        iters.append(i)
+        
         if False: # database to excel
             # db = del_partial_db(db)
             db2xls_dft(system_name, xls_name, sheet_convex_hull, energy_ref_eles)
         
-        if True:
-            plot_dft_convex_hull(xls_name, sheet_convex_hull, candidates=False, round=i)
+        if False:
+            fig, ax, hull = plot_dft_convex_hull(xls_name, sheet_convex_hull, candidates=False, round=i)
+            volumes.append(hull.volume)
+            if i == 12:
+                plot_volumes(iters, volumes)
         
         if False: # plot
             plot_free_enegy(xls_name, sheet_free_energy, fig_dir)
@@ -723,7 +816,10 @@ if __name__ == '__main__':
             plot_selectivity(xls_name, sheet_selectivity, fig_dir)
             plot_activity(xls_name, sheet_binding_energy, fig_dir)
     
-    
+    if False:
+        plot_total_structs(iters, lens)
+        plot_new_added_structs(iters, lens)
+
     # plot_free_enegy(xls_name, sheet_free_energy, fig_dir)
     # plot_scaling_relations(xls_name, sheet_binding_energy, fig_dir)
     # plot_activity(xls_name, sheet_binding_energy, fig_dir)
