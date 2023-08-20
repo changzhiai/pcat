@@ -63,7 +63,7 @@ def plot_multi_scores_vs_U(dfs, d_mu_pd, d_mu_ti, pco, t, x_col='U', **kwargs):
         x, y = plot_scores(df, i, d_mu_pd, d_mu_ti, pco, t, x_col = 'U', **kwargs)
         assert (x.values == results.columns.values).all()
         results.loc[i] = y.values
-    print(results)
+    print('results:',results)
     minis = results.min(axis=0)
     ids = results.idxmin(axis=0)
     id_set = in_order(ids)
@@ -159,7 +159,7 @@ def plot_surf_free_vs_U_matrix(dfs, **kwargs):
                         plt.xticks([-0.6, -0.4, -0.2, 0.0])
                     else:
                         plt.xticks([])
-    st = plt.suptitle(f'Iter: {iter},T={T[0]} K, Pco={P_CO[0]} Pa', fontsize=ft_sz)
+    st = plt.suptitle(f'Iter: {iter}, T={T[0]} K, Pco={P_CO[0]} Pa', fontsize=ft_sz)
     fig.tight_layout(pad=0.2)
     st.set_y(1.01)
     plt.show()
@@ -169,8 +169,63 @@ def plot_surf_free_vs_U_matrix(dfs, **kwargs):
     fig.savefig(f'{path}/iter_{iter}_matrix_pourbaix.png',dpi=300, bbox_inches='tight')
     return cands, ids
 
+def plot_surf_free_vs_U_matrix_all(dfs, **kwargs):
+    """Generate len(T)xlen(P_CO) 5x5 matrix plot"""
+    d_mu_Pd = kwargs['d_mu_Pd']
+    d_mu_Ti = kwargs['d_mu_Ti']
+    P_CO = kwargs['P_CO']
+    T = kwargs['T']
+    iter = kwargs['iter']
+    cands, ids = [], []
+    path = './figures/matrix_all'
+    if not(os.path.exists(path) and os.path.isdir(path)):
+        os.mkdir(path)
+    path = f'./figures/matrix_all/iter_{iter}'
+    if not(os.path.exists(path) and os.path.isdir(path)):
+        os.mkdir(path)
+    for t in T:
+        path = f'./figures/matrix_all/iter_{iter}/{t}'
+        if not(os.path.exists(path) and os.path.isdir(path)):
+            os.mkdir(path)
+        for pco in P_CO:
+            fig = plt.figure(figsize=(12,10),dpi=300)
+            i=0
+            for d_mu_ti in d_mu_Ti:
+                for d_mu_pd in d_mu_Pd:
+                    ax = plt.subplot(5, 5, i+1)
+                    cand, id_set, _, _ = plot_multi_scores_vs_U(dfs, d_mu_pd, d_mu_ti, pco, t, **kwargs)
+                    cands.append(cand)
+                    ids.append(id_set)
+                    ft_sz = 6
+                    plt.text(0.05, 0.05, id_set, horizontalalignment='left', verticalalignment='center',
+                             transform=ax.transAxes, fontsize=ft_sz)  
+                    plt.text(0.05, 0.90, f'Pd: {d_mu_pd}, Ti: {round(d_mu_ti,3)}',
+                             horizontalalignment='left', verticalalignment='center', transform=ax.transAxes,fontsize=ft_sz)
+                    plt.xlim([-0.8, 0.])
+                    plt.ylim([-1., 0.25])
+                    i += 1
+                    ft_sz = 10
+                    if i % 5 == 1:
+                        plt.ylabel('Surface free energy', fontsize=ft_sz)
+                        plt.yticks([-1.00, -0.75, -0.50, -0.25, 0.00])
+                    else:
+                        plt.yticks([])
+                    if i > 20:
+                        plt.xlabel('Potential (V)', fontsize=ft_sz)
+                        plt.xticks([-0.6, -0.4, -0.2, 0.0])
+                    else:
+                        plt.xticks([])
+            st = plt.suptitle(f'Iter: {iter}, T={t} K, Pco={pco} Pa', fontsize=ft_sz)
+            fig.tight_layout(pad=0.2)
+            st.set_y(1.01)
+            plt.show()
+            fig.savefig(f'{path}/iter_{iter}_matrix_all_T_{t}_Pco_{pco}.png',dpi=300, bbox_inches='tight')
+    return cands, ids
+    
+
 def plot_surf_free_vs_U_contour(dfs, **kwargs):
-    """fix U, plot scores vs. U. only change chem. pot. of Pd and Ti"""
+    """fix U, plot scores vs. U. only change chem. pot. of Pd and Ti
+    Generat only one 5x5 matrix plot"""
     iter = kwargs['iter']
     d_mu_Pd = kwargs['d_mu_Pd']
     d_mu_Ti = kwargs['d_mu_Ti']

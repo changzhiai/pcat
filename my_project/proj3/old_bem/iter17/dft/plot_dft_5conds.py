@@ -17,7 +17,9 @@ import matplotlib.pyplot as plt
 import matplotlib.colors as mcolors
 from cores_conds import (plot_surf_free_vs_U, 
                          plot_surf_free_vs_U_matrix, 
-                         plot_surf_free_vs_U_contour)
+                         plot_surf_free_vs_U_contour,
+                         plot_surf_free_vs_U_matrix_all)
+import pickle
 
 def get_gas_free_energy(ads, T=298.15, P=3534., geometry='nonlinear'):
     energies = {}
@@ -213,6 +215,7 @@ def generate_tasks(save_to_files=False):
     return df
 
 def generate_csv(fittest_images, raw_niches, save_to_csv=False):
+    """Generate CSV for each images"""
     dfs = []
     for i, atoms in enumerate(fittest_images):
         # niches = atoms.info['data']['niches']
@@ -230,54 +233,45 @@ def generate_csv(fittest_images, raw_niches, save_to_csv=False):
         dfs.append(data)
     return dfs
 
-def plot_contour(images, iterations, U=-0.5):
+def plot_matrix_all_conds(images, iterations):
+    '''T->Pco->{matrix} return all candidates and ids at one iteration'''
     raw_niches = copy.deepcopy(niches)
     dfs = generate_csv(images, raw_niches, save_to_csv=False)  
-    d_mu_Pd = sorted(set(raw_niches['d_mu_Pd']), reverse=True)[:]
+    d_mu_Pd = sorted(set(raw_niches['d_mu_Pd']))[:]
     d_mu_Ti = sorted(set(raw_niches['d_mu_Ti']), reverse=True)[:]
-    P_CO = sorted(set(raw_niches['P_CO']))[3:4]
-    T = sorted(set(raw_niches['T']))[1:2]
+    P_CO = sorted(set(raw_niches['P_CO']))[:]
+    T = sorted(set(raw_niches['T']))[:]
     print({'d_mu_Pd': d_mu_Pd, 'd_mu_Ti': d_mu_Ti, 'P_CO': P_CO, 'T': T})
-    minuss, idss = plot_surf_free_vs_U_contour(dfs, **{'df_raw': raw_niches,
+    all_cands, all_ids = plot_surf_free_vs_U_matrix_all(dfs, **{'df_raw': raw_niches,
                                              'images':images, 
                                              'iter':iterations,
-                                             'gray_above': None, # no plot
+                                             'gray_above': True, 
                                              'd_mu_Pd': d_mu_Pd,
                                              'd_mu_Ti': d_mu_Ti,
                                              'P_CO': P_CO,
                                              'T': T,
                                              })
-    return minuss, idss
-
-def plt_contour_as_U(images, iterations, U=-0.5):
-    raw_niches = copy.deepcopy(niches)
-    Us = sorted(set(raw_niches['U']))
-    for U in Us:
-        print(f'Potential: {U}')
-        cands, ids = plot_contour(images, iterations, U=U)
+    return all_cands, all_ids
     
 
-def plot_5conds(images, iterations):
-    # df_raw = generate_tasks(save_to_files=False)
+def plot_SFE_at_One_Temp_and_Pco(images, iterations):
+    """Fix temperature=298.15 K and partial pressure of CO=5562.0 Pa"""
     raw_niches = copy.deepcopy(niches)
     dfs = generate_csv(images, raw_niches, save_to_csv=False)
-    # plot_scores_vs_U_with_pHs(dfs)
-    # plot_scores_vs_pH_with_Us(dfs)
-    
     d_mu_Pd = sorted(set(raw_niches['d_mu_Pd']))[:]
     d_mu_Ti = sorted(set(raw_niches['d_mu_Ti']), reverse=True)[:]
-    P_CO = sorted(set(raw_niches['P_CO']))[3:4]
-    T = sorted(set(raw_niches['T']))[1:2]
+    P_CO = sorted(set(raw_niches['P_CO']))[3:4] # 5562.0 Pa
+    T = sorted(set(raw_niches['T']))[1:2] # 298.15 K
     print({'d_mu_Pd': d_mu_Pd, 'd_mu_Ti': d_mu_Ti, 'P_CO': P_CO, 'T': T})
-    cands, ids = plot_surf_free_vs_U(dfs, **{'df_raw': raw_niches,
-                                              'images':images, 
-                                              'iter':iterations,
-                                              'gray_above': True,
-                                              'd_mu_Pd': d_mu_Pd,
-                                              'd_mu_Ti': d_mu_Ti,
-                                              'P_CO': P_CO,
-                                              'T': T,
-                                              })
+    _, _ = plot_surf_free_vs_U(dfs, **{'df_raw': raw_niches,
+                                               'images':images, 
+                                               'iter':iterations,
+                                               'gray_above': True,
+                                               'd_mu_Pd': d_mu_Pd,
+                                               'd_mu_Ti': d_mu_Ti,
+                                               'P_CO': P_CO,
+                                               'T': T,
+                                               })
     cands, ids = plot_surf_free_vs_U_matrix(dfs, **{'df_raw': raw_niches,
                                               'images':images, 
                                               'iter':iterations,
@@ -288,20 +282,38 @@ def plot_5conds(images, iterations):
                                               'T': T,
                                               })
     minuss, idss = plot_surf_free_vs_U_contour(dfs, **{'df_raw': raw_niches,
-                                             'images':images, 
-                                             'iter':iterations,
-                                             'gray_above': None, # no plot
-                                             'd_mu_Pd': d_mu_Pd,
-                                             'd_mu_Ti': d_mu_Ti,
-                                             'P_CO': P_CO,
-                                             'T': T,
-                                             })
+                                              'images':images, 
+                                              'iter':iterations,
+                                              'gray_above': None, # no plot
+                                              'd_mu_Pd': d_mu_Pd,
+                                              'd_mu_Ti': d_mu_Ti,
+                                              'P_CO': P_CO,
+                                              'T': T,
+                                              })  
+    # minuss, idss = [], []
     return cands, ids, minuss, idss 
 
+
+def write_list(n_list, iteration, name='all_ids.pkl'):
+    with open(f'./figures/matrix_all/iter_{iteration}/{name}', 'wb') as fp:
+        pickle.dump(n_list, fp)
+        print('Done writing list into a binary file')
+
+def read_list(iteration, name='all_ids.pkl'):
+    with open(f'./figures/matrix_all/iter_{iteration}/{name}', 'rb') as fp:
+        n_list = pickle.load(fp)
+        return n_list
+
+def flatten_list(n_list):
+    import itertools
+    n_list = list(itertools.chain(*n_list))
+    n_list = list(set(n_list))
+    return n_list
+    
+    
 if __name__ == '__main__':
     # niches = pd.read_pickle('em_tasks.pkl')
     # niches = generate_tasks(save_to_files=True)
-    # generate_tasks(save_to_files=True)
     niches = pd.read_csv('./data/em_tasks.csv')
     iter = 26
     for i in range(18,iter):
@@ -314,7 +326,19 @@ if __name__ == '__main__':
         else:
             print('reading images...')
             images = read(f'dft_iter_{i}.traj', ':')
-        cands, ids, minuss, idss = plot_5conds(images, i)
+        if False:
+            cands, ids, minuss, idss = plot_SFE_at_One_Temp_and_Pco(images, i)
+            print(cands, ids, minuss, idss)
+        if True: # generate matrix_all
+            all_cands, all_ids = plot_matrix_all_conds(images, i)
+            print(all_cands, all_ids)
+            write_list(all_ids, i, name='all_ids.pkl')
+            unique_ids = flatten_list(all_ids)
+            write_list(all_ids, i, name='all_unique_ids.pkl')
+            print(unique_ids, len(unique_ids))
+            
+        
+    
 
     
     
