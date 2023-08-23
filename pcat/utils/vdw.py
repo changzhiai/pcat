@@ -1,4 +1,6 @@
-""" Van der Waals radii in [A] taken from
+""" 
+Update a little bit from ase.
+Van der Waals radii in [A] taken from
 http://www.webelements.com/periodicity/van_der_waals_radius/
 and the references given there.
 Additional source 5 from http://de.wikipedia.org/wiki/Van-der-Waals-Radius
@@ -21,7 +23,6 @@ Additional source 5 from http://de.wikipedia.org/wiki/Van-der-Waals-Radius
    Christopher J. Cramer, Donald G. Truhlar Consistent van der Waals Radii
    for the Whole Main Group. In J. Phys. Chem. A. 2009, 113, 5806–5812,
    doi:10.1021/jp8111556
-
 """
 
 import numpy as np
