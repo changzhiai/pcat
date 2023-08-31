@@ -22,6 +22,7 @@ def lowercase_titles(filename, ):
 
 if __name__ == '__main__':
     lines_new = lowercase_titles(filename='bib.txt')
+    # write new biblatex
     with open('bib_new.txt', 'w') as f:
         for line in lines_new:
             f.write(line)
