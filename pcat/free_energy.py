@@ -104,7 +104,7 @@ class CO2RRFEDplot:
         if start_id != None and end_id != None:
             self.diagram.remove_link(start_id, end_id)
     
-    def plot(self, ax: plt.Axes = None, title='', save = False, legend=True, legendSize=14, text='', ratio=1.6181, ymin=None, ymax=None, **kwargs):
+    def plot(self, ax: plt.Axes = None, title='', save=False, legend=True, legendSize=14, text='', ratio=1.6181, ymin=None, ymax=None, **kwargs):
         """Plot free energy diagram without energy barrier"""
         if not ax:
             figFree = plt.figure(figsize=(8, 6), dpi = 300)
@@ -144,7 +144,7 @@ class CO2RRFEDplot:
         
 class CO2RRFED(CO2RRFEDplot):
     """New version of CO2RR free energy diagram using panda, and thus less varalbe would be used"""
-    def __init__(self, df, fig_name, **kwargs):
+    def __init__(self, df, fig_name, ColorDict=ColorDict, **kwargs):
         self.step_names = df.columns
         self.obser_names = df.index
         self.X = df.values

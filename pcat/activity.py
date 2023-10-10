@@ -409,11 +409,12 @@ class Activity:
         
         fig = plt.figure(figsize=(9, 6), dpi = 150)
         ax = plt.gca()
+        fontsize = 14
         contours = np.linspace(np.log10(jmin*TOF_to_j), np.log10(jmax*TOF_to_j), 11) 
         plt.contourf(Eb_CO_model, Eb_HOCO_model, R, contours, cmap=plt.cm.jet) # plot countour
         bar = plt.colorbar(ticks=np.arange(min(contours), max(contours), 0.5))
         bar.ax.tick_params(labelsize=10)
-        bar.set_label(r'log$_{10}$(j/$\mu$Acm$^{-2}$)', fontsize=14,)
+        bar.set_label(r'log$_{10}$(j/$\mu$Acm$^{-2}$)', fontsize=fontsize,)
         
         
         if xlim == None:
@@ -423,10 +424,10 @@ class Activity:
         self.plot_scaling_rev(Eb_CO_model, Eb_HOCO_model, xlim, ylim,text=text, tune_tex_pos=tune_tex_pos, ColorDict=ColorDict, **kwargs)
         
         plt.tick_params(labelsize=12) # tick label font size
-        plt.title(title, fontsize=14,)
-        plt.text(0.05, 0.93, subtitle, horizontalalignment='left', verticalalignment='center', transform=ax.transAxes, fontsize=14, color='white', fontweight='bold')        
-        plt.xlabel(r'$E_{\mathrm{*CO}}$ (eV)', fontsize=14,)
-        plt.ylabel(r'$E_{\mathrm{*HOCO}}$ (eV)', fontsize=14,)
+        plt.title(title, fontsize=fontsize,)
+        plt.text(0.05, 0.93, subtitle, horizontalalignment='left', verticalalignment='center', transform=ax.transAxes, fontsize=fontsize, color='white', fontweight='bold')        
+        plt.xlabel(r'$E_{\mathrm{*CO}}$ (eV)', fontsize=fontsize,)
+        plt.ylabel(r'$E_{\mathrm{*HOCO}}$ (eV)', fontsize=fontsize,)
         
         """add figure index in front of figure"""
         # import string

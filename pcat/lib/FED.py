@@ -120,7 +120,8 @@ class FED:
              ax: plt.Axes = None, title='', 
              ratio=1.6181, 
              ymin=None, 
-             ymax=None):
+             ymax=None,
+             **kwargs):
         """Plot energy diagram"""
         self.ratio = ratio
         self.ymin = ymin
@@ -136,12 +137,13 @@ class FED:
             # Constrain the target axis to have the proper aspect ratio
             self.ax.set_aspect(self.aspect)
             # self.ax.set_zorder(ax.get_zorder()-1)
-
-        ax.set_xlabel(xlabel, fontsize=14) # xlabel frontsize
-        ax.set_ylabel(ylabel, fontsize=14) # ylabel frontsize
+        fontsize = 16
+        labelsize = 14
+        ax.set_xlabel(xlabel, fontsize=fontsize) # xlabel frontsize
+        ax.set_ylabel(ylabel, fontsize=fontsize) # ylabel frontsize
         
-        ax.tick_params(axis="x", labelsize=12) # xtick frontsize
-        ax.tick_params(axis="y", labelsize=12) # ytick frontsize
+        ax.tick_params(axis="x", labelsize=labelsize) # xtick frontsize
+        ax.tick_params(axis="y", labelsize=labelsize) # ytick frontsize
         #ax.tick_params(labelsize=8)
         
         ax.axes.get_xaxis().set_visible(True)
@@ -151,7 +153,7 @@ class FED:
         
         # plt.xticks(rotation=45)
         
-        plt.title(title, fontsize=14)
+        plt.title(title, fontsize=fontsize)
         for axis in ['top','bottom','left','right']:
             ax.spines[axis].set_linewidth(1.2) # linewith of frame
 
