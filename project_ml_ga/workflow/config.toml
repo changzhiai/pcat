@@ -1,0 +1,156 @@
+[global]
+current_dir = './'
+system="PdTiH"
+start_iteration = 1
+verbose = false
+
+[train]
+folder = 'train'
+node_sizes = [116, 120, 124, 128, 132, 136, 140, 144]
+num_interactions = 3
+cutoff = 5.0
+val_ratio = 0.1
+output_dir = "model_output"
+init_dataset = '/home/energy/changai/bem/PdTiH/workflow/iter_0/dft_PdTiH_adss_r0_spc.traj'
+max_steps = 2000000
+device = "cuda"
+batch_size = 12
+initial_lr = 0.0001
+forces_weight = 0.98
+log_interval = 2000
+normalization = false
+atomwise_normalization = false
+stop_tolerance = 200
+plateau_scheduler = false
+random_seed = 3407
+printlog = 'printlog.txt'
+
+[train.resource]
+nodename = 'sm3090'
+tmax = '2d' 
+cores = 8
+
+[predict]
+folder = 'predict'
+device = 'cuda'
+# device = "cpu"
+init_traj = '/home/energy/changai/bem/PdTiH/workflow/iter_0/dft_PdTiH_adss_r0_init.traj'
+final_traj = '/home/energy/changai/bem/PdTiH/workflow/iter_0/dft_PdTiH_adss_r0_final.traj'
+fmax = 0.05
+max_steps = 500
+E_per_atoms = true
+predict_log = 'predict.log'
+error_log = 'error.log'
+save_db = "relax_ensemble.db"
+save_csv = "predict_ensemble.csv"
+fig_name = 'prediction.png'
+
+[predict.resource]
+nodename = 'sm3090'
+tmax = '2d' 
+cores = 8
+
+[ga]
+folder = 'ga'
+# continue_ga = true
+continue_ga = false
+use_init_db = false
+copy_to_scratch = false
+device = 'cuda'
+too_close_cutoff = 1.6 # 2.0
+db_name = 'ga_PdTiH.db'
+pop_size = 50
+temp_traj = '/home/scratch3/changai/bem/PdTiH/dft/ga_multitask_stable/template_2x2.traj'
+init_gen_traj = '/home/scratch3/changai/bem/PdTiH/dft/vasp_PdTiH_adss_r1_extra_init_undistor.traj' # for initial population
+# task_pkl = '/home/scratch3/changai/bem/PdTiH/dft/ga_multitask_stable/em_tasks.pkl'
+# task_pkl = '/home/scratch3/changai/bem/PdTiH/workflow/iter_0/em_tasks.pkl'
+task_pkl = "/home/scratch3/changai/bem/PdTiH/workflow/iter_17/ga_conditions/em_tasks.pkl"
+fmax = 0.1
+max_steps = 500
+max_gens = 20000
+repetition_convergence_times = 3
+basic_ga_log = 'log.basic_ga' # output
+db_name_dist='distortion_init.db'
+pop_log = 'pop_multitask.log'
+debug_traj = 'debug.traj'
+converged_file = 'Converged'
+fittest_images = 'fittest_images.traj'
+last_gen_images = 'last_gen_images.traj'
+cand_images = 'cand_images.traj'
+
+[ga.cuda]
+nodename = 'sm3090'
+tmax = '7d' 
+cores = 8
+
+[ga.cpu]
+nodename = 'xeon24'
+tmax = '2d' 
+cores = 24
+
+[pick]
+folder = 'pick'
+gen_all_dft_old_images = true
+pick_fittest = true
+pick_last_gen = true
+
+[pick.resource]
+nodename = 'sm3090'
+tmax = '2d' 
+cores = 8
+
+[dft]
+folder = 'dft'
+only_start_one = false
+fix_z_max = 2.0
+max_relax_times = 3
+start_poscar = 'POSCAR-start'
+start_traj = 'start.traj'
+final_traj = 'final.traj'
+remove_files = ['DOSCAR', 'XDATCAR','EIGENVAL', 'PROCAR', 'vasprun.xml', 'WAVECAR']
+
+[dft.relax]
+xc = 'beef-vdw'
+encut = 400
+ismear = 0
+ediff = 0.0001
+ediffg = -0.02
+sigma = 0.05
+isif = 2
+symprec = 1.0E-8
+isym = 0
+lasph = true
+kpts = [3, 3, 1]
+lorbit = 11
+amix = 0.02 # mixing parameter for the magnetization density
+bmix = 1
+amix_mag = 0.08
+bmix_mag = 1
+ldipol = true # dipol correction
+idipol = 3 # direction z
+nelm = 200
+lbeefens = true
+istart = 0 # following relax paras
+icharg = 2
+nsw = 1000
+ibrion = 2
+lreal = 'auto'
+ncore = 4
+lwave = false
+lcharg = false
+
+[dft.resource]
+nodename = 'xeon24'
+tmax = '2d' 
+cores = 24
+
+[collect]
+folder = 'collect'
+step = 10
+
+[collect.resource]
+nodename = 'sm3090'
+tmax = '2d' 
+cores = 8
+
+
