@@ -319,7 +319,7 @@ class Activity:
                                 tune_x, tune_y = 0, 0
                             if 'subscritpt' in kwargs and kwargs['subscritpt']==True:
                                 obser_name = subscript_chemical_formula(obser_name)
-                            plt.text(Eb_CO_d[i]+tune_x, Eb_HOCO_d[i]+default_bias+tune_y, obser_name, fontsize=12, \
+                            plt.text(Eb_CO_d[i]+tune_x, Eb_HOCO_d[i]+default_bias+tune_y, obser_name, fontsize=fontsize, \
                                      horizontalalignment='center', verticalalignment='bottom', color='white')
         if scaling:
             m, b = np.polyfit(Eb_HOCO_d, Eb_CO_d, 1)
@@ -409,12 +409,15 @@ class Activity:
         
         fig = plt.figure(figsize=(9, 6), dpi = 150)
         ax = plt.gca()
-        fontsize = 14
+        if 'fontsize' in kwargs:
+            fontsize = kwargs['fontsize']
+        else:
+            fontsize = 14
         contours = np.linspace(np.log10(jmin*TOF_to_j), np.log10(jmax*TOF_to_j), 11) 
         plt.contourf(Eb_CO_model, Eb_HOCO_model, R, contours, cmap=plt.cm.jet) # plot countour
         bar = plt.colorbar(ticks=np.arange(min(contours), max(contours), 0.5))
         bar.ax.tick_params(labelsize=10)
-        bar.set_label(r'log$_{10}$(j/$\mu$Acm$^{-2}$)', fontsize=fontsize,)
+        bar.set_label(r'log$_{10}$(j/$\mu$Acm$^{-2}$)', fontsize=fontsize+2,)
         
         
         if xlim == None:
@@ -423,11 +426,13 @@ class Activity:
             ylim = [min(Eb_HOCO_model), max(Eb_HOCO_model)]
         self.plot_scaling_rev(Eb_CO_model, Eb_HOCO_model, xlim, ylim,text=text, tune_tex_pos=tune_tex_pos, ColorDict=ColorDict, **kwargs)
         
-        plt.tick_params(labelsize=12) # tick label font size
+        plt.tick_params(labelsize=fontsize) # tick label font size
         plt.title(title, fontsize=fontsize,)
         plt.text(0.05, 0.93, subtitle, horizontalalignment='left', verticalalignment='center', transform=ax.transAxes, fontsize=fontsize, color='white', fontweight='bold')        
-        plt.xlabel(r'$E_{\mathrm{*CO}}$ (eV)', fontsize=fontsize,)
-        plt.ylabel(r'$E_{\mathrm{*HOCO}}$ (eV)', fontsize=fontsize,)
+        # plt.xlabel(r'$E_{\mathrm{*CO}}$ (eV)', fontsize=fontsize+2,)
+        # plt.ylabel(r'$E_{\mathrm{*HOCO}}$ (eV)', fontsize=fontsize+2,)
+        plt.xlabel('E(*CO) (eV)', fontsize=fontsize+2,)
+        plt.ylabel('E(*HOCO) (eV)', fontsize=fontsize+2,)
         
         """add figure index in front of figure"""
         # import string
