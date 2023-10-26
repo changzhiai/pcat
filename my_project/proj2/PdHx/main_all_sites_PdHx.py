@@ -833,9 +833,9 @@ if __name__ == '__main__':
                cutoff=2.8)
     
     if True: # plot
-        plot_free_enegy(xls_name, sheet_free_energy, fig_dir)
+        # plot_free_enegy(xls_name, sheet_free_energy, fig_dir)
         # plot_scaling_relations(xls_name, sheet_binding_energy, fig_dir)
-        plot_selectivity(xls_name, sheet_selectivity, fig_dir)
+        # plot_selectivity(xls_name, sheet_selectivity, fig_dir)
         plot_activity(xls_name, sheet_binding_energy, fig_dir)
     
     if False:
@@ -851,7 +851,7 @@ if __name__ == '__main__':
         plot_count_nn_stack(ads='CO')
         plot_count_nn_hist(ads='CO')
     
-    if True:
+    if False:
         for adsorbate in ['HOCO', 'CO', 'H', 'OH']:
         # for adsorbate in ['OH']:
             binding_energy_distribution(ads=adsorbate)

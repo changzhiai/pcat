@@ -562,8 +562,9 @@ def plot_ens_E_HOCO_E_H(xls_name, sheet_selectivity, fig_dir):
               }
     df_color = pd.DataFrame(tuples) # color list
     
-    size1=12; size2=12; fig = plt.figure(figsize=(8,7));
-    plt.xticks(fontsize = size2); plt.yticks(fontsize = size2); ax=fig.gca()
+    size1=12; fig = plt.figure(figsize=(8,7));
+    labal_size = 16
+    plt.xticks(fontsize = labal_size); plt.yticks(fontsize = labal_size); ax=fig.gca()
     
     plt.rcParams['grid.linewidth'] = 0.5
     for i,row in df.iterrows():
@@ -593,18 +594,21 @@ def plot_ens_E_HOCO_E_H(xls_name, sheet_selectivity, fig_dir):
             ax.annotate(i,
             xy=(np.asarray(Exval).mean(), np.asarray(Eyval).mean()), xycoords='data',
             xytext=((Exval).mean()+x_tune, np.asarray(Eyval).mean()+y_tune), textcoords='data',
-            arrowprops=dict(arrowstyle="->", connectionstyle="arc3")
+            arrowprops=dict(arrowstyle="->", connectionstyle="arc3"), fontsize=size1+2
             )
         else:
             x_tune, y_tune = 0, 0
-            ax.text(np.asarray(Exval).mean()+x_tune, np.asarray(Eyval).mean()+y_tune, i,color='black', fontsize=size1)
-        plt.xlabel('$\Delta${}'.format(x),fontsize=size2)
-        plt.ylabel('$\Delta${}'.format(y),fontsize=size2)
+            ax.text(np.asarray(Exval).mean()+x_tune, np.asarray(Eyval).mean()+y_tune, i,color='black', fontsize=size1+2)
+        plt.xlabel('{}'.format(x),fontsize=labal_size)
+        plt.ylabel('{}'.format(y),fontsize=labal_size)
+        # plt.xlabel('$\Delta${}'.format(x),fontsize=labal_size)
+        # plt.ylabel('$\Delta${}'.format(y),fontsize=labal_size)
         plt.xlim([-0.75,1.25])
         plt.xticks(np.arange(-0.75,1.25, step=0.25))
         plt.ylim([-0.75,1.25])
         plt.plot([-1,1.5],[-1,1.5],'k--',lw=2)
         plt.grid(True)
+        ax.yaxis.set_label_coords(-.105, .5)
         
 def plot_ens_scaling_relation(x, y, xls_name, sheet_selectivity, fig_dir):
     """Plot ensemble selectivity of CO2RR and HER"""
@@ -656,6 +660,7 @@ def plot_ens_scaling_relation(x, y, xls_name, sheet_selectivity, fig_dir):
         # ax=fig.gca()
         ax.add_patch(ellip)
         ax.text(np.asarray(Exval).mean(), np.asarray(Eyval).mean(), i,color='black', fontsize=size1)
+        size2 = 16
         plt.xlabel('$\Delta${}'.format(x),fontsize=size2)
         plt.ylabel('$\Delta${}'.format(y),fontsize=size2)
         # plt.xlim([-0.75,1.25])
@@ -865,8 +870,8 @@ if __name__ == '__main__':
                sheet_cons, sheet_name_allFE, sheet_selectivity, sheet_name_dGs)
     
     if False: # plot
-        plot_free_enegy(xls_name, sheet_free_energy, fig_dir)
-        plot_scaling_relations(xls_name, sheet_binding_energy, fig_dir)
+        # plot_free_enegy(xls_name, sheet_free_energy, fig_dir)
+        # plot_scaling_relations(xls_name, sheet_binding_energy, fig_dir)
         # plot_selectivity(xls_name, sheet_selectivity, fig_dir)
         plot_activity(xls_name, sheet_binding_energy, fig_dir)
     
@@ -877,12 +882,12 @@ if __name__ == '__main__':
         # plot_bar_H_distribution(save=False) # plot bar chart for each adsorbate
         
     if True:    
-        # plot_ens_E_HOCO_E_H(xls_name, sheet_selectivity, fig_dir)
+        plot_ens_E_HOCO_E_H(xls_name, sheet_selectivity, fig_dir)
         # plot_ens_scaling_relation('E(*HOCO)', 'E(*H)', xls_name, sheet_selectivity, fig_dir)
         # plot_ens_scaling_relation('E(*HOCO)', 'E(*CO)', xls_name, sheet_selectivity, fig_dir)
         # plot_ens_scaling_relation('E(*HOCO)', 'E(*OH)', xls_name, sheet_selectivity, fig_dir)
         # plot_ens_scaling_relation('E(*CO)', 'E(*OH)', xls_name, sheet_selectivity, fig_dir)
-        plot_ens_scaling_relation('E(*CO)', 'E(*H)', xls_name, sheet_selectivity, fig_dir)
+        # plot_ens_scaling_relation('E(*CO)', 'E(*H)', xls_name, sheet_selectivity, fig_dir)
         # plot_ens_scaling_relation('E(*OH)', 'E(*H)', xls_name, sheet_selectivity, fig_dir)
         
     # plot_line_H_distribution(save=False)

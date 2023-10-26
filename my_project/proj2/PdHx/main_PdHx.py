@@ -430,17 +430,17 @@ def plot_free_enegy(xls_name, sheet_free_energy, fig_dir):
     step_names = ['* + CO$_{2}$', 'HOCO*', 'CO*', '* + CO']  #reload step name for CO2RR
     df.set_axis(step_names, axis='columns', inplace=True)
     name_fig_FE = f'{fig_dir}/{system_name}_{sheet_free_energy}.jpg'
-    fig = plt.figure(figsize=(8, 6), dpi = 300)
+    fig = plt.figure(figsize=(8, 6), dpi=300)
     ax = fig.add_subplot(111)
     CO2RR_FED = CO2RRFED(df, fig_name=name_fig_FE)
-    CO2RR_FED.plot(ax=ax, save=False, title='')
-    plt.legend(loc='upper center', bbox_to_anchor=(0.5, -0.12), fancybox=True, shadow=True, ncol=5)
+    CO2RR_FED.plot(ax=ax, save=False, title='', )
+    plt.legend(loc='upper center', bbox_to_anchor=(0.4, -0.14), fancybox=True, shadow=True, ncol=5, fontsize=12)
     # plt.legend(loc = "lower left", bbox_to_anchor=(0.00, -0.50, 0.8, 1.02), ncol=5, borderaxespad=0)
     plt.show()
     fig.savefig(name_fig_FE, dpi=300, bbox_inches='tight')
     
 
-def plot_scaling_relations(xls_name, sheet_binding_energy, fig_dir):
+def plot_scaling_relations_old(xls_name, sheet_binding_energy, fig_dir):
     """
     Plot scaling relation by binding energy
     """
@@ -455,6 +455,37 @@ def plot_scaling_relations(xls_name, sheet_binding_energy, fig_dir):
     i = 0
     for m1 in range(M-1):
         for m2 in range(M):
+            ax = plt.subplot(M, M, m1*M + m2 + 1)
+            descriper1 = df.columns[col1[i]-2]
+            descriper2 = df.columns[col2[i]-2]
+            sr = ScalingRelation(df, descriper1, descriper2, fig_name=name_fig_BE)
+            sr.plot(ax = ax, save=False, 
+                    color_dict=True, 
+                    title='', 
+                    xlabel=descriper1, 
+                    ylabel=descriper2, 
+                    dot_color='red', 
+                    line_color='red',
+                    annotate=True,)
+            i+=1
+    plt.show()
+    fig.savefig(name_fig_BE, dpi=300, bbox_inches='tight')
+    
+def plot_scaling_relations(xls_name, sheet_binding_energy, fig_dir):
+    """
+    Plot scaling relation by binding energy
+    """
+    df = pd_read_excel(xls_name, sheet_binding_energy)
+    # df.drop(['Pd16Ti48H8', 'Pd16Ti48H24'], inplace=True)
+    col1 = [2, 2, 2, 3, 3, 5] # column in excel
+    col2 = [3, 5, 4, 5, 4, 4] # column in excel
+    
+    fig = plt.figure(figsize=(18, 16), dpi = 300)
+    name_fig_BE = f'{fig_dir}/{system_name}_{sheet_binding_energy}.jpg'
+    M  = 3
+    i = 0
+    for m1 in range(M):
+        for m2 in range(M-1):
             ax = plt.subplot(M, M, m1*M + m2 + 1)
             descriper1 = df.columns[col1[i]-2]
             descriper2 = df.columns[col2[i]-2]
@@ -836,6 +867,9 @@ if __name__ == '__main__':
     # system_name = 'collect_vasp_candidates_PdHx_CO_r7_COslab'
     # system_name = 'collect_vasp_candidates_PdHx_all_sites'
     system_name = 'collect_vasp_candidates_PdHx_all_sites_stdout'
+    # system_name = 'var_lc_collect_vasp_candidates_PdHx_r8'
+    # system_name = 'resize_collect_vasp_candidates_PdHx_r8'
+    # system_name = 'resize_opt_collect_vasp_candidates_PdHx_r8'
     
     # system_name = 'candidates_PdHx_sort' # candidates surface of CE
     # system_name = 'surface_vasp' # vasp 
@@ -845,7 +879,7 @@ if __name__ == '__main__':
     # system_name = 'collect_ce_init_PdHx_r2'
     # system_name = 'collect_vasp_candidates_PdHx' # 9 times
     # system_name = 'collect_vasp_coverage_H'
-    # system_name = 'dft_PdHx_lowest'
+    # system_name = 'dft_PdHx_lowest'sq
 
 
     ref_eles=['Pd', 'Ti']
@@ -872,12 +906,12 @@ if __name__ == '__main__':
             print('Data done')
         
         if True: # plot
-            plot_free_enegy(xls_name, sheet_free_energy, fig_dir)
-            plot_scaling_relations(xls_name, sheet_binding_energy, fig_dir)
+            # plot_free_enegy(xls_name, sheet_free_energy, fig_dir)
+            # plot_scaling_relations(xls_name, sheet_binding_energy, fig_dir)
             # plot_selectivity(xls_name, sheet_selectivity, fig_dir)
             plot_activity(xls_name, sheet_binding_energy, fig_dir)
         
-        if True:
+        if False:
             plot_BE_as_Hcons(xls_name, sheet_cons)
             # plot_cons_as_layers_with_ads(obj='H')
             # plot_bar_H_distribution(save=False)
@@ -890,7 +924,7 @@ if __name__ == '__main__':
             # plot_count_nn_stack(ads='CO')
             # plot_count_nn_hist(ads='CO')
         
-        if True: # statistical distribution
+        if False: # statistical distribution
             for adsorbate in ['HOCO', 'CO', 'H', 'OH']:
             # for adsorbate in ['OH']:
                 # binding_energy_distribution(ads=adsorbate)

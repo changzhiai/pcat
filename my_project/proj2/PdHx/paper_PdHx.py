@@ -442,7 +442,7 @@ def plot_free_enegy(xls_name, sheet_free_energy, fig_dir):
     fig.savefig(name_fig_FE, dpi=300, bbox_inches='tight')
     
 
-def plot_scaling_relations(xls_name, sheet_binding_energy, fig_dir):
+def plot_scaling_relations_old(xls_name, sheet_binding_energy, fig_dir):
     """
     Plot scaling relation by binding energy
     """
@@ -493,6 +493,63 @@ def plot_scaling_relations(xls_name, sheet_binding_energy, fig_dir):
                     ylabel=descriper2, 
                     dot_color='red', 
                     line_color='red',
+                    offsets=offsets,
+                    annotate=True,)
+            i+=1
+    plt.show()
+    fig.savefig(name_fig_BE, dpi=300, bbox_inches='tight')
+    
+def plot_scaling_relations(xls_name, sheet_binding_energy, fig_dir):
+    """
+    Plot scaling relation by binding energy
+    """
+    df = pd_read_excel(xls_name, sheet_binding_energy)
+    # df.drop(['Pd16Ti48H8', 'Pd16Ti48H24'], inplace=True)
+    col1 = [2, 2, 2, 3, 3, 5] # column in excel
+    col2 = [3, 5, 4, 5, 4, 4] # column in excel
+    
+    fig = plt.figure(figsize=(18, 16), dpi = 300)
+    name_fig_BE = f'{fig_dir}/{system_name}_{sheet_binding_energy}.jpg'
+    M  = 3
+    i = 0
+    for m1 in range(M):
+        for m2 in range(M-1):
+            ax = plt.subplot(M, M, m1*M + m2 + 1)
+            descriper1 = df.columns[col1[i]-2]
+            descriper2 = df.columns[col2[i]-2]
+            offsets={}
+            if i==0: # first subplot
+                offsets={'Pd64H13': [-0.15, -0.25], 'Pd64':[-0.04, -0.15], 
+                         'Pd64H4':[0.02, 0.05]}
+            elif i==1:
+                offsets={'Pd64H4':[0.0, 0.08], 'Pd64H62':[-0.1, 0.15], 
+                         'Pd64H53':[-0.2, 0.05]}
+            elif i==2:
+                offsets={'Pd64':[-0.04, -0.15], 'Pd64H2':[-0.05, 0.1], 
+                         'Pd64H4':[-0.1, 0.2], 'Pd64H10':[-0.1, 0.], 
+                         'Pd64H39':[-0.1, 0.10]}
+            elif i==3:
+                offsets={'Pd64':[-0.07, -0.2], 'Pd64H2':[0.05, 0.10], 
+                         'Pd64H4':[-0.15, 0.22], 'Pd64H8':[0.1, 0.05], 
+                         'Pd64H10':[-0.1, 0.1], 'Pd64H39':[-0.1, 0.10],
+                         'Pd64H64':[-0.1, 0.08]}
+            elif i==4:
+                offsets={'Pd64':[-0.08, -0.15], 'Pd64H2':[-0.14, 0.1], 
+                         'Pd64H4':[-0.1, 0.2], 'Pd64H8':[0.0, -0.15], 
+                         'Pd64H10':[-0.02, -0.1], 'Pd64H31':[-0.2, -0.1], }
+            elif i==5:
+                offsets={'Pd64':[-0.06, -0.12], 'Pd64H2':[-0.05, 0.1], 
+                         'Pd64H4':[-0.1, 0.2], 'Pd64H8':[0., -0.1], 
+                         'Pd64H10':[-0.13, 0.1], 'Pd64H31':[-0.12, -0.15],
+                         'Pd64H62':[-0.12, -0.15],}
+            sr = ScalingRelation(df, descriper1, descriper2, fig_name=name_fig_BE)
+            sr.plot(ax = ax, save=False, 
+                    color_dict=True, 
+                    title='', 
+                    xlabel=descriper1, 
+                    ylabel=descriper2, 
+                    dot_color='red', 
+                    line_color='blue',
                     offsets=offsets,
                     annotate=True,)
             i+=1
@@ -555,10 +612,13 @@ def plot_activity(xls_name, sheet_binding_energy, fig_dir):
                         pH2Og = 1., 
                         cHp0 = 10.**(-0.),
                         Gact=0.2, 
-                        p_factor = 3.6 * 10**4)
+                        p_factor = 3.6 * 10**4,
+                        )
     # activity.verify_BE2FE()
     tune_tex_pos={'Pd64H13':[-0.05, -0.1], 'Pd64':[-0.05, -0.02]}
-    activity.plot(save=True, tune_tex_pos=tune_tex_pos)
+    ColorDict = {'Pd64H64': 'red', 'Pd64H39': 'red', 'Pd64H63': 'red',}
+    # activity.plot(save=True, tune_tex_pos=tune_tex_pos, scaling=True, ColorDict=ColorDict)
+    activity.plot(save=True, tune_tex_pos=tune_tex_pos, scaling=True, ColorDict=ColorDict, **{'fontsize':14})
     # activity.plot(save=True, xlim=[-2.5, 2.5], ylim=[-2.5, 2.5])
     # activity.plot(save=True, xlim=[-1., 0], ylim=[-0.2, 1])
     # activity.plot(save=False, xlim=[-2.5, 2.5], ylim=[-2.5, 2.5])
@@ -816,7 +876,7 @@ def plot_count_nn_hist(ads='CO'):
         start, stop, spacing = -0.25, 2.75, 0.075
     # start, stop, spacing = -2, 2.5, 0.075
     bins = np.arange(start, stop, spacing)
-    colors = ('green', 'blue', 'orange', 'red', 'magenta'); fontsize = 14
+    colors = ('green', 'blue', 'orange', 'red', 'magenta'); fontsize = 16
     zorders=[1, 2, 3]
     plt.hist(hist_Pd_nn, bins, facecolor=colors[0], ec='black', alpha=0.75, histtype='stepfilled', zorder=zorders[0], label='Pd')
     # plt.hist(hist_Ti_nn, bins, facecolor=colors[1], ec='black', alpha=0.75, histtype='stepfilled', zorder=zorders[1], label='Ti')
@@ -948,8 +1008,8 @@ if __name__ == '__main__':
             print('Data done')
         
         if True: # plot
-            plot_free_enegy(xls_name, sheet_free_energy, fig_dir)
-            plot_scaling_relations(xls_name, sheet_binding_energy, fig_dir)
+            # plot_free_enegy(xls_name, sheet_free_energy, fig_dir)
+            # plot_scaling_relations(xls_name, sheet_binding_energy, fig_dir)
             # plot_selectivity(xls_name, sheet_selectivity, fig_dir)
             plot_activity(xls_name, sheet_binding_energy, fig_dir)
         
@@ -966,7 +1026,7 @@ if __name__ == '__main__':
             # plot_count_nn_stack(ads='CO')
             # plot_count_nn_hist(ads='CO')
         
-        if True: # statistical distribution
+        if False: # statistical distribution
             for adsorbate in ['HOCO', 'CO', 'H', 'OH']:
             # for adsorbate in ['OH']:
                 # binding_energy_distribution(ads=adsorbate)

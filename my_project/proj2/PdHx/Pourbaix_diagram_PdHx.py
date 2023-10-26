@@ -146,6 +146,7 @@ def plot_1d(xls_name_Pourbaix, SHE = True):
     print('total rows: ', len(df_all))
     formulas_set = df_all['formulas'].unique()
     # fig = plt.figure()
+    fontsize = 12
     for formu in formulas_set:
         df_sub = df_all[df_all['formulas']==formu]
         Us_sub = df_sub['Us']
@@ -171,10 +172,10 @@ def plot_1d(xls_name_Pourbaix, SHE = True):
         plt.axvspan(row['Us'].values[0], row['Us'].values[0]+.03, facecolor=color, alpha=1)
     
     if SHE: # SHE
-        plt.xlabel('$U_{SHE}$')
+        plt.xlabel('$U_{SHE}$', fontsize=fontsize)
     else: # RHE
-        plt.xlabel('$U_{RHE}$')
-    plt.ylabel('$\Delta G$ (eV/)')
+        plt.xlabel('$U_{RHE}$', fontsize=fontsize)
+    plt.ylabel('$\Delta G$ (eV/)', fontsize=fontsize)
     plt.legend(loc='upper right')
     plt.tight_layout()
     plt.xlim(U)
@@ -253,8 +254,9 @@ def plot_2d_scatter(xls_name_Pourbaix):
         if formu in formus:
             plt.scatter(-0.1, 0, c=color, marker='s', s=10, label=formu)
     plt.legend(loc='upper right')
-    plt.xlabel('pH')
-    plt.ylabel('$U_{SHE}$ (V)')
+    fontsize = 12
+    plt.xlabel('pH', fontsize=fontsize)
+    plt.ylabel('$U_{SHE}$ (V)', fontsize=fontsize)
     plt.tight_layout(pad=0.)
     plt.xlim(pH)
     plt.ylim(U)
@@ -289,7 +291,7 @@ def plot_Pd_num_vs_U(system_name, SHE=False, gen=True):
     
     df_min = pd_read_excel(filename=xls_name_Pourbaix, sheet=sheet_name_min)
     formulas_set = df_min['formulas'].unique()
-    # fig = plt.figure()
+    plt.figure(dpi=300)
     df_min_Us = pd.DataFrame()
     for formu in formulas_set:
         df_sub = df_min[df_min['formulas']==formu]
@@ -300,15 +302,18 @@ def plot_Pd_num_vs_U(system_name, SHE=False, gen=True):
             df_min_Us.to_excel(writer, sheet_name=sheet_name_min_Us_list, float_format='%.5f')
     print(df_min_Us)
     
+    fontsize = 12
     if SHE: # SHE
         # line = plt.scatter(df_min_Us['Us'], df_min_Us['num_Hs']/64., c=df_min_Us['color'])
         plt.plot(df_min_Us['Us'], df_min_Us['num_Hs']/64., 'ro-')
-        plt.xlabel('$U_{SHE}$ (V)')
+        plt.xlabel('$U_{SHE}$ (V)', fontsize=fontsize)
     else: # RHE
         plt.plot(df_min_Us['Us']+kB * T * pH * np.log(10), df_min_Us['num_Hs']/64, 'ro-')
         plt.plot([-0.57, -0.46734+kB * T * pH * np.log(10)], [39/64, 39/64], 'r--')
-        plt.xlabel('$U_{RHE}$')
-    plt.ylabel('x in $PdH_x$')
+        plt.xlabel('$U_{RHE}$', fontsize=fontsize)
+    plt.ylabel('x in $PdH_x$', fontsize=fontsize)
+    labal_size = 10
+    plt.xticks(fontsize = labal_size); plt.yticks(fontsize = labal_size)
     plt.show()
     
 if __name__ == '__main__':
@@ -336,7 +341,7 @@ if __name__ == '__main__':
     pH = 7.3
     # pourbaix_diagram(U, pH, gen=True)
     # pH = [0, 14]
-    # pourbaix_diagram(U, pH, SHE=True, gen=False)
-    plot_Pd_num_vs_U(system_name, SHE=False, gen=False)
+    pourbaix_diagram(U, pH, SHE=True, gen=False)
+    # plot_Pd_num_vs_U(system_name, SHE=False, gen=False)
     
     
