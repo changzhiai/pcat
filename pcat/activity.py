@@ -283,8 +283,9 @@ class Activity:
                     if tune_tex_pos==None:
                         if 'subscritpt' in kwargs and kwargs['subscritpt']==True:
                             obser_name = subscript_chemical_formula(obser_name)
-                        plt.text(Eb_CO_d[i], Eb_HOCO_d[i]+default_bias, obser_name, fontsize=fontsize, \
-                                 horizontalalignment='center', verticalalignment='bottom', color=color,zorder=10)
+                        if text:
+                            plt.text(Eb_CO_d[i], Eb_HOCO_d[i]+default_bias, obser_name, fontsize=fontsize, \
+                                     horizontalalignment='center', verticalalignment='bottom', color=color,zorder=10)
                     else:
                         names = tune_tex_pos.keys()
                         if obser_name in names:
@@ -294,8 +295,9 @@ class Activity:
                         else:
                             tune_x, tune_y = 0, 0
                         if tune_x == 0 and tune_y == 0:
-                            plt.text(Eb_CO_d[i]+tune_x, Eb_HOCO_d[i]+default_bias+tune_y, obser_name, fontsize=fontsize, \
-                                      horizontalalignment='center', verticalalignment='bottom', color=color,zorder=10)
+                            if text:
+                                plt.text(Eb_CO_d[i]+tune_x, Eb_HOCO_d[i]+default_bias+tune_y, obser_name, fontsize=fontsize, \
+                                          horizontalalignment='center', verticalalignment='bottom', color=color,zorder=10)
                         else:
                             if 'subscritpt' in kwargs and kwargs['subscritpt']==True:
                                 obser_name = subscript_chemical_formula(obser_name)
@@ -418,6 +420,7 @@ class Activity:
         bar = plt.colorbar(ticks=np.arange(min(contours), max(contours), 0.5))
         bar.ax.tick_params(labelsize=10)
         bar.set_label(r'log$_{10}$(j/$\mu$Acm$^{-2}$)', fontsize=fontsize+2,)
+        # bar.set_label(r'Electrochemical activity (log$_{10}$(j/$\mu$Acm$^{-2}$))', fontsize=fontsize+2,)
         
         
         if xlim == None:
@@ -433,6 +436,8 @@ class Activity:
         # plt.ylabel(r'$E_{\mathrm{*HOCO}}$ (eV)', fontsize=fontsize+2,)
         plt.xlabel('E(*CO) (eV)', fontsize=fontsize+2,)
         plt.ylabel('E(*HOCO) (eV)', fontsize=fontsize+2,)
+        # plt.xlabel('CO* binding energy (eV)', fontsize=fontsize+2,)
+        # plt.ylabel('HOCO* binding energy (eV)', fontsize=fontsize+2,)
         
         """add figure index in front of figure"""
         # import string
