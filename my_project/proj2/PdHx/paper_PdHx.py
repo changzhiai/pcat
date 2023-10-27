@@ -618,7 +618,7 @@ def plot_activity(xls_name, sheet_binding_energy, fig_dir):
     tune_tex_pos={'Pd64H13':[-0.05, -0.1], 'Pd64':[-0.05, -0.02]}
     ColorDict = {'Pd64H64': 'red', 'Pd64H39': 'red', 'Pd64H63': 'red',}
     # activity.plot(save=True, tune_tex_pos=tune_tex_pos, scaling=True, ColorDict=ColorDict)
-    activity.plot(save=True, tune_tex_pos=tune_tex_pos, scaling=True, ColorDict=ColorDict, **{'fontsize':14})
+    activity.plot(save=True, text=False, tune_tex_pos=tune_tex_pos, scaling=True, ColorDict=ColorDict, **{'fontsize':14})
     # activity.plot(save=True, xlim=[-2.5, 2.5], ylim=[-2.5, 2.5])
     # activity.plot(save=True, xlim=[-1., 0], ylim=[-0.2, 1])
     # activity.plot(save=False, xlim=[-2.5, 2.5], ylim=[-2.5, 2.5])
