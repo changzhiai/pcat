@@ -19,8 +19,8 @@ install_requires = [
 
 setup(
     name="pcat",
-    version='1.0',
-    description="plot for catalysis",
+    version='2.0',
+    description="Practical CAtalysis Toolkit",
     url="None",
     author="Changzhi Ai",
     author_email="changai@dtu.dk",

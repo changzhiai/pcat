@@ -1,2 +1,8 @@
+build
+dist
+docs
+examples
 pcat
+project_ce_mcsa
+project_ml_ga
 test
