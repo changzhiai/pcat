@@ -1,6 +1,9 @@
 # PCAT: **P**ractical **CA**talysis **T**oolkit
 
-Python toolkit package for analyzing, pre-processing and post-processing with density functional theory, cluster expansion, graph neural network, Monte Carlo simulated annealing, genetic algorithm, and active learning workflows in the field of catalysis.
+Python toolkit package for analyzing, pre-processing and post-processing with density functional theory, cluster expansion, graph neural network, Monte Carlo simulated annealing, genetic algorithm, and active learning workflows in the field of catalysis. 
+
+
+It includes support for advanced genetic algorithm operators and offers comprehensive analysis tools such as formation energy, free energy, 3D convex hull construction, scaling relations, activity volcano plots, Pourbaix diagrams, and projected density of states (PDOS).
 
 
 ## Installation
