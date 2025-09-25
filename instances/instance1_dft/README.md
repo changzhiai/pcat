@@ -1,6 +1,6 @@
 # High throughput screening across different elements
 
-High throughput screening of doping across transition elements in periodic table, and details can be found in this paper: [Changzhi Ai, Tejs Vegge and Heine Anton Hansen, _ChemSusChem_ **2022**, 15, e202200008.](https://doi.org/10.1002/cssc.202200008)
+High throughput screening of doping across transition elements in periodic table, and details can be found in [Jupyter-notebook](https://github.com/changzhiai/PlotPackage/blob/master/plotpackage/myproject/version3/Paper1_more_element.ipynb) and this paper: [Changzhi Ai, Tejs Vegge and Heine Anton Hansen, _ChemSusChem_ **2022**, 15, e202200008.](https://doi.org/10.1002/cssc.202200008)
 
 <img width="3408" height="784" alt="image" src="https://github.com/user-attachments/assets/e289d575-b561-4125-8968-332d618d53a7" />
 
