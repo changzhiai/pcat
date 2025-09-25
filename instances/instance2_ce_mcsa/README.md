@@ -1,6 +1,6 @@
 # Active learning cluster expansion and Monte Carlo simulated annealing
 
-Using density functional theory (DFT) calculations in combination with active learning cluster expansion and Monte Carlo simulated annealing to identify candidates.
+Using density functional theory (DFT) calculations in combination with active learning cluster expansion and Monte Carlo simulated annealing to identify candidates, and the details can be found in this paper: [Changzhi Ai, Jin Hyun Chang, Alexander Sougaard Tygesen, Tejs Vegge and Heine Anton Hansen, _Journal of Catalysis_, **2023**, 428, 115188.](https://doi.org/10.1016/j.jcat.2023.115188)
 
 
 <img width="866" height="1043" alt="image" src="https://github.com/user-attachments/assets/7454d935-7475-42d1-b725-bbe64f372df3" />
@@ -15,6 +15,8 @@ Using density functional theory (DFT) calculations in combination with active le
 ### 3. Identify the most stable structures in each concentration using Monte Carlo simulated annealing.
 <img width="1387" height="931" alt="image" src="https://github.com/user-attachments/assets/b0802239-2549-4ec9-9367-fdfa0f4b25ba" />
 <img width="1559" height="1050" alt="image" src="https://github.com/user-attachments/assets/39e818f7-5240-4554-9d4b-a637f107be33" />
+<img width="1640" height="585" alt="image" src="https://github.com/user-attachments/assets/c264dc16-d2cb-4a61-b683-a7a00888a180" />
+
 
 ### 4. Identify active candidates.
 <img width="1543" height="1110" alt="image" src="https://github.com/user-attachments/assets/ba9fc281-04ef-4f1b-87fc-d407d5863f73" />
