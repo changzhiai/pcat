@@ -1,9 +1,8 @@
 # PCAT: **P**ractical **CA**talysis **T**oolkit
 
-Python toolkit package for analyzing, pre-processing and post-processing with density functional theory, cluster expansion, graph neural network, Monte Carlo simulated annealing, genetic algorithm, and active learning workflows in the field of catalysis. 
+Python toolkit package for analyzing, pre-processing and post-processing with **density functional theory**, **cluster expansion**, **graph neural network**, **Monte Carlo simulated annealing**, **genetic algorithm**, and **active learning workflows** in the field of catalysis. 
 
-
-It includes support for advanced genetic algorithm operators and offers comprehensive analysis tools such as formation energy, free energy, 3D convex hull construction, scaling relations, activity volcano plots, Pourbaix diagrams, and projected density of states (PDOS). Some examples can be found in `examples` folder. Especally, active learning workflow can be found in [`workflow`](https://github.com/changzhiai/pcat/tree/master/instances/instance4_ml_ga/workflow).
+It supports advanced genetic algorithm operators and provides a comprehensive suite of analysis tools, including **formation energy**, **free energy**, **3D convex hull construction**, **scaling relations**, **activity volcano** plots, **Pourbaix diagrams**, and **projected density of states** (PDOS). Some examples can be found in `examples` folder. Especally, **active learning workflow** can be found in [`workflow`](https://github.com/changzhiai/pcat/tree/master/instances/instance4_ml_ga/workflow).
 
 
 ## Installation
@@ -41,4 +40,4 @@ It includes support for advanced genetic algorithm operators and offers comprehe
     [Graph neural network-accelerated multitasking genetic algorithm for optimizing Pd<sub>x</sub>Ti<sub>1-x</sub>H<sub>y</sub> surfaces under various CO<sub>2</sub> reduction reaction conditions. Changzhi Ai, Shuang Han, Xin Yang, Tejs Vegge and Heine Anton Hansen, _ACS Appl. Mater. Interfaces_, **2024**, 16, 12563–12572.](https://doi.org/10.1021/acsami.3c18734)
 
 ## Contact
-Changzhi Ai (changai@dtu.dk) at the Section of Atomic Scale Materials Modelling, Department of Energy Conversion and Storage, Technical University of Denmark.
+Changzhi Ai (changzhi@stanford.edu/changai@dtu.dk) was at the Section of Atomic Scale Materials Modelling, Department of Energy Conversion and Storage, Technical University of Denmark. He is currently a postdoctoral reasearcher, SUNCAT Center for Interface Science and Catalysis, Stanford University & SLAC National Accelerator Laboratory, USA.
