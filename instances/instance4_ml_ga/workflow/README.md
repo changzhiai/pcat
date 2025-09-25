@@ -79,7 +79,36 @@ These parameters define **environment-specific tasks** for the MTGA, ensuring th
 - **Mixed-adsorbate** structure discovery  
 - **Adsorption energy** and reactivity prediction  
 - **Reaction pathway** screening under variable conditions  
-- Autonomous **materials discovery workflows**  
+- Autonomous **materials discovery workflows**
+
+## Example Application
+
+1. Calculate Phase diagram and chemical potential diagram of Pt-Ti-H system based on energy of all possible bulk structures.
+   
+<img width="1851" height="771" alt="image" src="https://github.com/user-attachments/assets/294e0535-be2d-4ab6-a705-bf98ac3de54a" />
+
+2. Consider phase equilibrium between alloy surfaces and different adsorbates.
+<img width="1690" height="826" alt="image" src="https://github.com/user-attachments/assets/b4c305c0-34ca-459a-b25e-046acbecc125" />
+
+3. Do global optimization with multitasking genetic alogorithm for alloy surfaces with various adsorbates under differen reaction conditions.
+<img width="1977" height="1372" alt="image" src="https://github.com/user-attachments/assets/aa15eb7a-29d5-48ca-ac96-09b56957001b" />
+
+4. Do active learning.
+<img width="1605" height="650" alt="image" src="https://github.com/user-attachments/assets/ce3f0f62-ae8f-4968-b45a-8d3e394b18c5" />
+<img width="1831" height="687" alt="image" src="https://github.com/user-attachments/assets/c46d17a0-7c19-478f-998b-3641f24e7caf" />
+
+
+5. Analyze surface free energy as a function of state variables between the chemical potential differences, applied potentials, temperature, and partial pressure.
+<img width="1329" height="1125" alt="image" src="https://github.com/user-attachments/assets/41150dc0-b237-4e66-b5e3-3151ae015709" />
+<img width="1903" height="942" alt="image" src="https://github.com/user-attachments/assets/d1e59ab4-ec8d-49a1-bf74-0512a8fe3aac" />
+
+6. Get the active candidates from high throughput screening with multitasking global optimization.
+<img width="4874" height="3765" alt="image" src="https://github.com/user-attachments/assets/a2df20b5-1abb-49fe-a44c-13ba4494b865" />
+
+
+
+
+
 
 
 
